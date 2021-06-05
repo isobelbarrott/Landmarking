@@ -1,0 +1,186 @@
+
+---
+title: "How to use the R package 'Landmarking'"
+author: Isobel Barrott
+date: "2nd June 2021"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{How to use the R package 'Landmarking'}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+```{r 1,echo=FALSE}
+knitr::opts_chunk$set(cache=TRUE,collapse=TRUE, comment="#>")
+```
+##What is landmarking?
+
+
+##Performing a landmarking analysis using the R package 'Landmarking'
+
+### Exploring the datasets
+
+First of all, let's take a look at the datasets we are going to analyse.
+
+There are two datasets:
+
+* `data_repeats` contains repeat measurement data from cardiovascular disease (CVD) risk assessments. Each row corresponds to a different assessment and an individual may have multiple assessments. The dataset `data_repeat` contains information about an indivdual's ethnicity, smoking status, diabetes, deprivation score, diagnosis of atrial fibrillation, and standardised systolic blood pressure (SBP). These were recorded on the date specified in `response_date_sbp_stnd`. The standardised total cholesterol to high density lipoprotein (HDL) ratio is also recorded as part of the assessment but was recorded on the date specified in `response_date_tchdl_stnd`.
+
+* `data_outcomes` contains CVD event data, indicating the time and status of event that an individual experiences. There are three types of events: censoring (this is due to loss to follow-up or the end of the study on, indicated by status `0`), CVD event (indicated by status `1`), or death from other causes (indicated by status `2`).
+
+Both datasets contain column `id` which specifies the patient identifier which is unique to a patient. 
+
+```{r 2}
+library(Landmarking)
+set.seed(1)
+head(data_repeat)
+head(data_outcomes)
+
+```
+
+Looking further at these datasets we see that there are `r length(unique(data_repeat$id))` patients in this study, each with an average of `r mean(table(data_repeat$id))` repeat measurements.
+
+```{r 3}
+length(unique(data_repeat$id)) 
+mean(table(data_repeat$id))
+```
+
+Moreover, we can see the breakdown of event status
+
+```{r 4}
+table(data_outcomes$event_status)
+```
+
+So `r length(which(data_outcomes$event_status==1))` patients in the study (out of 10000) experienced a CVD event and `r length(which(data_outcomes$event_status==2))` experienced death from other causes.
+
+
+###Setting up the analysis
+
+To use the Landmarking package, the datasets need to be in a certain format.
+
+Firstly, instead of the date of the CVD assessment being recorded, the age of the patient should be recorded.
+
+```{r 5}
+data_repeat$response_time_tchdl_stnd<-
+    as.numeric((as.Date(data_repeat$response_date_tchdl_stnd,format="yyyy-mm-dd")-as.Date(data_repeat$dob,format="yyyy-mm-dd"))/365.25)
+data_repeat$response_time_sbp_stnd<-
+    as.numeric((as.Date(data_repeat$response_date_sbp_stnd,format="yyyy-mm-dd")-as.Date(data_repeat$dob,format="yyyy-mm-dd"))/365.25)
+```
+
+Secondly, the two datasets `data_repeat` and `data_outcomes` need to be combined so that they are contained within one data frame.
+
+```{r 6}
+data_repeat_outcomes<-dplyr::left_join(data_repeat,data_outcomes,by="id")
+head(data_repeat_outcomes)
+```
+
+## Landmarking analysis
+
+To perform this analysis we need to create a dataset to input as into the functions `fit_LOCF_landmark_model` and `fit_LME_landmark_model`. To do this we must create a suitable dataset which contains the individuals in the risk set at the landmark time. For this analysis we are looking at landmark time 60 years old, and at predicting risk at horizon time 65 years old.
+
+The function `create_landmark_dataset` selects the patients that are in the risk set (i.e. have entered the study and have not been censored or had an event up until the landmark time).
+
+```{r 7}
+data_landmark<-create_landmark_dataset(data=data_repeat_outcomes,
+                                     x_L=60,
+                                     assessment_time="response_time_sbp_stnd",
+                                     patient_id="id",
+                                     event_time="event_time",
+                                     event_status="event_status"
+                                     )
+#usethis::use_data(data_landmark,overwrite = TRUE)
+length(unique(data_landmark$id))
+```
+So `r length(unique(data_landmark$id))` individuals are in the risk set at 60 years old.
+
+
+So it seems as though we are almost ready to perform the landmarking analysis using LOCF and LME. However, one issue is the presence of `NA` values. For example,
+there are `r table(is.na(data_repeat_outcomes$tchdl_stnd))[2]` (`r round(table(is.na(data_repeat_outcomes$tchdl_stnd))[2]*100/sum(table(is.na(data_repeat_outcomes$tchdl_stnd))),2)`)% CVD assessments that have missing values for total cholesterol to HDL ratio.
+
+```{r 8}
+table(is.na(data_repeat_outcomes$tchdl_stnd))
+```
+
+  This means there may be individuals with no LOCF at the landmark times. As there is only a small number of individuals with  is probably best to remove these from the dataset. It should be noted that to compare the LOCF and LME models the same dataset should be used, even through the LME model is able to handle missing values in the random effects component.
+
+Helpfully, the `landmarking` package contains a function `return_ids_with_LOCF` to create a dataset with individuals with a LOCF for all variables contained in the parameters `covariates`at landmark time `x_L`.
+
+```{r 9}
+data_landmark<-return_ids_with_LOCF(data=data_landmark,patient_id="id",covariates=c("ethnicity","smoking","diabetes","deprivation","atrial_fibrillation","sbp_stnd","tchdl_stnd"),covariates_time=c(rep("response_time_sbp_stnd",6),"response_time_tchdl_stnd"),x_L=60)
+length(unique(data_landmark$id))
+```
+
+We now have the group of patients for landmark time 60 years old. We would also like to use cross-validation in the landmark analysis. The function `add_cv_number` assigns each individual in a dataset a k-fold cross-validation number. This allows us to ensure that the same cross validation groups are used for different models.
+
+```{r 10}
+data_landmark_cv<-add_cv_number(data=data_landmark, patient_id="id", k=10)
+#usethis::use_data(data_landmark_cv,overwrite = TRUE)
+```
+We are now ready to perform the landmarking analysis.
+
+```{r 11}
+data_model_landmark_LOCF<-fit_LOCF_landmark_model(data=data_landmark_cv,
+                                                      x_L=60,
+                                                      x_hor=65,
+                                                      covariates=c("ethnicity","smoking","diabetes","deprivation","atrial_fibrillation","sbp_stnd","tchdl_stnd"),
+                                                      covariates_time=c(rep("response_time_sbp_stnd",6),"response_time_tchdl_stnd"),
+                                                      cv_name="cross_validation_number",
+                                                      patient_id="id",
+                                                      event_time="event_time",
+                                                      event_status="event_status",
+                                                      cr_method = "cause_specific")
+#usethis::use_data(data_model_landmark_LOCF,overwrite = TRUE)
+```
+
+
+
+These will be the fixed effects in the LME model. On the other hand, the variables standardised systolic blood pressure (SBP) and standardised total cholesterol to high density lipoprotein (HDL) ratio will be included as random effects in the LME model.   
+
+```{r 12}
+# data_model_landmark_LME<-fit_LME_landmark_model(data=data_landmark_cv,
+#                                                     x_L=x_L,
+#                                                     x_hor=x_hor,
+#                                                     fixed_effects=c("ethnicity","smoking","diabetes","deprivation","atrial_fibrillation"),
+#                                                     fixed_effects_time=fixed_effects_time_col,
+#                                                     random_effects=random_effects_col,
+#                                                     random_effects_time=random_effects_time_col,
+#                                                     cv_name="cross_validation_number",
+#                                                     patient_id=patient_id_col,
+#                                                     standardise_time = TRUE,
+#                                                     lme_control = nlme::lmeControl(maxIter=100,msMaxIter=100),
+#                                                     event_time="event_time",
+#                                                     event_status="event_status",
+#                                                     cr_method = "cause_specific")
+```
+
+```{r 13}
+# data_landmark_LOCF<-data_model_landmark_LOCF$data
+# model_assessment_LOCF<-get_model_assessment(data=data_landmark_LOCF,
+#            patient_id="id",
+#            event_prediction="event_prediction",
+#            event_status="event_status",
+#            event_time="event_time",
+#            x_hor=65,
+#            return_c_index = TRUE,
+#            return_brier_score = TRUE,
+#            b=10,
+#            standard_error = TRUE)
+```
+
+
+```{r 14}
+# data_landmark_LME<-data_model_landmark_LME$data
+# model_assessment_LME<-get_model_assessment(data=data_landmark_LME,
+#            patient_id=patient_id_col,
+#            event_prediction="event_prediction",
+#            event_status="event_status",
+#            event_time="event_time",
+#            x_hor=x_hor,
+#            return_c_index = TRUE,
+#            return_brier_score = TRUE,
+#            b=100,
+#            standard_error = TRUE)
+```
+
+

@@ -1,0 +1,41 @@
+Package: Landmarking
+Title: Performs analysis using the landmarking approach
+Version: 0.0.0.9000
+Authors@R: c(
+    person(given = "Isobel",
+           family = "Barrott",
+           role = c("aut", "cre"),
+           email = "isobel.barrott@gmail.com"),
+    person(given = "Jessica",
+           family = "Barrett",
+           role = c("aut"),
+           email = "jessica.barrett@mrc-bsu.cam.ac.uk"))
+Description: The landmarking approach allows survival predictions to be
+	updated dynamically as new measurements from an individual are recorded.
+	The idea is to set pre-defined time points, known as "landmark times",
+	and form a model at each landmark time using only the individuals in the
+	risk set. This package allows the longitudinal data to be modelled
+	either using the last observation carried forward or linear mixed
+	effects modelling. There is also the option to model competing risks,
+	either through cause-specific Cox regression or Fine-Gray regression.
+License: GPL (>= 2)
+Encoding: UTF-8
+LazyData: true
+LazyDataCompression: bzip2
+Imports:
+	nlme,
+	riskRegression,
+	dplyr,
+	pec,
+	methods,
+	prodlim,
+	stats,
+	survival
+RoxygenNote: 7.1.1
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+Depends: 
+    R (>= 2.10)
+Roxygen: list(markdown = TRUE)
