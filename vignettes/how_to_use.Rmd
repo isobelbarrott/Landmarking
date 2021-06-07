@@ -16,6 +16,7 @@ knitr::opts_chunk$set(cache=TRUE,collapse=TRUE, comment="#>")
 ```
 ##What is landmarking?
 
+...
 
 ##Performing a landmarking analysis using the R package 'Landmarking'
 
@@ -25,9 +26,9 @@ First of all, let's take a look at the datasets we are going to analyse.
 
 There are two datasets:
 
-* `data_repeats` contains repeat measurement data from cardiovascular disease (CVD) risk assessments. Each row corresponds to a different assessment and an individual may have multiple assessments. The dataset `data_repeat` contains information about an indivdual's ethnicity, smoking status, diabetes, deprivation score, diagnosis of atrial fibrillation, and standardised systolic blood pressure (SBP). These were recorded on the date specified in `response_date_sbp_stnd`. The standardised total cholesterol to high density lipoprotein (HDL) ratio is also recorded as part of the assessment but was recorded on the date specified in `response_date_tchdl_stnd`.
+* `data_repeats` contains repeat measurement data from cardiovascular disease (CVD) risk assessments. Each row corresponds to a different assessment and an individual may have multiple assessments. The dataset `data_repeat` contains information about an individual's ethnicity, smoking status, diabetes, deprivation score, diagnosis of atrial fibrillation, and standardised systolic blood pressure (SBP). These were recorded on the date specified in `response_date_sbp_stnd`. The standardised total cholesterol to high density lipoprotein (HDL) ratio is also recorded as part of the assessment but was recorded on the date specified in `response_date_tchdl_stnd`, this is up to a month after the other variables were measured.
 
-* `data_outcomes` contains CVD event data, indicating the time and status of event that an individual experiences. There are three types of events: censoring (this is due to loss to follow-up or the end of the study on, indicated by status `0`), CVD event (indicated by status `1`), or death from other causes (indicated by status `2`).
+* `data_outcomes` contains CVD event data, indicating the time and status of event that each individual experiences. There are three types of events: censoring (this is due to loss to follow-up or the end of the study on, indicated by status `0`), CVD event (indicated by status `1`), or death from other causes (indicated by status `2`). 
 
 Both datasets contain column `id` which specifies the patient identifier which is unique to a patient. 
 
