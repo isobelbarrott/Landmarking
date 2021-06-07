@@ -92,7 +92,38 @@ This function performs the two-stage landmarking analysis. In the first stage, t
 second stage the survival submodel is fitted.
 }
 \details{
-dfsdfdsfsd
+For an individual \eqn{i}, the LME model can be written as
+
+\deqn{Y_i = X_i \beta + Z_i U_i + \epsilon_i}
+
+where
+\itemize{
+\item \eqn{Y_i} is the vector of outcomes at different time points for the individual
+\item \eqn{X_i} is the matrix of covariates for the fixed effects at these time points
+\item \eqn{\beta} is the vector of coefficients for the fixed effects
+\item \eqn{Z_i} is the matrix of covariates for the random effects
+\item \eqn{U_i} is the matrix of coefficients for the random effects
+\item \eqn{\epsilon_i} is the error term, typically from N(0, \eqn{\sigma})
+}
+
+By using an LME model to fit repeat measures data we can allow measurements from the same individuals to be
+more similar than measurements from different individuals. This is done through the random intercept and/or
+random slope.
+
+Extending this model to the case where there are multiple random effects, denoted \eqn{k}
+
+\deqn{Y_{ik} = X_{ik} \beta_k + Z_{ik} U_{ik} + \epsilon_{ik}}
+
+Using this model we can allow a covariance structure within the random effects term \eqn{U_{ik}} by assuming it has the
+multivariate normal (MVN) distribution \eqn{MVN(0,\Sigma_u)}. This means information from one random effects variable informs about the
+value of the other random effects variables, leading to more accurate predictions and allowing there to be missing data in the
+random effects variables.
+
+For the survival submodel, there are three choices of model: the standard Cox model, the cause-specific model and the Fine Gray model.
+The latter two models estimate the probability of the event of interest in the presence of competing events.
+
+The longitudinal model produces a set of covariates for each individual which is used within the survival model. These covariates are
+contained in the data frame \code{data} that are returned by this function.
 }
 \examples{
 \dontrun{2^3}
