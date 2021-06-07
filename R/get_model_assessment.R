@@ -39,10 +39,17 @@
 #'
 #'
 #' @author Isobel Barrott \email{isobel.barrott@@gmail.com}
-#' @examples \dontrun{data(data_model_longitudinal_LOCF)
-#'    get_model_assessment(data,patient_id,event_prediction,event_status,
-#'    event_time,x_hor,return_c_index = TRUE,return_brier_score = TRUE,
-#'    b,standard_error = FALSE)}
+#' @examples \dontrun{data(data_landmark_LOCF)
+#' get_model_assessment(data=data_landmark_LOCF,
+#'   patient_id="id",
+#'   event_prediction="event_prediction",
+#'   event_status="event_status",
+#'   event_time="event_time",
+#'   x_hor=65,
+#'   return_c_index = TRUE,
+#'   return_brier_score = TRUE,
+#'   b=10,
+#'   standard_error = TRUE)}
 #' @export
 
 get_model_assessment <-

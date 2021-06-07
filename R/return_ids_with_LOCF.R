@@ -15,7 +15,12 @@
 #' @template covariates_time
 #' @return Data frame `data` updated to contain only rows of individuals with a LOCF at age `x_L`, other rows are removed
 #' @author Isobel Barrott \email{isobel.barrott@@gmail.com}
-#' @examples \dontrun{2^2}
+#' @examples data(data_repeat_outcomes)
+#' data_landmark<-return_ids_with_LOCF(data=data_landmark,
+#'   patient_id="id",
+#'   covariates=c("ethnicity","smoking","diabetes","deprivation","atrial_fibrillation","sbp_stnd","tchdl_stnd"),
+#'   covariates_time=c(rep("response_time_sbp_stnd",6),"response_time_tchdl_stnd"),
+#'   x_L=60)
 #' @export
 
 

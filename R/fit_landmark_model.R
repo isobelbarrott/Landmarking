@@ -647,24 +647,28 @@ fit_survival_model <- function(data,
 #'   patient_id="id",
 #'   event_time="event_time",
 #'   event_status="event_status")
-#' data_landmark<-return_ids_with_LOCF(data=data_landmark,patient_id="id",
+#' data_landmark<-return_ids_with_LOCF(data=data_landmark,
+#'   patient_id="id",
 #'   covariates=c("ethnicity","smoking","diabetes","deprivation","atrial_fibrillation","sbp_stnd","tchdl_stnd"),
-#'   covariates_time=c(rep("response_time_sbp_stnd",6),"response_time_tchdl_stnd"),x_L=60)
-#' data_landmark_cv<-add_cv_number(data=data_landmark, patient_id="id", k=10)
+#'   covariates_time=c(rep("response_time_sbp_stnd",6),"response_time_tchdl_stnd"),
+#'   x_L=60)
+#' data_landmark_cv<-add_cv_number(data=data_landmark,
+#'   patient_id="id",
+#'   k=10)
 #' data_model_landmark_LME<-fit_LME_landmark_model(data=data_landmark_cv,
-#'                                                 x_L=60,
-#'                                                 x_hor=65,
-#'                                                 fixed_effects=c("ethnicity","smoking","diabetes","deprivation","atrial_fibrillation"),
-#'                                                 fixed_effects_time="response_time_sbp_stnd",
-#'                                                 random_effects=c("sbp_stnd","tchdl_stnd"),
-#'                                                 random_effects_time=c("response_time_sbp_stnd","response_time_tchdl_stnd"),
-#'                                                 cv_name="cross_validation_number",
-#'                                                 patient_id="id",
-#'                                                 standardise_time = TRUE,
-#'                                                 lme_control = nlme::lmeControl(maxIter=100,msMaxIter=100),
-#'                                                 event_time="event_time",
-#'                                                 event_status="event_status",
-#'                                                 cr_method = "cause_specific")
+#'   x_L=60,
+#'   x_hor=65,
+#'   fixed_effects=c("ethnicity","smoking","diabetes","deprivation","atrial_fibrillation"),
+#'   fixed_effects_time="response_time_sbp_stnd",
+#'   random_effects=c("sbp_stnd","tchdl_stnd"),
+#'   random_effects_time=c("response_time_sbp_stnd","response_time_tchdl_stnd"),
+#'   cv_name="cross_validation_number",
+#'   patient_id="id",
+#'   standardise_time = TRUE,
+#'   lme_control = nlme::lmeControl(maxIter=100,msMaxIter=100),
+#'   event_time="event_time",
+#'   event_status="event_status",
+#'   cr_method = "cause_specific")
 #' }
 #' @importFrom stats as.formula
 #' @importFrom prodlim Hist
@@ -830,10 +834,14 @@ fit_LME_landmark_model<-function(data,
 #'   patient_id="id",
 #'   event_time="event_time",
 #'   event_status="event_status")
-#' data_landmark<-return_ids_with_LOCF(data=data_landmark,patient_id="id",
+#' data_landmark<-return_ids_with_LOCF(data=data_landmark,
+#'   patient_id="id",
 #'   covariates=c("ethnicity","smoking","diabetes","deprivation","atrial_fibrillation","sbp_stnd","tchdl_stnd"),
-#'   covariates_time=c(rep("response_time_sbp_stnd",6),"response_time_tchdl_stnd"),x_L=60)
-#' data_landmark_cv<-add_cv_number(data=data_landmark, patient_id="id", k=10)
+#'   covariates_time=c(rep("response_time_sbp_stnd",6),"response_time_tchdl_stnd"),
+#'   x_L=60)
+#' data_landmark_cv<-add_cv_number(data=data_landmark,
+#'   patient_id="id",
+#'   k=10)
 #' data_model_landmark_LOCF<-fit_LOCF_landmark_model(data=data_landmark_cv,
 #'   x_L=60,
 #'   x_hor=65,
