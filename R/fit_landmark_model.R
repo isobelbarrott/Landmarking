@@ -354,20 +354,12 @@ fit_LME_longitudinal_model <- function(data,
   data_LME<-data_LME[match(unique(data[[patient_id]]),data_LME[[patient_id]]),]
   data_LME<-data_LME[,order(match(names(data_LME),names(data)))]
   rownames(data_LME)<-NULL
-  if(standardise_time==TRUE){
-    return(list(
-      data_longitudinal = data_LME,
-      model_longitudinal = model_LME,
-      call = call,
-      standardise_time_mean=mean_response_time,
-      standardise_time_sd=sd_response_time
-    ))
-  }else{
-    return(list(
+
+  return(list(
       data_longitudinal = data_LME,
       model_longitudinal = model_LME,
       call = call
-    ))}
+    ))
 }
 
 fit_survival_model <- function(data,
@@ -427,7 +419,7 @@ fit_survival_model <- function(data,
           as.formula(paste0("Surv(", event_time, ", ", event_status, "==1) ~",
                             paste0(covariates, collapse = "+")))
         model_survival <- coxph(formula_survival, data = data_train)
-        data_test$event_prediction <-1 - exp(-stats::predict(model_survival, type = "expected", newdata = data_test))
+        data_test$event_prediction <-pec::predictSurvProb.coxph(model_survival, times = x_hor, newdata = data_test)
       }
 
       if (cr_method == "cause_specific") {
@@ -495,7 +487,7 @@ fit_survival_model <- function(data,
         as.formula(paste0("Surv(", event_time, ", ", event_status, "==1) ~",
                           paste0(covariates, collapse = "+")))
       model_survival <- coxph(formula_survival, data = data_train)
-      data_test$event_prediction <-1 - exp(-stats::predict(model_survival, type = "expected", newdata = data_test))
+      data_test$event_prediction <-pec::predictSurvProb.coxph(model_survival, times = x_hor, newdata = data_test)
     }
 
     if (cr_method == "cause_specific") {
@@ -587,7 +579,66 @@ fit_survival_model <- function(data,
 #' `model_survival` will contain a list of outputs with each
 #' element in the list corresponds to a different cross-validation fold.
 #'
-#' @details dfsdfdsfsd
+#' @details
+#'
+#' There are two parts to fitting the landmark model: the longitudinal (LME) submodel and the survival submodel.
+#'
+#'
+#' Firstly, the longitudinal submodel (LME) is described in more detail.
+#' For an individual \eqn{i}, the LME model can be written as
+#'
+#' \deqn{Y_i = X_i \beta + Z_i U_i + \epsilon_i}
+#'
+#' where
+#' * \eqn{Y_i} is the vector of outcomes at different time points for the individual
+#' * \eqn{X_i} is the matrix of covariates for the fixed effects at these time points
+#' * \eqn{\beta} is the vector of coefficients for the fixed effects
+#' * \eqn{Z_i} is the matrix of covariates for the random effects
+#' * \eqn{U_i} is the matrix of coefficients for the random effects
+#' * \eqn{\epsilon_i} is the error term, typically from N(0, \eqn{\sigma})
+#'
+#' By using an LME model to fit repeat measures data we can allow measurements from the same individuals to be
+#' more similar than measurements from different individuals. This is done through the random intercept and/or
+#' random slope.
+#'
+#' Extending this model to the case where there are multiple random effects, denoted \eqn{k}
+#'
+#' \deqn{Y_{ik} = X_{ik} \beta_k + Z_{ik} U_{ik} + \epsilon_{ik}}
+#'
+#' Using this model we can allow a covariance structure within the random effects term \eqn{U_{ik}}, i.e. it follows the
+#' multivariate normal (MVN) distribution \eqn{MVN(0,\Sigma_u)}. This means information from one random effects variable informs about the
+#' value of the other random effects variables, leading to more accurate predictions and allowing there to be missing data in the
+#' random effects variables.
+#'
+#' This function uses the LME model with a covariance structure for the random effects that has been described
+#' for the longitudinal submodel. This is fitted using the function \code{lme} from the package \code{nlme}.
+#' The fixed effects are calculated as the LOCF for the variables \code{fixed_effects} at the landmark age \code{x_L} and the random effects
+#' are those stated in \code{random_effects} and times \code{random_effects_time}. This model is used to predict the
+#' random effects at the landmark time \code{x_L}.
+#'#'
+#' It is important to distinguish between the validation set and the development set for fitting the LME. The development set includes
+#' all the repeat measurements (including those after the landmark age \code{x_L}). Conversely, the validation set only includes
+#' the repeat measurements recorded up until and including the landmark age \code{x_L}.
+#'
+#'
+#' There is an important consideration about fitting the linear mixed effects model. If the variable \code{random_effects_time}
+#' is far from 0 this means that the random effects coefficients can be close to 0. This causes computational issues
+#' as the variance of the random effects is constrained to
+#' be greater than zero. Therefore the parameter \code{standard_time=TRUE} is it standardises the
+#' \code{random_effects_time} by subtracting the mean of this variable and dividing by the standard deviation.
+#'
+#' The predictions of the random effects, in addition to the LOCF values for the fixed effects
+#' are the covariates for the survival submodel. These covariates can be viewed in the data frame `data` that are returned by this function.
+#'
+#' For the survival submodel, there are three choices of model: the standard Cox model, the cause-specific model and the Fine Gray model.
+#' The latter two models estimate the probability of the event of interest in the presence of competing events.
+#'
+#' This function uses the function: \code{coxph} from the pacakge \code{survival} to fit the standard Cox model;
+#' the function \code{CSC} from package \code{riskRegression} to fit the cause-specific model; and the function \code{FGR} from package
+#' \code{riskRegression} to fit the Fine Gray model.
+#'
+#'
+#'
 #' @author Isobel Barrott \email{isobel.barrott@@gmail.com}
 #' @examples \dontrun{2^3}
 #' @importFrom stats as.formula
@@ -732,9 +783,20 @@ fit_LME_landmark_model<-function(data,
 #' the `coxph` function from package `survival`. This output contains the
 #' estimated parameters for the survival submodel. For a model using cross-validation,
 #' `model_survival` will contain a list of outputs with each
-#' element in the list corresponds to a different cross-validation fold.
+#' element in the list corresponding to a different cross-validation fold.
 #'
-#' @details dfsdfdsfsd
+#' @details
+#' #' There are two parts to fitting the landmark model: the longitudinal (LME) submodel and the survival submodel.
+#'
+#'
+#' For the survival submodel, there are three choices of model: the standard Cox model, the cause-specific model and the Fine Gray model.
+#' The latter two models estimate the probability of the event of interest in the presence of competing events.
+#'
+#' This function uses the function: \code{coxph} from the pacakge \code{survival} to fit the standard Cox model;
+#' the function \code{CSC} from package \code{riskRegression} to fit the cause-specific model; and the function \code{FGR} from package
+#' \code{riskRegression} to fit the Fine Gray model.
+#'
+#'
 #' @author Isobel Barrott \email{isobel.barrott@@gmail.com}
 #' @examples \dontrun{data(data_landmark_cv)
 #' data_model_landmark_LME<-fit_LME_landmark_model(data=data_landmark_cv,x_L=60,x_hor=65,
