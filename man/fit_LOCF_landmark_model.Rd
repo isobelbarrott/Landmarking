@@ -61,24 +61,53 @@ that are calculated using the LOCF model (more information in Details section).
 the \code{coxph} function from package \code{survival}. This output contains the
 estimated parameters for the survival submodel. For a model using cross-validation,
 \code{model_survival} will contain a list of outputs with each
-element in the list corresponds to a different cross-validation fold.
+element in the list corresponding to a different cross-validation fold.
 }
 \description{
 This function performs the two-stage landmarking analysis. In the first stage, the longitudinal submodel is fitted using the LOCF model and in the
 second stage the survival submodel is fitted.
 }
 \details{
-dfsdfdsfsd
+There are two parts to fitting the landmark model: the longitudinal (LOCF) submodel and the survival submodel.
+
+For the longitudinal model, this function uses the most recent values of the covariates at the landmark age \code{x_L}.
+
+For the survival submodel, there are three choices of model: the standard Cox model, the cause-specific model and the Fine Gray model.
+The latter two models estimate the probability of the event of interest in the presence of competing events.
+
+This function uses the function: \code{coxph} from the pacakge \code{survival} to fit the standard Cox model;
+the function \code{CSC} from package \code{riskRegression} to fit the cause-specific model; and the function \code{FGR} from package
+\code{riskRegression} to fit the Fine Gray model.
 }
 \examples{
-\dontrun{data(data_landmark_cv)
-data_model_landmark_LME<-fit_LME_landmark_model(data=data_landmark_cv,x_L=60,x_hor=65,
-  fixed_effects=c("ethnicity","smoking","diabetes","deprivation","atrial_fibrillation"),
-  fixed_effects_time=rep("response_time_sbp_stnd",length(fixed_effects_col)),
-  random_effects=random_effects_col,random_effects_time=random_effects_time_col,
-  cv_name="cross_validation_number",patient_id=patient_id_col,
-  lme_control = nlme::lmeControl(maxIter=100,msMaxIter=100,
-  event_time="event_time",event_status="event_status",cr_method = "cause_specific")}
+\dontrun{data(data_repeat_outcomes)
+data_landmark<-create_landmark_dataset(data=data_repeat_outcomes,
+  x_L=60,
+  assessment_time="response_time_sbp_stnd",
+  patient_id="id",
+  event_time="event_time",
+  event_status="event_status")
+data_landmark<-return_ids_with_LOCF(data=data_landmark,
+  patient_id="id",
+  covariates=c("ethnicity","smoking","diabetes","deprivation",
+  "atrial_fibrillation","sbp_stnd","tchdl_stnd"),
+  covariates_time=c(rep("response_time_sbp_stnd",6),"response_time_tchdl_stnd"),
+  x_L=60)
+data_landmark_cv<-add_cv_number(data=data_landmark,
+  patient_id="id",
+  k=10)
+data_model_landmark_LOCF<-fit_LOCF_landmark_model(data=data_landmark_cv,
+  x_L=60,
+  x_hor=65,
+  covariates=c("ethnicity","smoking","diabetes","deprivation",
+  "atrial_fibrillation","sbp_stnd","tchdl_stnd"),
+covariates_time=c(rep("response_time_sbp_stnd",6),"response_time_tchdl_stnd"),
+  cv_name="cross_validation_number",
+  patient_id="id",
+  event_time="event_time",
+  event_status="event_status",
+  cr_method = "cause_specific")
+}
 }
 \author{
 Isobel Barrott \email{isobel.barrott@gmail.com}
