@@ -815,8 +815,9 @@ fit_LME_landmark_model<-function(data,
 #' element in the list corresponding to a different cross-validation fold.
 #'
 #' @details
-#' #' There are two parts to fitting the landmark model: the longitudinal (LME) submodel and the survival submodel.
+#' There are two parts to fitting the landmark model: the longitudinal (LOCF) submodel and the survival submodel.
 #'
+#' For the longitudinal model, this function uses the most recent values of the covariates at the landmark age \code{x_L}.
 #'
 #' For the survival submodel, there are three choices of model: the standard Cox model, the cause-specific model and the Fine Gray model.
 #' The latter two models estimate the probability of the event of interest in the presence of competing events.
