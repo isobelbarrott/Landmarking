@@ -47,10 +47,12 @@ after their first event (either the event of interest or a competing event).
 }
 \examples{
 data(data_repeat_outcomes)
-data_landmark <- create_landmark_dataset(data=data_repeat_outcomes,
-     x_L=60,assessment_time="response_time_sbp_stnd",
-     patient_id="id",event_time="event_time",
-     event_status="event_status")
+data_landmark<-create_landmark_dataset(data=data_repeat_outcomes,
+  x_L=60,
+  assessment_time="response_time_sbp_stnd",
+  patient_id="id",
+  event_time="event_time",
+  event_status="event_status")
 
 }
 \author{
