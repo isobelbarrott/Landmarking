@@ -170,17 +170,17 @@ model_assessment_LOCF<-get_model_assessment(data=data_landmark_LOCF,
 
 
 ```{r 14}
-# data_landmark_LME<-data_model_landmark_LME$data
-# model_assessment_LME<-get_model_assessment(data=data_landmark_LME,
-#            patient_id=patient_id_col,
-#            event_prediction="event_prediction",
-#            event_status="event_status",
-#            event_time="event_time",
-#            x_hor=x_hor,
-#            return_c_index = TRUE,
-#            return_brier_score = TRUE,
-#            b=10,
-#            standard_error = TRUE)
+data_landmark_LME<-data_model_landmark_LME$data
+model_assessment_LME<-get_model_assessment(data=data_landmark_LME,
+           patient_id=patient_id_col,
+           event_prediction="event_prediction",
+           event_status="event_status",
+           event_time="event_time",
+           x_hor=x_hor,
+           return_c_index = TRUE,
+           return_brier_score = TRUE,
+           b=10,
+           standard_error = TRUE)
 ```
 
 
