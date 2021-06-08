@@ -59,18 +59,6 @@
 #'
 "data_landmark_cv"
 
-#' Simulated CVD event data
-#'
-#' A dataset containing CVD event data for 4100 patients at risk at landmark age 60. This is simulated data formed using an cause-specific survival model.
-#'
-#' A dataset with 4100 rows and 3 columns:
-#' \describe{
-#'   \item{id}{Patient ID}
-#'   \item{event_status}{Event status, 0 indicates censoring, 1 indicates CVD event, 2 indicates death from other causes}
-#'   \item{event_time}{Event time}
-#' }
-#'
-"data_model_landmark_LOCF"
 
 #' Simulated CVD event data
 #'
@@ -85,6 +73,7 @@
 #'
 "data_repeat_outcomes"
 
+
 #' Simulated CVD event data
 #'
 #' A dataset containing CVD event data for 4100 patients at risk at landmark age 60. This is simulated data formed using an cause-specific survival model.
@@ -96,4 +85,5 @@
 #'   \item{event_time}{Event time}
 #' }
 #'
-"data_model_longitudinal_LOCF"
+"data_landmark_LOCF"
+
