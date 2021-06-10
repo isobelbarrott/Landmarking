@@ -536,8 +536,6 @@ fit_survival_model <- function(data,
 
     data_survival<-data_test
   }
-  data_survival<-data_survival[,order(match(names(data_survival),names(data)))]
-  data_survival<-data_survival[order(match(names(data_survival),names(data))),]
   rownames(data_survival)<-NULL
   list(data_survival = data_survival, model_survival = model_survival)
 }
