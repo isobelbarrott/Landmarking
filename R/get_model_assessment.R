@@ -63,168 +63,166 @@ get_model_assessment <-
            return_brier_score = TRUE,
            b,
            standard_error = FALSE) {
-    # for (col in c(event_prediction,
-    #               event_status,
-    #               event_time)) {
-    #   if (!(col %in% names(data))) {
-    #     stop(col, " is not a column name in data")
-    #   }
-    # }
-    # if (!(is.numeric(x_hor))) {
-    #   stop("x_hor should be numeric")
-    # }
-    # if (!(is.numeric(b))) {
-    #   stop("b should be numeric")
-    # }
-    # if (length(unique(data[[patient_id]]))!=dim(data)[1]) {
-    #   stop("There should be one row for each individual in data")
-    # }
-    # n <- dim(data)[1]
-    # Hist<-prodlim::Hist
-    # Surv<-survival::Surv
+    for (col in c(event_prediction,
+                  event_status,
+                  event_time)) {
+      if (!(col %in% names(data))) {
+        stop(col, " is not a column name in data")
+      }
+    }
+    if (!(is.numeric(x_hor))) {
+      stop("x_hor should be numeric")
+    }
+    if (!(is.numeric(b))) {
+      stop("b should be numeric")
+    }
+    if (length(unique(data[[patient_id]]))!=dim(data)[1]) {
+      stop("There should be one row for each individual in data")
+    }
+    n <- dim(data)[1]
+    Hist<-prodlim::Hist
+    Surv<-survival::Surv
 
-    # if (return_c_index == TRUE) {
-    #
-    #   c_index <-
-    #     pec::cindex(
-    #       object = matrix(data$event_prediction),
-    #       formula = Hist(event_time, event_status) ~ 1,
-    #       cause = 1,
-    #       data = data,
-    #       cens.model = "marginal",
-    #       splitMethod = "none",
-    #       B = 0,
-    #       exact = FALSE,
-    #       verbose = FALSE,
-    #       eval.times = x_hor
-    #     )$AppCindex$matrix
-    #
-    #   if (standard_error == TRUE) {
-    #     rho_hat_star <-
-    #       unlist(lapply(1:b, function(i) {
-    #         c_index_bootstrap(
-    #           n = n,
-    #           data = data,
-    #           event_prediction =
-    #             event_prediction,
-    #           event_time =
-    #             event_time,
-    #           event_status =
-    #             event_status,
-    #           x_hor =
-    #             x_hor
-    #         )
-    #       }))
-    #     c_index_error <-
-    #       sqrt((1 / (b - 1)) * (sum((
-    #         rho_hat_star - mean(rho_hat_star)
-    #       ) ^ 2)))
-    #   }
-    # }
-    #
-    # if (return_brier_score == TRUE) {
-    #   brier_score <-
-    #     pec::pec(
-    #       object = matrix(cbind(0, data[[event_prediction]]), ncol =
-    #                         2),
-    #       formula = Hist(event_time, event_status) ~ 1,
-    #       cause = 1,
-    #       data = data,
-    #       cens.model = "marginal",
-    #       splitMethod = "none",
-    #       B = 0,
-    #       exact = FALSE,
-    #       verbose = FALSE,
-    #       reference = FALSE,
-    #       times = x_hor
-    #     )$AppErr$matrix[2]
-    #
-    #   if (standard_error == TRUE) {
-    #     rho_hat_star <-
-    #       unlist(lapply(1:b, function(i) {
-    #         brier_bootstrap(
-    #           n = n,
-    #           data = data,
-    #           event_prediction =
-    #             event_prediction,
-    #           event_time =
-    #             event_time,
-    #           event_status =
-    #             event_status,
-    #           x_hor =
-    #             x_hor
-    #         )
-    #       }))
-    #     brier_score_error <-
-    #       sqrt((1 / (b - 1)) * (sum((
-    #         rho_hat_star - mean(rho_hat_star)
-    #       ) ^ 2)))
-    #
-    #
-    #   }
-    # }
-    #
-    # if (standard_error == FALSE) {
-    #   return(list(c_index = c_index, brier_score = brier_score))
-    # }
-    # if (standard_error == TRUE) {
-    #   return(list(
-    #     c_index = c_index,
-    #     c_index_standard_error = c_index_error,
-    #     brier_score = brier_score,
-    #     brier_score_standard_error = brier_score_error
-    #   ))
-    # }
-    1
+    if (return_c_index == TRUE) {
+
+      c_index <-
+        pec::cindex(
+          object = matrix(data$event_prediction),
+          formula = Hist(event_time, event_status) ~ 1,
+          cause = 1,
+          data = data,
+          cens.model = "marginal",
+          splitMethod = "none",
+          B = 0,
+          exact = FALSE,
+          verbose = FALSE,
+          eval.times = x_hor
+        )$AppCindex$matrix
+
+      if (standard_error == TRUE) {
+        rho_hat_star <-
+          unlist(lapply(1:b, function(i) {
+            c_index_bootstrap(
+              n = n,
+              data = data,
+              event_prediction =
+                event_prediction,
+              event_time =
+                event_time,
+              event_status =
+                event_status,
+              x_hor =
+                x_hor
+            )
+          }))
+        c_index_error <-
+          sqrt((1 / (b - 1)) * (sum((
+            rho_hat_star - mean(rho_hat_star)
+          ) ^ 2)))
+      }
+    }
+
+    if (return_brier_score == TRUE) {
+      brier_score <-
+        pec::pec(
+          object = matrix(cbind(0, data[[event_prediction]]), ncol =
+                            2),
+          formula = Hist(event_time, event_status) ~ 1,
+          cause = 1,
+          data = data,
+          cens.model = "marginal",
+          splitMethod = "none",
+          B = 0,
+          exact = FALSE,
+          verbose = FALSE,
+          reference = FALSE,
+          times = x_hor
+        )$AppErr$matrix[2]
+
+      if (standard_error == TRUE) {
+        rho_hat_star <-
+          unlist(lapply(1:b, function(i) {
+            brier_bootstrap(
+              n = n,
+              data = data,
+              event_prediction =
+                event_prediction,
+              event_time =
+                event_time,
+              event_status =
+                event_status,
+              x_hor =
+                x_hor
+            )
+          }))
+        brier_score_error <-
+          sqrt((1 / (b - 1)) * (sum((
+            rho_hat_star - mean(rho_hat_star)
+          ) ^ 2)))
+
+
+      }
+    }
+
+    if (standard_error == FALSE) {
+      return(list(c_index = c_index, brier_score = brier_score))
+    }
+    if (standard_error == TRUE) {
+      return(list(
+        c_index = c_index,
+        c_index_standard_error = c_index_error,
+        brier_score = brier_score,
+        brier_score_standard_error = brier_score_error
+      ))
+    }
+
   }
-#
-# c_index_bootstrap <-
-#   function(n,
-#            data,
-#            event_prediction,
-#            event_time,
-#            event_status,
-#            x_hor) {
-#     bootstrap_sample <- sample(n, replace = TRUE)
-#     Hist<-prodlim::Hist
-#     Surv<-survival::Surv
-#     pec::cindex(
-#       object = matrix(data[[event_prediction]][bootstrap_sample]),
-#       formula = Hist(event_time, event_status) ~ 1,
-#       cause = 1,
-#       data = data[bootstrap_sample,],
-#       cens.model = "marginal",
-#       splitMethod = "none",
-#       B = 0,
-#       exact = FALSE,
-#       verbose = FALSE,
-#       eval.times = x_hor
-#     )$AppCindex$matrix
-#   }
-#
-# brier_bootstrap <-
-#   function(n,
-#            data,
-#            event_prediction,
-#            event_time,
-#            event_status,
-#            x_hor) {
-#     bootstrap_sample <- sample(n, replace = TRUE)
-#     Hist<-prodlim::Hist
-#     Surv<-survival::Surv
-#
-#     pec::pec(
-#       object = matrix(cbind(0, data[[event_prediction]][bootstrap_sample]), ncol =
-#                         2),
-#       formula = Hist(event_time, event_status) ~ 1,
-#       cause = 1,
-#       data = data[bootstrap_sample,],
-#       cens.model = "marginal",
-#       splitMethod = "none",
-#       B = 0,
-#       exact = FALSE,
-#       verbose = FALSE,
-#       reference = FALSE,
-#       times = x_hor
-#     )$AppErr$matrix[2]
-#   }
+
+c_index_bootstrap <-
+  function(n,
+           data,
+           event_prediction,
+           event_time,
+           event_status,
+           x_hor) {
+    bootstrap_sample <- sample(n, replace = TRUE)
+    Hist<-prodlim::Hist
+    Surv<-survival::Surv
+    pec::cindex(
+      object = matrix(data[[event_prediction]][bootstrap_sample]),
+      formula = Hist(event_time, event_status) ~ 1,
+      cause = 1,
+      data = data[bootstrap_sample,],
+      cens.model = "marginal",
+      splitMethod = "none",
+      B = 0,
+      exact = FALSE,
+      verbose = FALSE,
+      eval.times = x_hor
+    )$AppCindex$matrix
+  }
+
+brier_bootstrap <-
+  function(n,
+           data,
+           event_prediction,
+           event_time,
+           event_status,
+           x_hor) {
+    bootstrap_sample <- sample(n, replace = TRUE)
+
+    pec::pec(
+      object = matrix(cbind(0, data[[event_prediction]][bootstrap_sample]), ncol =
+                        2),
+      formula = Hist(event_time, event_status) ~ 1,
+      cause = 1,
+      data = data[bootstrap_sample,],
+      cens.model = "marginal",
+      splitMethod = "none",
+      B = 0,
+      exact = FALSE,
+      verbose = FALSE,
+      reference = FALSE,
+      times = x_hor
+    )$AppErr$matrix[2]
+  }
