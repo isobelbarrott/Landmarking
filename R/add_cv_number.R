@@ -9,8 +9,8 @@
 #' indicating the fold to which the individual has been assigned.
 #' @author Isobel Barrott \email{isobel.barrott@@gmail.com}
 #' @examples
-#' data(data_repeat_outcomes)
-#' data_landmark_cv<-add_cv_number(data=data_landmark,
+#' data("data_repeat_outcomes")
+#' data_repeat_outcomes<-add_cv_number(data=data_repeat_outcomes,
 #'   patient_id="id",
 #'   k=10)
 #' @export

@@ -24,8 +24,8 @@ create_landmark_dataset(
 \code{data} which contains the assessment time for each row}
 
 \item{event_status}{Character string specifying the column name in \code{data}
-which contains the event status (0=censoring, 1=event of interest, 2+=competing
-events)}
+which contains the event status (where 0=censoring, 1=event of interest, if there are competing events these are labelled
+2 or above.)}
 
 \item{event_time}{Character string specifying the column name in \code{data}
 which contains the event time}
@@ -35,7 +35,7 @@ Data frame \code{data} updated to contain only entries of
 individuals at risk at age \code{x_L}
 }
 \description{
-Selects the entries of individuals at risk at age \code{x_L},
+Selects the rows of individuals at risk at age \code{x_L},
 i.e individuals that started follow-up before
 (or at) landmark time \code{x_L}, and ended follow-up after
 (but not at) landmark time \code{x_L}. These entries comprise
@@ -43,11 +43,11 @@ the dataset for landmark time \code{x_L} in the landmark model.
 }
 \details{
 An individual enters the risk set at their first assessment and exits the risk set
-after their first event (either the event of interest or a competing event).
+after their first event (this may be censoring, event of interest or a competing event).
 }
 \examples{
 data(data_repeat_outcomes)
-data_landmark<-create_landmark_dataset(data=data_repeat_outcomes,
+data_repeat_outcomes <- create_landmark_dataset(data=data_repeat_outcomes,
   x_L=60,
   assessment_time="response_time_sbp_stnd",
   patient_id="id",

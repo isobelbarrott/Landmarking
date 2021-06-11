@@ -21,8 +21,8 @@ indicating the fold to which the individual has been assigned.
 Randomly assigns a k-fold cross-validation number to each individual in a dataset.
 }
 \examples{
-data(data_repeat_outcomes)
-data_landmark_cv<-add_cv_number(data=data_landmark,
+data("data_repeat_outcomes")
+data_repeat_outcomes<-add_cv_number(data=data_repeat_outcomes,
   patient_id="id",
   k=10)
 }

@@ -1,11 +1,9 @@
-#' Select individuals in a dataset with a last observation carried forward (LOCF) at the landmark time
+#' Select individuals in a dataset with a last observation carried forward (LOCF) at a particular time
 #'
 #' To fit the LOCF model, all individuals must have at least one
-#' non-`NA` entry by age `x_L` for all covariates. This function selects these individuals and removes the other entries.
-#' This is  a useful function to form a dataset which
-#' compares models to the LOCF model.
+#' non-`NA` entry by age `x_L` for all covariates. This function selects these individuals and removes the other rows.
 #'
-#' @details Individuals have a LOCF if there is a non-`NA` entry for each of the measurements in
+#' @details Individuals have a LOCF if there is a non-`NA` entry for each of the covariates in
 #' `covariates` up until (and including) time `x_L`.
 #'
 #' @param data Data frame with repeated measurements in long format; each row corresponds to an assessment entry
@@ -16,7 +14,7 @@
 #' @return Data frame `data` updated to contain only rows of individuals with a LOCF at age `x_L`, other rows are removed
 #' @author Isobel Barrott \email{isobel.barrott@@gmail.com}
 #' @examples data(data_repeat_outcomes)
-#' data_landmark<-return_ids_with_LOCF(data=data_landmark,
+#' data_repeat_outcomes<-return_ids_with_LOCF(data=data_repeat_outcomes,
 #'   patient_id="id",
 #'   covariates=c("ethnicity","smoking","diabetes","deprivation",
 #'   "atrial_fibrillation","sbp_stnd","tchdl_stnd"),

@@ -368,7 +368,7 @@ fit_survival_model <- function(data,
                                covariates,
                                event_time,
                                event_status,
-                               cr_method = c("standard_cox", "cause_specific", "fine_gray"),
+                               survival_submodel = c("standard_cox", "cause_specific", "fine_gray"),
                                x_hor) {
   #Checks
   #####
@@ -398,7 +398,7 @@ fit_survival_model <- function(data,
 
   #####
 
-  cr_method <- match.arg(cr_method)
+  survival_submodel <- match.arg(survival_submodel)
 
   data[[patient_id]] <- as.character(data[[patient_id]])
 
@@ -414,7 +414,7 @@ fit_survival_model <- function(data,
 
       model_survival <- c()
 
-      if (cr_method == "standard_cox") {
+      if (survival_submodel == "standard_cox") {
         formula_survival <-
           as.formula(paste0("Surv(", event_time, ", ", event_status, "==1) ~",
                             paste0(covariates, collapse = "+")))
@@ -422,7 +422,7 @@ fit_survival_model <- function(data,
         data_test$event_prediction <-pec::predictSurvProb(model_survival, times = x_hor, newdata = data_test)
       }
 
-      if (cr_method == "cause_specific") {
+      if (survival_submodel == "cause_specific") {
         if(any(table(data_train[[event_status]]))==0){
           stop("Not enough competing risk events to train competing risks model")
         }
@@ -447,7 +447,7 @@ fit_survival_model <- function(data,
         )
       }
 
-      if (cr_method == "fine_gray") {
+      if (survival_submodel == "fine_gray") {
         if(any(table(data_train[[event_status]]))==0){
           stop("Not enough competing risk events to train competing risks model")
         }
@@ -482,7 +482,7 @@ fit_survival_model <- function(data,
 
     model_survival <- c()
 
-    if (cr_method == "standard_cox") {
+    if (survival_submodel == "standard_cox") {
       formula_survival <-
         as.formula(paste0("Surv(", event_time, ", ", event_status, "==1) ~",
                           paste0(covariates, collapse = "+")))
@@ -490,7 +490,7 @@ fit_survival_model <- function(data,
       data_test$event_prediction <-pec::predictSurvProb(model_survival, times = x_hor, newdata = data_test)
     }
 
-    if (cr_method == "cause_specific") {
+    if (survival_submodel == "cause_specific") {
       if(any(table(data_train[[event_status]]))==0){
         stop("Not enough competing risk events to train competing risks model")
       }
@@ -514,7 +514,7 @@ fit_survival_model <- function(data,
       )
     }
 
-    if (cr_method == "fine_gray") {
+    if (survival_submodel == "fine_gray") {
       if(any(table(data_train[[event_status]]))==0){
         stop("Not enough competing risk events to train competing risks model")
       }
@@ -542,13 +542,14 @@ fit_survival_model <- function(data,
 
 #' Fit a landmarking model using a linear mixed effects (LME) model for the longitudinal submodel
 #'
-#' This function performs the two-stage landmarking analysis. In the first stage, the longitudinal submodel is fitted using the LME model and in the
+#' This function performs the two-stage landmarking analysis. In the first stage the longitudinal submodel is fitted using the LME model and in the
 #' second stage the survival submodel is fitted.
 #'
-#' @param data Data frame containing longitudinal (repeat measurements) data and time to event data, there may be more than one row per individual
+#' @param data Data frame containing repeat measurements data and time-to-event data, there may be more than one row per individual
 #' @template x_L
 #' @template x_hor
-#' @param standardise_time Boolean indicating whether to standarise the `covariates_time` (see Details section for more information)
+#' @param standardise_time Boolean indicating whether to standarise the time variable by subtracting the mean
+#' and dividing by the standard deviation (see Details section for more information)
 #' @template event_status
 #' @template event_time
 #' @template cv_name
@@ -559,30 +560,29 @@ fit_survival_model <- function(data,
 #' @template random_effects_time
 #' @param random_intercept Boolean indicating whether to include a random intercept in the LME model
 #' @param random_slope Boolean indicating whether to include a random slope in the LME model
-#' @param lme_control Object create using nlme::lmeControl(), which contains the `control` argument in the `lme`
+#' @param lme_control Object created using `nlme::lmeControl()`, which will be passed to the `control` argument of the `lme`
 #' function
-#' @template cr_method
-#' @return List containing `data`, `model_longitudinal`, and `model_survival`.  The
-#' data frame `data` contains one row for each individual and includes the `covariates`
-#' that are calculated using the LME model (more information in Details section).
+#' @template survival_submodel
+#' @return List containing `data`, `model_longitudinal`, and `model_survival`.
 #'
+#' `data` is a data frame that includes the LOCF values of the `fixed_effects` and estimates
+#' of the `random_effects` predicted from the LME model (see Details section). It also includes the predicted
+#' probability that the event of interest has occured by time \code{x_L}, labelled as "event_prediction".
+#' There is one row for each individual.
 #' `model_longitudinal` contains the output from
 #' the `lme` function from package `nlme`. For a model using cross-validation,
 #' `model_longitudinal` will contain a list of outputs with each
 #' element in the list corresponds to a different cross-validation fold.
 #'
 #' `model_survival` contains the outputs from
-#' the `coxph` function from package `survival`. This output contains the
-#' estimated parameters for the survival submodel. For a model using cross-validation,
+#' the survival submodel functions, including the estimated parameters of the model. For a model using cross-validation,
 #' `model_survival` will contain a list of outputs with each
-#' element in the list corresponds to a different cross-validation fold.
-#'
+#' element in the list corresponding to a different cross-validation fold.
 #' @details
 #'
-#' There are two parts to fitting the landmark model: the longitudinal (LME) submodel and the survival submodel.
+#' There are two parts to fitting the landmark model: the longitudinal submodel and the survival submodel.
+#' This function id used to fit the LME model as the longitudinal submodel. This model will be described in more detail.
 #'
-#'
-#' Firstly, the longitudinal submodel (LME) is described in more detail.
 #' For an individual \eqn{i}, the LME model can be written as
 #'
 #' \deqn{Y_i = X_i \beta + Z_i U_i + \epsilon_i}
@@ -599,61 +599,46 @@ fit_survival_model <- function(data,
 #' more similar than measurements from different individuals. This is done through the random intercept and/or
 #' random slope.
 #'
-#' Extending this model to the case where there are multiple random effects, denoted \eqn{k}
+#' Extending this model to the case where there are multiple random effects, denoted \eqn{k}, we have
 #'
 #' \deqn{Y_{ik} = X_{ik} \beta_k + Z_{ik} U_{ik} + \epsilon_{ik}}
 #'
-#' Using this model we can allow a covariance structure within the random effects term \eqn{U_{ik}}, i.e. it follows the
-#' multivariate normal (MVN) distribution \eqn{MVN(0,\Sigma_u)}. This means information from one random effects variable informs about the
+#' Using this model we can allow a covariance structure within the random effects term \eqn{U_{ik}}, for example a sample from the
+#' multivariate normal (MVN) distribution \eqn{MVN(0,\Sigma_u)}. This covariance structure means the value of one random effects variable informs about the
 #' value of the other random effects variables, leading to more accurate predictions and allowing there to be missing data in the
 #' random effects variables.
 #'
-#' This function uses the LME model with a covariance structure for the random effects that has been described
-#' for the longitudinal submodel. This is fitted using the function \code{lme} from the package \code{nlme}.
+#' The function \code{fit_LME_landmark_model} uses this covariance structure for the random effects when fitting the LME model.
+#' To fit the LME model the function \code{lme} from the package \code{nlme} is used.
 #' The fixed effects are calculated as the LOCF for the variables \code{fixed_effects} at the landmark age \code{x_L} and the random effects
-#' are those stated in \code{random_effects} and times \code{random_effects_time}. This model is used to predict the
-#' random effects at the landmark time \code{x_L}.
-#'#'
-#' It is important to distinguish between the validation set and the development set for fitting the LME. The development set includes
+#' are those stated in \code{random_effects} and at times \code{random_effects_time}. This model is used to predict the
+#' values of the random effects at the landmark time \code{x_L}.
+#'
+#' It is important to distinguish between the validation set and the development set for fitting the LME model. The development set includes
 #' all the repeat measurements (including those after the landmark age \code{x_L}). Conversely, the validation set only includes
 #' the repeat measurements recorded up until and including the landmark age \code{x_L}.
 #'
 #'
-#' There is an important consideration about fitting the linear mixed effects model. If the variable \code{random_effects_time}
-#' is far from 0 this means that the random effects coefficients can be close to 0. This causes computational issues
-#' as the variance of the random effects is constrained to
-#' be greater than zero. Therefore the parameter \code{standard_time=TRUE} is it standardises the
-#' \code{random_effects_time} by subtracting the mean of this variable and dividing by the standard deviation.
+#' There is an important consideration about fitting the linear mixed effects model. As the variable \code{random_effects_time}
+#' gets further from 0, the random effects coefficients get closer to 0. This causes computational issues
+#' as the elements in the covariance matrix of the random effects, \eqn{\Sigma_u}, are constrained to
+#' be greater than 0. Using parameter \code{standard_time=TRUE} can prevent this issue by standardising the
+#' time variables to ensure that the \code{random_effects_time} values are not too close to 0.
 #'
-#' The predictions of the random effects, in addition to the LOCF values for the fixed effects
-#' are the covariates for the survival submodel. These covariates can be viewed in the data frame `data` that are returned by this function.
+#' The predictions of the random effects at the landmark age, in addition to the LOCF values for the fixed effects,
+#' are used as the covariates for the survival submodel.
+#' The values of these covariates can be viewed in the data frame `data` that are returned by this function.
 #'
-#' For the survival submodel, there are three choices of model: the standard Cox model, the cause-specific model and the Fine Gray model.
+#' For the survival submodel, there are three choices of model:
+#' * the standard Cox model, this is a wrapper function for \code{coxph} from the package \code{survival}
+#' * the cause-specific model, this is a wrapper function for \code{CSC} from package \code{riskRegression}
+#' * the Fine Gray model, this is a wrapper function for \code{FGR} from package \code{riskRegression}
+#'
 #' The latter two models estimate the probability of the event of interest in the presence of competing events.
-#'
-#' This function uses the function: \code{coxph} from the pacakge \code{survival} to fit the standard Cox model;
-#' the function \code{CSC} from package \code{riskRegression} to fit the cause-specific model; and the function \code{FGR} from package
-#' \code{riskRegression} to fit the Fine Gray model.
-#'
 #'
 #'
 #' @author Isobel Barrott \email{isobel.barrott@@gmail.com}
-#' @examples \dontrun{data(data_repeat_outcomes)
-#' data_landmark<-create_landmark_dataset(data=data_repeat_outcomes,
-#'   x_L=60,
-#'   assessment_time="response_time_sbp_stnd",
-#'   patient_id="id",
-#'   event_time="event_time",
-#'   event_status="event_status")
-#' data_landmark<-return_ids_with_LOCF(data=data_landmark,
-#'   patient_id="id",
-#'   covariates=c("ethnicity","smoking","diabetes","deprivation",
-#'   "atrial_fibrillation","sbp_stnd","tchdl_stnd"),
-#'   covariates_time=c(rep("response_time_sbp_stnd",6),"response_time_tchdl_stnd"),
-#'   x_L=60)
-#' data_landmark_cv<-add_cv_number(data=data_landmark,
-#'   patient_id="id",
-#'   k=10)
+#' @examples \dontrun{data(data_landmark_cv)
 #' data_model_landmark_LME<-fit_LME_landmark_model(data=data_landmark_cv,
 #'   x_L=60,
 #'   x_hor=65,
@@ -668,7 +653,7 @@ fit_survival_model <- function(data,
 #'   lme_control = nlme::lmeControl(maxIter=100,msMaxIter=100),
 #'   event_time="event_time",
 #'   event_status="event_status",
-#'   cr_method = "cause_specific")
+#'   survival_submodel = "cause_specific")
 #' }
 #' @importFrom stats as.formula
 #' @importFrom prodlim Hist
@@ -690,7 +675,7 @@ fit_LME_landmark_model<-function(data,
                                  lme_control = nlme::lmeControl(),
                                  event_time,
                                  event_status,
-                                 cr_method){
+                                 survival_submodel){
   call <- match.call()
 
   #Checks
@@ -777,7 +762,7 @@ fit_LME_landmark_model<-function(data,
                                           covariates=c(fixed_effects,random_effects),
                                           event_time=event_time,
                                           event_status=event_status,
-                                          cr_method = cr_method,
+                                          survival_submodel = survival_submodel,
                                           x_hor=x_hor)
   print("Complete")
 
@@ -801,61 +786,48 @@ fit_LME_landmark_model<-function(data,
 #' @template covariates
 #' @template covariates_time
 #' @template patient_id
-#' @template cr_method
-#' @return List containing `data`, `model_longitudinal`, and `model_survival`.  The
-#' data frame `data` contains one row for each individual and includes the `covariates`
-#' that are calculated using the LOCF model (more information in Details section).
+#' @template survival_submodel
+#' @return List containing `data`, `model_longitudinal`, and `model_survival`.
+#'
+#' `data` is a data frame that includes the `covariates` values
+#' calculated using the LOCF model (see Details section) and the predicted
+#' probability that the event of interest has occured by time \code{x_L}, labelled as "event_prediction".
+#' There is one row for each individual.
 #'
 #' `model_longitudinal` indicates that the longitudinal submodel is LOCF.
 #'
 #' `model_survival` contains the outputs from
-#' the `coxph` function from package `survival`. This output contains the
-#' estimated parameters for the survival submodel. For a model using cross-validation,
+#' the survival submodel functions, including the estimated parameters of the model.
+#' For a model using cross-validation,
 #' `model_survival` will contain a list of outputs with each
 #' element in the list corresponding to a different cross-validation fold.
 #'
 #' @details
-#' There are two parts to fitting the landmark model: the longitudinal (LOCF) submodel and the survival submodel.
+#' There are two parts to fitting the landmark model: the longitudinal submodel and the survival submodel.
 #'
-#' For the longitudinal model, this function uses the most recent values of the covariates at the landmark age \code{x_L}.
+#' For the longitudinal model, this function uses the most recent values of the covariates at the landmark
+#' age \code{x_L}. This is the LOCF model.
 #'
-#' For the survival submodel, there are three choices of model: the standard Cox model, the cause-specific model and the Fine Gray model.
+#' For the survival submodel, there are three choices of model:
+#' * the standard Cox model, this is a wrapper function for \code{coxph} from the package \code{survival}
+#' * the cause-specific model, this is a wrapper function for \code{CSC} from package \code{riskRegression}
+#' * the Fine Gray model, this is a wrapper function for \code{FGR} from package \code{riskRegression}
+#'
 #' The latter two models estimate the probability of the event of interest in the presence of competing events.
 #'
-#' This function uses the function: \code{coxph} from the pacakge \code{survival} to fit the standard Cox model;
-#' the function \code{CSC} from package \code{riskRegression} to fit the cause-specific model; and the function \code{FGR} from package
-#' \code{riskRegression} to fit the Fine Gray model.
-#'
-#'
 #' @author Isobel Barrott \email{isobel.barrott@@gmail.com}
-#' @examples \dontrun{data(data_repeat_outcomes)
-#' data_landmark<-create_landmark_dataset(data=data_repeat_outcomes,
-#'   x_L=60,
-#'   assessment_time="response_time_sbp_stnd",
-#'   patient_id="id",
-#'   event_time="event_time",
-#'   event_status="event_status")
-#' data_landmark<-return_ids_with_LOCF(data=data_landmark,
-#'   patient_id="id",
-#'   covariates=c("ethnicity","smoking","diabetes","deprivation",
-#'   "atrial_fibrillation","sbp_stnd","tchdl_stnd"),
-#'   covariates_time=c(rep("response_time_sbp_stnd",6),"response_time_tchdl_stnd"),
-#'   x_L=60)
-#' data_landmark_cv<-add_cv_number(data=data_landmark,
-#'   patient_id="id",
-#'   k=10)
+#' @examples data(data_landmark_cv)
 #' data_model_landmark_LOCF<-fit_LOCF_landmark_model(data=data_landmark_cv,
 #'   x_L=60,
 #'   x_hor=65,
 #'   covariates=c("ethnicity","smoking","diabetes","deprivation",
 #'   "atrial_fibrillation","sbp_stnd","tchdl_stnd"),
-#' covariates_time=c(rep("response_time_sbp_stnd",6),"response_time_tchdl_stnd"),
+#'   covariates_time=c(rep("response_time_sbp_stnd",6),"response_time_tchdl_stnd"),
 #'   cv_name="cross_validation_number",
 #'   patient_id="id",
 #'   event_time="event_time",
 #'   event_status="event_status",
-#'   cr_method = "cause_specific")
-#' }
+#'   survival_submodel = "cause_specific")
 #' @importFrom stats as.formula
 #' @importFrom survival Surv
 #' @importFrom survival coxph
@@ -871,7 +843,7 @@ fit_LOCF_landmark_model<-function(data,
                                   patient_id,
                                   event_time,
                                   event_status,
-                                  cr_method = c("standard_cox", "cause_specific", "fine_gray")){
+                                  survival_submodel = c("standard_cox", "cause_specific", "fine_gray")){
   call <- match.call()
   if (!(is.data.frame(data))) {
     stop("data should be a dataframe")
@@ -941,7 +913,7 @@ fit_LOCF_landmark_model<-function(data,
                                           covariates=covariates,
                                           event_time=event_time,
                                           event_status=event_status,
-                                          cr_method = cr_method,
+                                          survival_submodel = survival_submodel,
                                           x_hor=x_hor)
   print("Complete")
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/return_ids_with_LOCF.R
 \name{return_ids_with_LOCF}
 \alias{return_ids_with_LOCF}
-\title{Select individuals in a dataset with a last observation carried forward (LOCF) at the landmark time}
+\title{Select individuals in a dataset with a last observation carried forward (LOCF) at a particular time}
 \usage{
 return_ids_with_LOCF(data, patient_id, x_L, covariates, covariates_time)
 }
@@ -17,7 +17,7 @@ return_ids_with_LOCF(data, patient_id, x_L, covariates, covariates_time)
 which correspond to the covariates}
 
 \item{covariates_time}{Vector of character strings specifying the column names in \code{data}
-which contain the times at which repeat measures were recorded. This should either be length 1 or
+which contain the times at which \code{covariates} were recorded. This should either be length 1 or
 the same length as \code{covariates}. In the latter case the order of elements must correspond to the
 order of elements in \code{covariates}.}
 }
@@ -26,17 +26,15 @@ Data frame \code{data} updated to contain only rows of individuals with a LOCF a
 }
 \description{
 To fit the LOCF model, all individuals must have at least one
-non-\code{NA} entry by age \code{x_L} for all covariates. This function selects these individuals and removes the other entries.
-This is  a useful function to form a dataset which
-compares models to the LOCF model.
+non-\code{NA} entry by age \code{x_L} for all covariates. This function selects these individuals and removes the other rows.
 }
 \details{
-Individuals have a LOCF if there is a non-\code{NA} entry for each of the measurements in
+Individuals have a LOCF if there is a non-\code{NA} entry for each of the covariates in
 \code{covariates} up until (and including) time \code{x_L}.
 }
 \examples{
 data(data_repeat_outcomes)
-data_landmark<-return_ids_with_LOCF(data=data_landmark,
+data_repeat_outcomes<-return_ids_with_LOCF(data=data_repeat_outcomes,
   patient_id="id",
   covariates=c("ethnicity","smoking","diabetes","deprivation",
   "atrial_fibrillation","sbp_stnd","tchdl_stnd"),

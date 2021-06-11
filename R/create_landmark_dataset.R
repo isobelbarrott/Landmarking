@@ -1,6 +1,6 @@
 #' Create landmark dataset
 #'
-#' Selects the entries of individuals at risk at age `x_L`,
+#' Selects the rows of individuals at risk at age `x_L`,
 #' i.e individuals that started follow-up before
 #' (or at) landmark time `x_L`, and ended follow-up after
 #' (but not at) landmark time `x_L`. These entries comprise
@@ -19,10 +19,10 @@
 #' individuals at risk at age `x_L`
 #' @author Isobel Barrott \email{isobel.barrott@@gmail.com}
 #' @details An individual enters the risk set at their first assessment and exits the risk set
-#' after their first event (either the event of interest or a competing event).
+#' after their first event (this may be censoring, event of interest or a competing event).
 #' @examples
 #' data(data_repeat_outcomes)
-#' data_landmark<-create_landmark_dataset(data=data_repeat_outcomes,
+#' data_repeat_outcomes <- create_landmark_dataset(data=data_repeat_outcomes,
 #'   x_L=60,
 #'   assessment_time="response_time_sbp_stnd",
 #'   patient_id="id",

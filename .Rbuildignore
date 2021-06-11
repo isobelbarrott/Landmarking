@@ -1,3 +1,5 @@
 ^Landmarking\.Rproj$
 ^\.Rproj\.user$
 ^~/Analyses/landmarking/man-roxygen$
+^doc$
+^Meta$
