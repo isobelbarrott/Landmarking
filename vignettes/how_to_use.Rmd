@@ -130,15 +130,14 @@ We have now completed the first step and are now ready to use `fit_LOCF_landmark
 ```{r 11}
 data_model_landmark_LOCF<-fit_LOCF_landmark_model(data=data_landmark_cv,
                                                       x_L=60,
-                                                      x_hor=65,
-                                                      covariates=c("ethnicity","smoking","diabetes","deprivation","atrial_fibrillation","sbp_stnd","tchdl_stnd"),
+                                                      x_hor=65, covariates=c("ethnicity","smoking","diabetes","deprivation",
+                                                                             "atrial_fibrillation","sbp_stnd","tchdl_stnd"),
                                                       covariates_time=c(rep("response_time_sbp_stnd",6),"response_time_tchdl_stnd"),
                                                       cv_name="cross_validation_number",
                                                       patient_id="id",
                                                       event_time="event_time",
                                                       event_status="event_status",
                                                       survival_submodel = "cause_specific")
-names(data_model_landmark_LOCF)
 ```
 
 We can see that fitting this model returns the warning `Loglik converged before variable  12 ; coefficient may be infinite.` once for each of the cross-validation folds. Taking a look at the model fit contained in `data_model_landmark_LOCF$model_survival`, the upper confidence interval for the coefficient for atrial_fibrillation is `inf` for cause 2. This is due there being few individuals that have atrial_fibrillation and few individuals that experienced death from other causes. 
@@ -146,7 +145,7 @@ We can see that fitting this model returns the warning `Loglik converged before 
 However, as only the point estimate of the coefficient is needed to calculate the risk prediction, not having the standard error is not a problem. Indeed we have obtained the risk predictions and can take a look at their distribution.
 
 
-```{r 11}
+```{r 12}
 plot(density(data_model_landmark_LOCF$data$event_prediction), xlab="Predicted risk of CVD event",main="")
 ```
 
@@ -195,11 +194,11 @@ model_assessment_LOCF<-get_model_assessment(data=data_landmark_LOCF,
 ```{r 15}
 data_landmark_LME<-data_model_landmark_LME$data
 model_assessment_LME<-get_model_assessment(data=data_landmark_LME,
-           patient_id=patient_id_col,
+           patient_id="id",
            event_prediction="event_prediction",
            event_status="event_status",
            event_time="event_time",
-           x_hor=x_hor,
+           x_hor=65,
            return_c_index = TRUE,
            return_brier_score = TRUE,
            b=50,
