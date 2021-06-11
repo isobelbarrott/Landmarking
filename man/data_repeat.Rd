@@ -3,22 +3,19 @@
 \docType{data}
 \name{data_repeat}
 \alias{data_repeat}
-\title{Simulated CVD risk assessment data
-This is simulated data formed using an LME model.}
+\title{Simulated repeat measurement data}
 \format{
-A dataset containing repeat measurements data from a CVD risk assessment from 10000 patients.
-
-A dataset with 30018 rows and 12 columns:
+A dataset with 30013 rows and 13 columns:
 \describe{
 \item{id}{Patient ID}
-\item{smoking}{Smoking status, 0 indicates the patient has 'never smoked', 1 indicated the patient has quit smoking, and 2 indicated the individual is a current smoker.}
+\item{smoking}{Smoking status, 0 indicates the patient has 'never smoked', 1 indicates the patient has quit smoking, and 2 indicated the individual is a current smoker.}
 \item{diabetes}{Diabetes status, 0 indicates the patient does not have diabetes, 1 indicates the patient does have diabetes}
 \item{ethnicity}{Ethnicity, one of five ethnicities}
 \item{deprivation}{Deprivation score out of five}
 \item{index}{An index indicating assessment number for a patient}
-\item{response_date_sbp_stnd}{The date that systolic blood pressure was recorded, this is the same as the date that the fixed measured were recorded}
+\item{response_date_sbp_stnd}{Date that systolic blood pressure was recorded, this is the same as the date that the fixed measures were recorded}
 \item{sbp_stnd}{Standardised systolic blood pressure}
-\item{response_date_tchdl_stnd}{The date that systolic total cholesterol to HDL ratio was recorded}
+\item{response_date_tchdl_stnd}{Date that total cholesterol to HDL ratio was recorded}
 \item{tchdl_stnd}{Standardised total cholesterol to HDL ratio}
 }
 }
@@ -26,7 +23,7 @@ A dataset with 30018 rows and 12 columns:
 data_repeat
 }
 \description{
-Simulated CVD risk assessment data
-This is simulated data formed using an LME model.
+A simulated dataset formed using an LME model, whose parameters were based on CVD risk assessments
+recorded at primary care practices in New Zealand. The dataset contains repeat measurements data from 10000 patients.
 }
 \keyword{datasets}

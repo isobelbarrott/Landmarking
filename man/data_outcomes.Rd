@@ -3,22 +3,21 @@
 \docType{data}
 \name{data_outcomes}
 \alias{data_outcomes}
-\title{Simulated CVD event data}
+\title{Simulated time-to-event data}
 \format{
-An object of class \code{data.frame} with 10000 rows and 3 columns.
-}
-\usage{
-data_outcomes
-}
-\description{
-A dataset containing CVD event data for 4100 patients at risk at landmark age 60. This is simulated data formed using an cause-specific survival model.
-}
-\details{
-A dataset with 4100 rows and 3 columns:
+A dataset with 10000 rows and 3 columns:
+
 \describe{
 \item{id}{Patient ID}
 \item{event_status}{Event status, 0 indicates censoring, 1 indicates CVD event, 2 indicates death from other causes}
 \item{event_time}{Event time}
 }
+}
+\usage{
+data_outcomes
+}
+\description{
+A simulated dataset formed using a cause specific model, whose parameters were based on CVD events of patients
+at primary care practices in New Zealand. The dataset contains time-to-event data from 10000 patients.
 }
 \keyword{datasets}

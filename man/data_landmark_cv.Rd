@@ -3,22 +3,15 @@
 \docType{data}
 \name{data_landmark_cv}
 \alias{data_landmark_cv}
-\title{Simulated CVD event data}
+\title{Simulated data for use in a landmarking analysis}
 \format{
-An object of class \code{data.frame} with 22871 rows and 17 columns.
+A dataset with 22427 rows and 18 columns.
 }
 \usage{
 data_landmark_cv
 }
 \description{
-A dataset containing CVD event data for 4100 patients at risk at landmark age 60. This is simulated data formed using an cause-specific survival model.
-}
-\details{
-A dataset with 4100 rows and 3 columns:
-\describe{
-\item{id}{Patient ID}
-\item{event_status}{Event status, 0 indicates censoring, 1 indicates CVD event, 2 indicates death from other causes}
-\item{event_time}{Event time}
-}
+A combination of the \code{data_repeat} and \code{data_outcomes} data, modified to perform a landmark analysis. See the vignette associated with the \code{Landmarking}
+package (\code{browseVignettes("Landmarking")}) for more information about how this dataset was formed.
 }
 \keyword{datasets}
