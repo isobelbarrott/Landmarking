@@ -5,11 +5,12 @@
 #' (or at) landmark time `x_L`, and ended follow-up after
 #' (but not at) landmark time `x_L`. These entries comprise
 #' the dataset for landmark time `x_L` in the landmark model.
-#'
+#' Also censors individuals with event times over `x_hor`.
 #'
 #'
 #' @param data Data frame with repeated measurements in long format; each row corresponds to an assessment entry
 #' @template x_L
+#' @template x_hor
 #' @param assessment_time Character string specifying the column name in
 #' `data` which contains the assessment time for each row
 #' @template patient_id
@@ -34,6 +35,7 @@
 create_landmark_dataset <-
   function(data,
            x_L,
+           x_hor,
            patient_id,
            assessment_time,
            event_status,
@@ -75,5 +77,10 @@ create_landmark_dataset <-
     data_start_time<-stats::aggregate(stats::as.formula(paste0(assessment_time,"~",patient_id)),data,function(x){min(x)})
     data_end_time<-stats::aggregate(stats::as.formula(paste0(event_time,"~",patient_id)),data,function(x){min(x)})
     data[data[[patient_id]] %in% data_start_time[data_start_time[[assessment_time]]<=x_L & data_end_time[[event_time]]>x_L,patient_id],]
+
+    data[[event_status]][data[[event_time]]>x_hor]<-0
+    data[[event_time]][data[[event_time]]>x_hor]<-x_hor
+
+    data
   }
 

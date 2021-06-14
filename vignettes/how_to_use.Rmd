@@ -90,11 +90,12 @@ There are two steps to using this package:
 
 ###  
 
-To perform the first step, the function `create_landmark_dataset` selects the patients that at the landmark time have entered the study (defined as having had their first assessment) and have not been censored or had any events.
+To perform the first step, the function `create_landmark_dataset` selects the patients that at the landmark time have entered the study (defined as having had their first assessment) and have not been censored or had any events. It also censors all individuals that have event times that are larger than \code{x_hor} as this is part of the landmarking approach. 
 
 ```{r 7}
 data_landmark<-create_landmark_dataset(data=data_repeat_outcomes,
                                      x_L=60,
+                                     x_hor=65,
                                      assessment_time="response_time_sbp_stnd",
                                      patient_id="id",
                                      event_time="event_time",
@@ -103,6 +104,12 @@ length(unique(data_landmark$id))
 ```
 
 So `r length(unique(data_landmark$id))` individuals are in the risk set at 60 years old.
+
+We can also see that event times greater than \code{x_hor} have been censored.
+
+```{r 8}
+max(data_landmark$event_time)
+```
 
 It seems as though we are almost ready to perform the landmarking analysis using functions `fit_LOCF_landmark_model` and `fit_LME_landmark_model`. However, there are a couple of issues that stem from the fact we wish to compare the LOCF and LME longitudinal model. We want the same dataset to be used for both of these models to ensure that the comparison is fair. 
 
