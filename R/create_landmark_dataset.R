@@ -5,7 +5,8 @@
 #' (or at) landmark time `x_L`, and ended follow-up after
 #' (but not at) landmark time `x_L`. These entries comprise
 #' the dataset for landmark time `x_L` in the landmark model.
-#' Also censors individuals with event times over `x_hor`.
+#' This function also censors individuals with event times over `x_hor`,
+#' according to the landmarking model.
 #'
 #'
 #' @param data Data frame with repeated measurements in long format; each row corresponds to an assessment entry
@@ -25,6 +26,7 @@
 #' data(data_repeat_outcomes)
 #' data_repeat_outcomes <- create_landmark_dataset(data=data_repeat_outcomes,
 #'   x_L=60,
+#'   x_hor=65,
 #'   assessment_time="response_time_sbp_stnd",
 #'   patient_id="id",
 #'   event_time="event_time",
