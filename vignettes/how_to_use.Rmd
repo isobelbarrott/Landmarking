@@ -32,7 +32,7 @@ First of all, let's take a look at the datasets we are going to analyse.
 
 There are two datasets:
 
-* `data_repeats` contains repeat measurements data from CVD risk assessments. Each row corresponds to a different assessment and an individual may have multiple assessments. The dataset contains information about an individual's ethnicity, smoking status, diabetes, deprivation score, diagnosis of atrial fibrillation, and standardised systolic blood pressure (SBP). These were recorded on the date specified in `response_date_sbp_stnd`. The standardised total cholesterol to high density lipoprotein (HDL) ratio is also recorded as part of the assessment but was recorded on the date specified in `response_date_tchdl_stnd`, which is up to a month after the other variables were measured.
+* `data_repeats` contains repeat measurements data from CVD risk assessments. Each row corresponds to a different assessment and an individual may have multiple assessments. The dataset contains information about an individual's ethnicity, smoking status, diabetes, and standardised systolic blood pressure (SBP). These were recorded on the date specified in `response_date_sbp_stnd`. The standardised total cholesterol to high density lipoprotein (HDL) ratio is also recorded as part of the assessment but was recorded on the date specified in `response_date_tchdl_stnd`, which is up to a month after the other variables were measured.
 
 * `data_outcomes` contains CVD event data, indicating the time and status of event that each individual experiences. There are three types of events: censoring (this is due to loss to follow-up or the end of the study on, indicated by status `0`), CVD event (indicated by status `1`), or death from other causes (indicated by status `2`). It is important when using this package that 0 is used to indicate censoring, 1 to indicate the event of interest, and values 2 or above indicate different competing risks.
 
@@ -58,7 +58,7 @@ Moreover, we can see the breakdown of events
 table(data_outcomes$event_status)
 ```
 
-So `r length(which(data_outcomes$event_status==1))` patients in the study (out of 10000) experienced a CVD event and `r length(which(data_outcomes$event_status==2))` experienced death from other causes.
+So `r length(which(data_outcomes$event_status==1))` patients in the study (out of `r dim(data_outcomes)[1]` experienced a CVD event and `r length(which(data_outcomes$event_status==2))` experienced death from other causes.
 
 
 ###Setting up the analysis
@@ -119,7 +119,7 @@ The first issue is the presence of `NA` values means that some individuals in th
 Helpfully, the `Landmarking` package contains a function `return_ids_with_LOCF` to create a dataset with individuals with a LOCF for all covariates contained in the `covariates` parameter at landmark time `x_L`.
 
 ```{r 9}
-data_landmark<-return_ids_with_LOCF(data=data_landmark,patient_id="id",covariates=c("ethnicity","smoking","diabetes","deprivation","atrial_fibrillation","sbp_stnd","tchdl_stnd"),covariates_time=c(rep("response_time_sbp_stnd",6),"response_time_tchdl_stnd"),x_L=60)
+data_landmark<-return_ids_with_LOCF(data=data_landmark,patient_id="id",covariates=c("ethnicity","smoking","diabetes","sbp_stnd","tchdl_stnd"),covariates_time=c(rep("response_time_sbp_stnd",4),"response_time_tchdl_stnd"),x_L=60)
 length(unique(data_landmark$id))
 ```
 
@@ -137,9 +137,9 @@ We have now completed the first step and are now ready to use `fit_LOCF_landmark
 ```{r 11}
 data_model_landmark_LOCF<-fit_LOCF_landmark_model(data=data_landmark_cv,
                                                       x_L=60,
-                                                      x_hor=65, covariates=c("ethnicity","smoking","diabetes","deprivation",
-                                                                             "atrial_fibrillation","sbp_stnd","tchdl_stnd"),
-                                                      covariates_time=c(rep("response_time_sbp_stnd",6),"response_time_tchdl_stnd"),
+                                                      x_hor=65, 
+                                                      covariates=c("ethnicity","smoking","diabetes","sbp_stnd","tchdl_stnd"),
+                                                      covariates_time=c(rep("response_time_sbp_stnd",4),"response_time_tchdl_stnd"),
                                                       cv_name="cross_validation_number",
                                                       patient_id="id",
                                                       event_time="event_time",
@@ -147,13 +147,11 @@ data_model_landmark_LOCF<-fit_LOCF_landmark_model(data=data_landmark_cv,
                                                       survival_submodel = "cause_specific")
 ```
 
-We can see that fitting this model returns the warning `Loglik converged before variable  12 ; coefficient may be infinite.` once for each of the cross-validation folds. Taking a look at the model fit contained in `data_model_landmark_LOCF$model_survival`, the upper confidence interval for the coefficient for atrial_fibrillation is `inf` for cause 2. This is due there being few individuals that have atrial_fibrillation and few individuals that experienced death from other causes. 
-
-However, as only the point estimate of the coefficient is needed to calculate the risk prediction, not having the standard error is not a problem. Indeed we have obtained the risk predictions and can take a look at their distribution.
+We can see that fitting this model returns the warning `Loglik converged before variable  2 ; coefficient may be infinite.`. Taking a look at the model fit contained in `data_model_landmark_LOCF$model_survival`, the upper confidence interval for the coefficient for atrial_fibrillation is `inf` for cause 2 for fold number 8. This is due there being few individuals that have ethnicity 'Indian' and few individuals that experienced death from other causes. However, as only the point estimate of the coefficient is needed to calculate the risk prediction, not having the standard error is not a problem. Indeed we have obtained the risk predictions and can take a look at their distribution.
 
 
 ```{r 12}
-plot(density(data_model_landmark_LOCF$data$event_prediction), xlab="Predicted risk of CVD event",main="")
+plot(density(100*data_model_landmark_LOCF$data$event_prediction), xlab="Predicted risk of CVD event (%)",main="")
 ```
 
 
@@ -167,7 +165,7 @@ time values which helps fitting the LME model (see `help("fit_LME_landmark_model
 data_model_landmark_LME<-fit_LME_landmark_model(data=data_landmark_cv,
                                                     x_L=60,
                                                     x_hor=65,
-                                                    fixed_effects=c("ethnicity","smoking","diabetes","deprivation","atrial_fibrillation"),
+                                                    fixed_effects=c("ethnicity","smoking","diabetes"),
                                                     fixed_effects_time="response_time_sbp_stnd",
                                                     random_effects=c("sbp_stnd","tchdl_stnd"),
                                                     random_effects_time=c("response_time_sbp_stnd","response_time_tchdl_stnd"),

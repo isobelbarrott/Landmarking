@@ -642,8 +642,7 @@ fit_survival_model <- function(data,
 #' data_model_landmark_LME<-fit_LME_landmark_model(data=data_landmark_cv,
 #'   x_L=60,
 #'   x_hor=65,
-#'   fixed_effects=c("ethnicity","smoking","diabetes",
-#'   "deprivation","atrial_fibrillation"),
+#'   fixed_effects=c("ethnicity","smoking","diabetes"),
 #'   fixed_effects_time="response_time_sbp_stnd",
 #'   random_effects=c("sbp_stnd","tchdl_stnd"),
 #'   random_effects_time=c("response_time_sbp_stnd","response_time_tchdl_stnd"),
@@ -680,6 +679,8 @@ fit_LME_landmark_model<-function(data,
 
   #Checks
   #####
+  if(any(data[[event_time]]>x_hor)){stop("There should not be any values of event_time greater than x_hor. Use function create_landmark_dataset to censor at these times")}
+
   if (!(is.data.frame(data))) {
     stop("data should be a dataframe")
   }
@@ -820,9 +821,8 @@ fit_LME_landmark_model<-function(data,
 #' data_model_landmark_LOCF<-fit_LOCF_landmark_model(data=data_landmark_cv,
 #'   x_L=60,
 #'   x_hor=65,
-#'   covariates=c("ethnicity","smoking","diabetes","deprivation",
-#'   "atrial_fibrillation","sbp_stnd","tchdl_stnd"),
-#'   covariates_time=c(rep("response_time_sbp_stnd",6),"response_time_tchdl_stnd"),
+#'   covariates=c("ethnicity","smoking","diabetes","sbp_stnd","tchdl_stnd"),
+#'   covariates_time=c(rep("response_time_sbp_stnd",4),"response_time_tchdl_stnd"),
 #'   cv_name="cross_validation_number",
 #'   patient_id="id",
 #'   event_time="event_time",
@@ -845,6 +845,9 @@ fit_LOCF_landmark_model<-function(data,
                                   event_status,
                                   survival_submodel = c("standard_cox", "cause_specific", "fine_gray")){
   call <- match.call()
+
+  if(any(data[[event_time]]>x_hor)){stop("There should not be any values of event_time greater than x_hor. Use function create_landmark_dataset to censor at these times")}
+
   if (!(is.data.frame(data))) {
     stop("data should be a dataframe")
   }

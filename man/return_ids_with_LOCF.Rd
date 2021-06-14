@@ -36,9 +36,8 @@ Individuals have a LOCF if there is a non-\code{NA} entry for each of the covari
 data(data_repeat_outcomes)
 data_repeat_outcomes<-return_ids_with_LOCF(data=data_repeat_outcomes,
   patient_id="id",
-  covariates=c("ethnicity","smoking","diabetes","deprivation",
-  "atrial_fibrillation","sbp_stnd","tchdl_stnd"),
-  covariates_time=c(rep("response_time_sbp_stnd",6),"response_time_tchdl_stnd"),
+  covariates=c("ethnicity","smoking","diabetes","sbp_stnd","tchdl_stnd"),
+  covariates_time=c(rep("response_time_sbp_stnd",4),"response_time_tchdl_stnd"),
   x_L=60)
 }
 \author{

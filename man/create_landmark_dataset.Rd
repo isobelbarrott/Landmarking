@@ -7,6 +7,7 @@
 create_landmark_dataset(
   data,
   x_L,
+  x_hor,
   patient_id,
   assessment_time,
   event_status,
@@ -17,6 +18,8 @@ create_landmark_dataset(
 \item{data}{Data frame with repeated measurements in long format; each row corresponds to an assessment entry}
 
 \item{x_L}{Integer specifying the landmark time}
+
+\item{x_hor}{Integer specifying the horizon time}
 
 \item{patient_id}{Character string specifying the column name in \code{data} which contains the individual identifiers}
 
@@ -40,6 +43,8 @@ i.e individuals that started follow-up before
 (or at) landmark time \code{x_L}, and ended follow-up after
 (but not at) landmark time \code{x_L}. These entries comprise
 the dataset for landmark time \code{x_L} in the landmark model.
+This function also censors individuals with event times over \code{x_hor},
+according to the landmarking model.
 }
 \details{
 An individual enters the risk set at their first assessment and exits the risk set
@@ -49,6 +54,7 @@ after their first event (this may be censoring, event of interest or a competing
 data(data_repeat_outcomes)
 data_repeat_outcomes <- create_landmark_dataset(data=data_repeat_outcomes,
   x_L=60,
+  x_hor=65,
   assessment_time="response_time_sbp_stnd",
   patient_id="id",
   event_time="event_time",
