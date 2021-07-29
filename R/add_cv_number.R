@@ -4,7 +4,7 @@
 #'
 #' @param data Data frame; there may be more than one row per individual
 #' @template patient_id
-#' @param k Integer specifying the number of folds
+#' @template k
 #' @return Data frame `data` updated to contain a new column `cross_validation_number`
 #' indicating the fold to which the individual has been assigned.
 #' @author Isobel Barrott \email{isobel.barrott@@gmail.com}
