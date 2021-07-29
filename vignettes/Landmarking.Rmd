@@ -43,9 +43,22 @@ The other main statistical framework for this dynamic prediction problem is join
 
 The package **Landmarking** offers benefits over existing packages *dynpred* and *landpred* for landmark model analysis. In particular, three features of the package are outlined below.
 
-
 ### 1. Linear mixed effects modelling 
+
+The package **Landmarking** offers benefits over existing packages **dynpred** and **landpred** for landmark model analysis. In particular, three features of the package are outlined below.
+
+The LME model is an alternative to using the LOCF model for the longitudinal submodel. Using LME modelling means that the entire history of a risk factor is used to evaluate predicted risk, as opposed to the LOCF model where only one (the most recent) measurement is used. Moreover the LME allows a patient to have **missing values** for the variables in the random effects component.
+
+Figure 2 illustrates the use of these two types of models to predict systolic blood pressure at the landmark time. The LOCF model simply uses the most recently observed value of a risk factor. On the other hand, the LME model uses the entire history of the values of the risk factor from the individual, in combination with the trend in the risk factor from individuals used to develop the model. Using the Landmarking package, it is possible include a covariance structure in the random effects meaning that other risk factors can inform predictions. This improves the accuracy of the estimated value of the risk factor at the landmark time value compared to the LOCF model.
+
+```{r figurename2, echo=FALSE, fig.cap="*Figure 2: Comparison of the LOCF and LME model to predict systolic blood pressure at a landmark age for an individual with 8 repeat measures.*", out.width = '90%'}
+knitr::include_graphics("./images/landmarking_lme_model.png")
+```
 
 ### 2. Competing risks modelling
 
+The Landmarking R package has the ability to fit competing risks models for the survival submodel. There are two types of competing risks model that can be fit using this package, the Fine Gray model and the cause-specific model, using the parameter *survival_submodel* in the function *fit_LOCF_landmark_model* or *fit_LME_landmark_model*. The cause-specific model involves regression on the cause-specific hazard function. A covariate with a hazard rate greater than 1 is associated with an increased rate of the event of interest and less than 1 with a decreased rate of the event. Conversely, the Fine Gray model involves regression on the cumulative incidence function (CIF). In this case, a covariate with a hazard rate greater than 1 is associated with an increased incidence of the event of interest and less than 1 with a decreased incidence of the event.  Their differences has led to the proposal that the cause-specific model is preferred when the aim is to study the aetiology of a disease, and the Fine Gray model is preferred when the aim is prediction of the risk of an event.
+
 ### 3. Cross-validation
+
+Another feature of this package is that is makes it easy to perform k-fold cross validation. The function *add_cv_number* assigns a fold to each individual in a dataset. This can be inputted as a parameters within the functions *fit_LOCF_landmark_model* or *fit_LME_landmark_model*, which ensure the same folds are used for both the longitudinal and survival submodels.
