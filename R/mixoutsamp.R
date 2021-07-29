@@ -1,4 +1,15 @@
-#' @importFrom stats na.pass
+#' Calculate point estimates from a linear mixed effects (LME) model for new data
+#'
+#' This function allows the user to make out-of-sample point estimate predictions using a LME model.
+#'
+#' @param model Object of class `lme` containing the fitted LME model
+#' @param newdata Data frame containing data for which to make predictions
+#' @return List containing `preddata` and `random`. Data frame `preddata` is a version of `newdata` updated to contain columns conrresponding to the fixed effects values (`fixed`),
+#' random effects values (`random`), and fitted values (`fitted`).
+#' Data frame `random` contains the values of random effects components for each individual.
+#' @author Ruth Keogh
+#' @export
+
 mixoutsamp<-function(model,newdata){
   n=dim(newdata)[1]
 
@@ -127,7 +138,7 @@ if(corr.struct.type=="corExp"){
   #-------------------------------------------------------------
   #the data for which predictions are required - this is for all individuals in newdata
 
-  xstar.mat=stats::model.matrix(model, stats::model.frame(~ ., newdata, na.action=na.pass)) #fixed effects design matrix
+  xstar.mat=stats::model.matrix(model, stats::model.frame(~ ., newdata, na.action=stats::na.pass)) #fixed effects design matrix
   zstar.mat=stats::model.matrix(stats::formula(model$modelStruct$reStr)[[1]],data=newdata) #random effects design matrix
   xbstar<-xstar.mat  %*%coef.fixed   #fitted values for the fixed part of the model
 

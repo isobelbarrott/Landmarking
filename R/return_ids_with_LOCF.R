@@ -1,4 +1,4 @@
-#' Select individuals in a dataset with a last observation carried forward (LOCF) at a particular time
+#' Select individuals in a dataset with a last observation carried forward (LOCF) at a landmark time
 #'
 #' To fit the LOCF model, all individuals must have at least one
 #' non-`NA` entry by age `x_L` for all covariates. This function selects these individuals and removes the other rows.

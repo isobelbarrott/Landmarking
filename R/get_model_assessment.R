@@ -9,11 +9,8 @@
 #' @template event_time
 #' @template x_hor
 #' @template patient_id
-#' @param event_prediction Character string specifying the column name in `data` containing the prediction of the event of interest
-#' @param return_c_index Boolean indicating whether the C-index should be calculated
-#' @param return_brier_score Boolean indicating whether the Brier score should be calculated
-#' @param b Integer specifying the number of bootstrap samples to take
-#' @param standard_error Boolean indicating whether to calculate the standard error
+#' @template event_prediction
+#' @template b
 #' @return List containing C-index, Brier score and their standard errors
 #' @details There are two factors in assessing the performance of a prediction model; its
 #' discrimination and its calibration. The c-index is one method to assess
@@ -46,10 +43,7 @@
 #'   event_status="event_status",
 #'   event_time="event_time",
 #'   x_hor=65,
-#'   return_c_index = TRUE,
-#'   return_brier_score = TRUE,
-#'   b=10,
-#'   standard_error = TRUE)}
+#'   b=10)}
 #' @export
 
 get_model_assessment <-
@@ -59,10 +53,7 @@ get_model_assessment <-
            event_status,
            event_time,
            x_hor,
-           return_c_index = TRUE,
-           return_brier_score = TRUE,
-           b,
-           standard_error = FALSE) {
+           b) {
     for (col in c(event_prediction,
                   event_status,
                   event_time)) {
@@ -73,17 +64,18 @@ get_model_assessment <-
     if (!(is.numeric(x_hor))) {
       stop("x_hor should be numeric")
     }
-    if (!(is.numeric(b))) {
-      stop("b should be numeric")
-    }
+    if(!is.na(b)){
+      if (!(is.numeric(b))){
+        stop("b should be numeric")
+      }
+      standard_error<-TRUE
+      }else{standard_error<-FALSE}
     if (length(unique(data[[patient_id]]))!=dim(data)[1]) {
       stop("There should be one row for each individual in data")
     }
     n <- dim(data)[1]
     Hist<-prodlim::Hist
     Surv<-survival::Surv
-
-    if (return_c_index == TRUE) {
 
       c_index <-
         pec::cindex(
@@ -120,9 +112,7 @@ get_model_assessment <-
             rho_hat_star - mean(rho_hat_star)
           ) ^ 2)))
       }
-    }
 
-    if (return_brier_score == TRUE) {
       brier_score <-
         pec::pec(
           object = matrix(cbind(0, data[[event_prediction]]), ncol =
@@ -162,20 +152,19 @@ get_model_assessment <-
 
 
       }
-    }
+
 
     if (standard_error == FALSE) {
-      return(list(c_index = c_index, brier_score = brier_score))
-    }
-    if (standard_error == TRUE) {
-      return(list(
-        c_index = c_index,
-        c_index_standard_error = c_index_error,
-        brier_score = brier_score,
-        brier_score_standard_error = brier_score_error
-      ))
+      c_index_error<-NA
+      brier_score_error<-NA
     }
 
+    return(list(
+      c_index = c_index,
+      c_index_standard_error = c_index_error,
+      brier_score = brier_score,
+      brier_score_standard_error = brier_score_error
+    ))
   }
 
 c_index_bootstrap <-
