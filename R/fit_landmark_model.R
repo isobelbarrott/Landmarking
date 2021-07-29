@@ -737,7 +737,7 @@ fit_LME_landmark_model<-function(data_long,
   if(!missing(k)){data_long<-add_cv_number(data=data_long, patient_id=patient_id, k=k)}
   if(!missing(cross_validation_df)){cross_validation_df_add<-TRUE}else{cross_validation_df_add<-FALSE}
 
-  if (random_intercept & random_slope == FALSE) {
+  if (random_intercept && random_slope == FALSE) {
     stop("At least one of random_intercept/random_slope should be TRUE")
   }
 
@@ -756,7 +756,7 @@ fit_LME_landmark_model<-function(data_long,
   if (length(random_effects_time)==1){random_effects_time<-rep(random_effects_time,times=length(random_effects))}
 
   data_long[[patient_id]]<-as.factor(data_long[[patient_id]])
-  if(!missing(cross_validation_df) && !(names(cross_validation_df) %in% x_L)){
+  if(!missing(cross_validation_df) && !all(names(cross_validation_df) %in% x_L)){
     stop( "Names of elements in cross_validation_df list need to be landmark times x_L")}
 
 
@@ -947,7 +947,8 @@ fit_LOCF_landmark_model<-function(data_long,
 
   if(!missing(k)){data_long<-add_cv_number(data=data_long, patient_id=patient_id, k=k)}
   if(!missing(cross_validation_df)){cross_validation_df_add<-TRUE}else{cross_validation_df_add<-FALSE}
-
+  if(!missing(cross_validation_df) && !all(names(cross_validation_df) %in% x_L)){
+      stop( "Names of elements in cross_validation_df list need to be landmark times x_L")}
   if (!(length(covariates_time) %in% c(length(covariates),1))){
     stop("Length of covariates_time should be equal to length of covariates or 1")}
   if (length(covariates_time)==1){covariates_time<-rep(covariates_time,times=length(covariates))}
@@ -962,6 +963,7 @@ fit_LOCF_landmark_model<-function(data_long,
     }
   }
   data_long[[patient_id]]<-as.factor(data_long[[patient_id]])
+
 
   if(length(x_L)!=length(x_hor)){stop("Length of x_L should be the same as length of x_hor")}
   if (missing(b)){b<-NA}
