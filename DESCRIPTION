@@ -39,3 +39,5 @@ VignetteBuilder: knitr
 Depends: 
     R (>= 2.10)
 Roxygen: list(markdown = TRUE)
+URL: https://github.com/isobelbarrott/Landmarking
+BugReports: https://github.com/isobelbarrott/Landmarking/issues
