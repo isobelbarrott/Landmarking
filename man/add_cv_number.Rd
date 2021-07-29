@@ -11,7 +11,7 @@ add_cv_number(data, patient_id, k)
 
 \item{patient_id}{Character string specifying the column name in \code{data} which contains the individual identifiers}
 
-\item{k}{Integer specifying the number of folds}
+\item{k}{Integer specifying the number of folds for cross-validation}
 }
 \value{
 Data frame \code{data} updated to contain a new column \code{cross_validation_number}

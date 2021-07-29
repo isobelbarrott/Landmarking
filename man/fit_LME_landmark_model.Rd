@@ -5,7 +5,7 @@
 \title{Fit a landmarking model using a linear mixed effects (LME) model for the longitudinal submodel}
 \usage{
 fit_LME_landmark_model(
-  data,
+  data_long,
   x_L,
   x_hor,
   fixed_effects,
@@ -15,20 +15,24 @@ fit_LME_landmark_model(
   random_intercept = TRUE,
   random_slope = TRUE,
   standardise_time = FALSE,
-  cv_name,
   patient_id,
+  start_study_time,
+  end_study_time,
+  k,
+  cross_validation_df,
   lme_control = nlme::lmeControl(),
   event_time,
   event_status,
-  survival_submodel
+  survival_submodel = c("standard_cox", "cause_specific", "fine_gray"),
+  b
 )
 }
 \arguments{
-\item{data}{Data frame containing repeat measurements data and time-to-event data, there may be more than one row per individual}
+\item{data_long}{Data frame containing repeat measurements data and time-to-event data in long format}
 
-\item{x_L}{Integer specifying the landmark time}
+\item{x_L}{Numeric specifying the landmark time}
 
-\item{x_hor}{Integer specifying the horizon time}
+\item{x_hor}{Numeric specifying the horizon time}
 
 \item{fixed_effects}{Vector of character strings specifying the column names in \code{data}
 which correspond to the fixed effects}
@@ -51,11 +55,16 @@ order of elements in \code{random_effects}.}
 \item{standardise_time}{Boolean indicating whether to standarise the time variable by subtracting the mean
 and dividing by the standard deviation (see Details section for more information)}
 
-\item{cv_name}{Character string specifying the column name in \code{data}
-which contains the cross-validation fold. Leaving this parameter empty (default) means that
-no cross-validation will be performed.}
-
 \item{patient_id}{Character string specifying the column name in \code{data} which contains the individual identifiers}
+
+\item{start_study_time}{Character string specifying the column name in \code{data} which indicates the time that an individual enters the study}
+
+\item{end_study_time}{Character string specifying the column name in \code{data} which indicates the time that an individual leaves the study}
+
+\item{k}{Integer specifying the number of folds for cross-validation}
+
+\item{cross_validation_df}{List of dataframes containing the cross-validation fold each individual is assigned to. Each dataframe in the list should be
+named according to the landmark time x_L that they correspond. Each dataframe should contain the columns \code{patient_id} and a column \code{"cross_validation_number"} which contains the cross-validation fold of the individual.}
 
 \item{lme_control}{Object created using \code{nlme::lmeControl()}, which will be passed to the \code{control} argument of the \code{lme}
 function}
@@ -71,27 +80,40 @@ which contains the event status (where 0=censoring, 1=event of interest, if ther
 use. Three options: the standard Cox model i.e. no competing risks (\code{"standard_cox"}),
 the cause-specific regression model (\code{"cause_specific"}), or the Fine Gray
 regression model (\code{"fine_gray"})}
+
+\item{b}{Integer specifying the number of bootstrap samples to take when calcluating standard error of c-index and Brier score}
 }
 \value{
-List containing \code{data}, \code{model_longitudinal}, and \code{model_survival}.
+List containing \code{data}, \code{model_longitudinal}, \code{model_survival}, and \code{prediction_error}.
 
 \code{data} is a data frame that includes the LOCF values of the \code{fixed_effects} and estimates
 of the \code{random_effects} predicted from the LME model (see Details section). It also includes the predicted
-probability that the event of interest has occured by time \code{x_L}, labelled as "event_prediction".
+probability that the event of interest has occured by time \code{x_L}, labelled as \code{"event_prediction"}.
 There is one row for each individual.
+
 \code{model_longitudinal} contains the output from
 the \code{lme} function from package \code{nlme}. For a model using cross-validation,
-\code{model_longitudinal} will contain a list of outputs with each
+\code{model_longitudinal} contains a list of outputs with each
 element in the list corresponds to a different cross-validation fold.
+\code{prediction_error} contains a list indicating the c-index and Brier score at time \code{x_hor} and their standard errors if parameter \code{b} is used.
+For more information on how the prediction error is calculated
+please see \code{?get_model_assessment} which is the function used to do this within \code{fit_LME_landmark_model}.
 
 \code{model_survival} contains the outputs from
 the survival submodel functions, including the estimated parameters of the model. For a model using cross-validation,
 \code{model_survival} will contain a list of outputs with each
 element in the list corresponding to a different cross-validation fold.
+\code{model_survival} contains the outputs from the function used to fit the survival submodel, including the estimated parameters of the model.
+For a model using cross-validation, \code{model_survival} contains a list of outputs with each
+element in the list corresponding to a different cross-validation fold. For more information on how the survival model is fitted
+please see \code{?fit_survival_model} which is the function used to do this within \code{fit_LME_landmark_model}.
+
+\code{prediction_error} contains a list indicating the c-index and Brier score at time \code{x_hor} and their standard errors if parameter \code{b} is used.
 }
 \description{
 This function performs the two-stage landmarking analysis. In the first stage the longitudinal submodel is fitted using the LME model and in the
 second stage the survival submodel is fitted.
+Integer specifying the number of bootstrap samples to take
 }
 \details{
 There are two parts to fitting the landmark model: the longitudinal submodel and the survival submodel.
@@ -154,21 +176,23 @@ For the survival submodel, there are three choices of model:
 The latter two models estimate the probability of the event of interest in the presence of competing events.
 }
 \examples{
-\dontrun{data(data_landmark_cv)
-data_model_landmark_LME<-fit_LME_landmark_model(data=data_landmark_cv,
-  x_L=60,
-  x_hor=65,
-  fixed_effects=c("ethnicity","smoking","diabetes"),
-  fixed_effects_time="response_time_sbp_stnd",
-  random_effects=c("sbp_stnd","tchdl_stnd"),
-  random_effects_time=c("response_time_sbp_stnd","response_time_tchdl_stnd"),
-  cv_name="cross_validation_number",
-  patient_id="id",
-  standardise_time = TRUE,
-  lme_control = nlme::lmeControl(maxIter=100,msMaxIter=100),
-  event_time="event_time",
-  event_status="event_status",
-  survival_submodel = "cause_specific")
+\dontrun{data(data_repeat_outcomes)
+data_model_landmark_LME<-fit_LME_landmark_model(data_long=data_repeat_outcomes,
+x_L=c(60,61),
+x_hor=c(65,66),
+k=10,
+start_study_time="start_time",
+end_study_time="event_time",
+fixed_effects=c("ethnicity","smoking","diabetes"),
+fixed_effects_time="response_time_sbp_stnd",
+random_effects=c("sbp_stnd","tchdl_stnd"),
+random_effects_time=c("response_time_sbp_stnd","response_time_tchdl_stnd"),
+patient_id="id",
+standardise_time = TRUE,
+lme_control = nlme::lmeControl(maxIter=100,msMaxIter=100),
+event_time="event_time",
+event_status="event_status",
+survival_submodel = "cause_specific")
 }
 }
 \author{

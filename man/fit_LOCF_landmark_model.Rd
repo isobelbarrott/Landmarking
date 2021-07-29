@@ -5,24 +5,28 @@
 \title{Fit a landmarking model using a last observation carried forward (LOCF) model for the longitudinal submodel}
 \usage{
 fit_LOCF_landmark_model(
-  data,
+  data_long,
   x_L,
   x_hor,
   covariates,
   covariates_time,
-  cv_name,
+  start_study_time,
+  end_study_time,
+  k,
+  cross_validation_df,
   patient_id,
   event_time,
   event_status,
-  survival_submodel = c("standard_cox", "cause_specific", "fine_gray")
+  survival_submodel = c("standard_cox", "cause_specific", "fine_gray"),
+  b
 )
 }
 \arguments{
-\item{data}{Data frame containing longitudinal (repeat measurements) data and time to event data, there may be more than one row per individual}
+\item{data_long}{Data frame containing repeat measurements data and time-to-event data in long format}
 
-\item{x_L}{Integer specifying the landmark time}
+\item{x_L}{Numeric specifying the landmark time}
 
-\item{x_hor}{Integer specifying the horizon time}
+\item{x_hor}{Numeric specifying the horizon time}
 
 \item{covariates}{Vector of character strings specifying the column names in \code{data}
 which correspond to the covariates}
@@ -32,9 +36,14 @@ which contain the times at which \code{covariates} were recorded. This should ei
 the same length as \code{covariates}. In the latter case the order of elements must correspond to the
 order of elements in \code{covariates}.}
 
-\item{cv_name}{Character string specifying the column name in \code{data}
-which contains the cross-validation fold. Leaving this parameter empty (default) means that
-no cross-validation will be performed.}
+\item{start_study_time}{Character string specifying the column name in \code{data} which indicates the time that an individual enters the study}
+
+\item{end_study_time}{Character string specifying the column name in \code{data} which indicates the time that an individual leaves the study}
+
+\item{k}{Integer specifying the number of folds for cross-validation}
+
+\item{cross_validation_df}{List of dataframes containing the cross-validation fold each individual is assigned to. Each dataframe in the list should be
+named according to the landmark time x_L that they correspond. Each dataframe should contain the columns \code{patient_id} and a column \code{"cross_validation_number"} which contains the cross-validation fold of the individual.}
 
 \item{patient_id}{Character string specifying the column name in \code{data} which contains the individual identifiers}
 
@@ -49,22 +58,27 @@ which contains the event status (where 0=censoring, 1=event of interest, if ther
 use. Three options: the standard Cox model i.e. no competing risks (\code{"standard_cox"}),
 the cause-specific regression model (\code{"cause_specific"}), or the Fine Gray
 regression model (\code{"fine_gray"})}
+
+\item{b}{Integer specifying the number of bootstrap samples to take when calcluating standard error of c-index and Brier score}
 }
 \value{
-List containing \code{data}, \code{model_longitudinal}, and \code{model_survival}.
+List containing \code{data}, \code{model_longitudinal}, \code{model_survival}, and \code{prediction_error}.
 
 \code{data} is a data frame that includes the \code{covariates} values
 calculated using the LOCF model (see Details section) and the predicted
-probability that the event of interest has occured by time \code{x_L}, labelled as "event_prediction".
+probability that the event of interest has occured by time \code{x_L}, labelled as \code{"event_prediction"}.
 There is one row for each individual.
 
 \code{model_longitudinal} indicates that the longitudinal submodel is LOCF.
 
-\code{model_survival} contains the outputs from
-the survival submodel functions, including the estimated parameters of the model.
-For a model using cross-validation,
-\code{model_survival} will contain a list of outputs with each
-element in the list corresponding to a different cross-validation fold.
+\code{model_survival} contains the outputs from the function used to fit the survival submodel, including the estimated parameters of the model.
+For a model using cross-validation, \code{model_survival} contains a list of outputs with each
+element in the list corresponding to a different cross-validation fold. For more information on how the survival model is fitted
+please see \code{?fit_survival_model} which is a function used within \code{fit_LOCF_landmark_model}.
+
+\code{prediction_error} contains a list indicating the c-index and Brier score at time \code{x_hor} and their standard errors if parameter \code{b} is used.
+For more information on how the prediction error is calculated
+please see \code{?get_model_assessment} which is the function used to do this within \code{fit_LOCF_landmark_model}.
 }
 \description{
 This function performs the two-stage landmarking analysis. In the first stage, the longitudinal submodel is fitted using the LOCF model and in the
@@ -86,13 +100,15 @@ For the survival submodel, there are three choices of model:
 The latter two models estimate the probability of the event of interest in the presence of competing events.
 }
 \examples{
-data(data_landmark_cv)
-data_model_landmark_LOCF<-fit_LOCF_landmark_model(data=data_landmark_cv,
-  x_L=60,
-  x_hor=65,
+data(data_repeat_outcomes)
+data_model_landmark_LOCF<-fit_LOCF_landmark_model(data_long=data_repeat_outcomes,
+  x_L=c(60,61),
+  x_hor=c(65,66),
   covariates=c("ethnicity","smoking","diabetes","sbp_stnd","tchdl_stnd"),
   covariates_time=c(rep("response_time_sbp_stnd",4),"response_time_tchdl_stnd"),
-  cv_name="cross_validation_number",
+  start_study_time="start_time",
+  end_study_time="event_time",
+  k=10,
   patient_id="id",
   event_time="event_time",
   event_status="event_status",

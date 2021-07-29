@@ -11,10 +11,7 @@ get_model_assessment(
   event_status,
   event_time,
   x_hor,
-  return_c_index = TRUE,
-  return_brier_score = TRUE,
-  b,
-  standard_error = FALSE
+  b
 )
 }
 \arguments{
@@ -23,7 +20,7 @@ there should be one row for each individual}
 
 \item{patient_id}{Character string specifying the column name in \code{data} which contains the individual identifiers}
 
-\item{event_prediction}{Character string specifying the column name in \code{data} containing the prediction of the event of interest}
+\item{event_prediction}{Character string specifying the column name in \code{data} containing the predicted probability of the event of interest}
 
 \item{event_status}{Character string specifying the column name in \code{data}
 which contains the event status (where 0=censoring, 1=event of interest, if there are competing events these are labelled
@@ -32,15 +29,9 @@ which contains the event status (where 0=censoring, 1=event of interest, if ther
 \item{event_time}{Character string specifying the column name in \code{data}
 which contains the event time}
 
-\item{x_hor}{Integer specifying the horizon time}
+\item{x_hor}{Numeric specifying the horizon time}
 
-\item{return_c_index}{Boolean indicating whether the C-index should be calculated}
-
-\item{return_brier_score}{Boolean indicating whether the Brier score should be calculated}
-
-\item{b}{Integer specifying the number of bootstrap samples to take}
-
-\item{standard_error}{Boolean indicating whether to calculate the standard error}
+\item{b}{Integer specifying the number of bootstrap samples to take when calcluating standard error of c-index and Brier score}
 }
 \value{
 List containing C-index, Brier score and their standard errors
@@ -80,10 +71,7 @@ get_model_assessment(data=data_landmark_LOCF,
   event_status="event_status",
   event_time="event_time",
   x_hor=65,
-  return_c_index = TRUE,
-  return_brier_score = TRUE,
-  b=10,
-  standard_error = TRUE)}
+  b=10)}
 }
 \author{
 Isobel Barrott \email{isobel.barrott@gmail.com}
