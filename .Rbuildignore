@@ -3,3 +3,4 @@
 ^~/Analyses/landmarking/man-roxygen$
 ^doc$
 ^Meta$
+^README\.Rmd$
