@@ -1,8 +1,8 @@
 ---
-title: "Landmarking"
+title: "Introduction to landmark models"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Landmarking}
+  %\VignetteIndexEntry{Introduction to landmark models}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -14,6 +14,38 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
-library(Landmarking)
+
+## What is the landmark model used for?
+
+Landmark models are used to **dynamically predict** the risk of an event for an individual. This means that an individual has a personalised risk prediction which is updated as new information is collected about them. Landmark models are particularly applicable in a medical setting where electronic health records (EHRs), such as GP records, are continually being updated with new data.
+
+## What is the landmark model?
+
+The key idea behind landmark models is the concept of predefined **landmark times**. A landmark time is a time point (i.e. "landmark") that we wish to make a risk prediction at. A model is built at the landmark time and this model is developed only using the data of individuals at risk (i.e. not censored or having experienced an event) at the landmark time. 
+
+>For example, suppose that we want to predict the 5 year risk of a cardiovascular disease (CVD) event for a 45 year old patient. Then we would create a model for landmark time 45 years old using all the individuals that are in the risk set at 45 years old, and use this model to predict the risk of an event occurring for our new individual.
+
+ As we want to predict the risk of an event for an individual at a selection of time points, we define multiple landmark times and develop a model for each of these. 
+ 
+>Continuing the example and supposing we wish to be able to predict the risk of CVD disease for any age between 45 and 50 years old, we define six landmark ages (45, ... , 50 years old) and fit six models for each of these. This is demonstrated in Figure 1.
+
+```{r figurename, echo=FALSE, fig.cap="*Figure 1: Illustration of a landmark model with six landmark times (ages 45 to 50 years). The blue solid line represents the time interval of repeat measures data to be inputted into the longitudinal submodel. The red dashed line represents the time interval of the time-to-event data to be inputted into the survival submodel. Events after the time horizon should be censored.*", out.width = '70%'}
+knitr::include_graphics("./images/landmarking_models.png")
 ```
+
+To form a model at each landmark age, landmark models use a **2-stage approach** that is comprised of a **longitudinal submodel** and **survival submodel**. The typical form of the longitudinal submodel and survival submodel is the last observation carried forward model (LOCF) and the Cox proportional hazards model respectively, although there are extensions and these are discussed in the next section. Figure 1 shows the time intervals of the repeat measures data and time-to-event data that is included when using the model, which is relative to the landmark age and time horizon. It should be noted that to develop the longitudinal submodel all the repeat measures data may be used, including those passed the landmark age. The survival submodel is fit only for the time-to-event data between the landmark age and the time horizon with all individuals censored at the time horizon. For a Cox proportional hazard survival submodel, this has the advantage that proportional hazards is only assumed for the short period between the landmark time and the time horizon rather than the entire period up until the end of study.
+
+## What are the advantages of the landmark model?
+
+The other main statistical framework for this dynamic prediction problem is joint modelling. In comparison to joint modelling, the landmarking model is less computationally intensive and makes a less strong assumption about proportional hazards. Specifically this assumption only applies to the period between the landmark timeand time horizon when using the landmark model.
+
+## Features of the R package Landmarking
+
+The package **Landmarking** offers benefits over existing packages *dynpred* and *landpred* for landmark model analysis. In particular, three features of the package are outlined below.
+
+
+### 1. Linear mixed effects modelling 
+
+### 2. Competing risks modelling
+
+### 3. Cross-validation

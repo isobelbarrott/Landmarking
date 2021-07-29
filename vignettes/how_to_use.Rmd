@@ -2,7 +2,6 @@
 ---
 title: "How to use the R package 'Landmarking'"
 author: Isobel Barrott
-date: "26th July 2021"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{How to use the R package 'Landmarking'}
@@ -58,7 +57,7 @@ table(data_outcomes$event_status)
 So `r length(which(data_outcomes$event_status==1))` patients in the study (out of `r dim(data_outcomes)[1]` experienced a CVD event and `r length(which(data_outcomes$event_status==2))` experienced death from other causes.
 
 
-###Setting up the analysis
+###Setting Up the Analysis
 
 To use the Landmarking package, the datasets need to be in a certain format. Firstly, instead of the date of the CVD assessment being recorded, the age of the patient should be recorded. These can be calculated as follows.
 
@@ -88,7 +87,7 @@ head(data_repeat_outcomes)
 
 We are now ready to begin the analysis using the Landmarking package.
 
-## Landmarking analysis using the package
+## The Landmarking Analysis
 
 There are a couple of issues to deal with before we start, these stem from the fact that we wish to compare the LOCF and LME longitudinal model. We want to ensure that the same dataset is used for both of these models so that the comparison is fair. 
 
