@@ -3,4 +3,23 @@ url: https://isobelbarrott.github.io/Landmarking
 template:
   params:
     bootswatch: zephyr
-
+reference:
+  - title: Functions
+    desc: ~
+    contents:
+      - '`fit_LOCF_landmark_model`'
+      - '`fit_LME_landmark_model`'
+      - '`add_cv_number`'
+      - '`get_model_assessment`'
+      - '`mixoutsamp`'
+      - '`return_ids_with_LOCF`'
+  - title: Data
+    desc: ~
+    contents:
+      - '`data_landmark_cv`'
+      - '`data_landmark_LOCF`'
+      - '`data_outcomes`'
+      - '`data_repeat`'
+      - '`data_repeat_outcomes`'
+navbar:
+  type: standard
