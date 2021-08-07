@@ -23,3 +23,16 @@ reference:
       - '`data_repeat_outcomes`'
 navbar:
   type: standard
+  left:
+    - icon: fa-home
+      href: index.html
+    - text: "How To"
+      menu:
+      -  text: Introduction to landmark models
+         href: articles/Landmarking.html
+      -  text: How to use the R package ‘Landmarking’
+         href: articles/how_to_use.html
+  right:
+    - icon: fa-github fa-lg
+      text: "github"
+      href: https://https://github.com/isobelbarrott/Landmarking/
