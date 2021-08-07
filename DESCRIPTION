@@ -1,5 +1,5 @@
 Package: Landmarking
-Title: Performs analysis using the landmarking approach
+Title: Analysis using landmark models
 Version: 0.0.0.9000
 Authors@R: c(
     person(given = "Isobel",
@@ -17,8 +17,7 @@ Description: The landmarking approach allows survival predictions to be
 	risk set. This package allows the longitudinal data to be modelled
 	either using the last observation carried forward or linear mixed
 	effects modelling. There is also the option to model competing risks,
-	either through cause-specific Cox regression or Fine-Gray regression.
-	URL: https://isobelbarrott.github.io/Landmarking/
+	either through cause-specific Cox regression or Fine-Gray regression. 
 License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
