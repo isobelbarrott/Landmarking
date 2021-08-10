@@ -14,15 +14,13 @@ vignette: >
 knitr::opts_chunk$set(cache=FALSE,collapse=TRUE, comment="#>")
 ```
 
-##Performing a landmarking analysis using the R package 'Landmarking'
+## Introduction
 
 Below is a step-by-step demonstration about how to use this package. The example used looks at using risk assessments recorded at primary care practices to predict the 5-year risk of cardiovascular disease (CVD).
 
-We will perform the landmarking analysis using both the LOCF and LME longitudinal models and compare the results of these two models. The example involves a competing risks events in the form of the risk of death from other causes; the cause-specific model will as used the survival submodel. For more information about these models please see the separate `What is Landmarking?' PDF file.
+We will perform the landmarking analysis using both the LOCF and LME longitudinal models and compare the results of these two models. The example involves competing risks events in the form of the risk of death from other causes; the cause-specific model will therefore be used as the survival submodel. For more information about the landmark model please see isobelbarrott.github.io/Landmarking.
 
-
-
-### Exploring the datasets
+## Exploring the datasets
 
 First of all, let's take a look at the datasets we are going to analyse.
 
@@ -57,7 +55,7 @@ table(data_outcomes$event_status)
 So `r length(which(data_outcomes$event_status==1))` patients in the study (out of `r dim(data_outcomes)[1]` experienced a CVD event and `r length(which(data_outcomes$event_status==2))` experienced death from other causes.
 
 
-###Setting Up the Analysis
+## Set-up
 
 To use the Landmarking package, the datasets need to be in a certain format. Firstly, instead of the date of the CVD assessment being recorded, the age of the patient should be recorded. These can be calculated as follows.
 
@@ -87,7 +85,7 @@ head(data_repeat_outcomes)
 
 We are now ready to begin the analysis using the Landmarking package.
 
-## The Landmarking Analysis
+## Analysis
 
 There are a couple of issues to deal with before we start, these stem from the fact that we wish to compare the LOCF and LME longitudinal model. We want to ensure that the same dataset is used for both of these models so that the comparison is fair. 
 
@@ -161,13 +159,17 @@ data_model_landmark_LME<-fit_LME_landmark_model(data_long=data_repeat_outcomes,
                                                     fixed_effects=c("ethnicity","smoking","diabetes"),
                                                     fixed_effects_time="response_time_sbp_stnd",
                                                     random_effects=c("sbp_stnd","tchdl_stnd"),
-                                                    random_effects_time=c("response_time_sbp_stnd","response_time_tchdl_stnd"),
+                                                random_effects_time=c("response_time_sbp_stnd","response_time_tchdl_stnd"),
                                                     patient_id="id",
                                                     standardise_time = TRUE,
                                                     lme_control = nlme::lmeControl(maxIter=100,msMaxIter=100),
                                                     event_time="event_time",
                                                     event_status="event_status",
                                                     survival_submodel = "cause_specific")
+
+
+
+
 ```
 
 Comparing the prediction error for the landmarking with LOCF and LME, we can see a slight improvement when the LME model is used.
