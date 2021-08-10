@@ -77,9 +77,12 @@ get_model_assessment <-
     Hist<-prodlim::Hist
     Surv<-survival::Surv
 
+    data[["event_time"]]<-data[[event_time]]
+    data[["event_status"]]<-data[[event_status]]
+
       c_index <-
         pec::cindex(
-          object = matrix(data$event_prediction),
+          object = matrix(data[[event_prediction]]),
           formula = Hist(event_time, event_status) ~ 1,
           cause = 1,
           data = data,
