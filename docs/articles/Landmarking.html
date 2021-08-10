@@ -5,13 +5,13 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Landmarking • Landmarking</title>
+<title>Introduction to landmark models • Landmarking</title>
 <!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="Landmarking">
+<script src="../pkgdown.js"></script><meta property="og:title" content="Introduction to landmark models">
 <meta property="og:description" content="Landmarking">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
@@ -19,6 +19,8 @@
 <![endif]-->
 </head>
 <body data-spy="scroll" data-target="#toc">
+    
+
     <div class="container template-article">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -37,12 +39,6 @@
 
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
-<li>
-  <a href="../index.html">
-    <span class="fas fa-home fa-lg"></span>
-     
-  </a>
-</li>
 <li>
   <a href="../articles/Landmarking.html">Get started</a>
 </li>
@@ -67,7 +63,7 @@
       </ul>
 <ul class="nav navbar-nav navbar-right">
 <li>
-  <a href="https://github.com/isobelbarrott/Landmarking/">
+  <a href="https://github.com/isobelbarrott/Landmarking/" class="external-link">
     <span class="fab fa-github fa-lg"></span>
      
   </a>
@@ -82,37 +78,94 @@
 
       
 
-      </header><script src="Landmarking_files/header-attrs-2.8/header-attrs.js"></script><div class="row">
+      </header><script src="Landmarking_files/header-attrs-2.10/header-attrs.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1 data-toc-skip>Landmarking</h1>
+      <h1 data-toc-skip>Introduction to landmark models</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/isobelbarrott/Landmarking/blob/master/vignettes/Landmarking.Rmd"><code>vignettes/Landmarking.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/isobelbarrott/Landmarking/blob/master/vignettes/Landmarking.Rmd" class="external-link"><code>vignettes/Landmarking.Rmd</code></a></small>
       <div class="hidden name"><code>Landmarking.Rmd</code></div>
 
     </div>
 
     
     
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/isobelbarrott/Landmarking">Landmarking</a></span><span class="op">)</span></code></pre></div>
+<div id="what-is-the-landmark-model-used-for" class="section level2">
+<h2 class="hasAnchor">
+<a href="#what-is-the-landmark-model-used-for" class="anchor" aria-hidden="true"></a>What is the landmark model used for?</h2>
+<p>Landmark models are used to <strong>dynamically predict</strong> the risk of an event for an individual. This means that an individual has a personalised risk prediction which is updated as new information is collected about them. Landmark models are particularly applicable in a medical setting where electronic health records (EHRs), such as GP records, are continually being updated with new data.</p>
+</div>
+<div id="what-is-the-landmark-model" class="section level2">
+<h2 class="hasAnchor">
+<a href="#what-is-the-landmark-model" class="anchor" aria-hidden="true"></a>What is the landmark model?</h2>
+<p>The key idea behind landmark models is the concept of predefined <strong>landmark times</strong>. A landmark time is a time point (i.e. “landmark”) that we wish to make a risk prediction at. A model is built at the landmark time and this model is developed only using the data of individuals at risk (i.e. not censored or having experienced an event) at the landmark time.</p>
+<blockquote>
+<p>For example, suppose that we want to predict the 5 year risk of a cardiovascular disease (CVD) event for a 45 year old patient. Then we would create a model for landmark time 45 years old using all the individuals that are in the risk set at 45 years old, and use this model to predict the risk of an event occurring for our new individual.</p>
+</blockquote>
+<p>As we want to predict the risk of an event for an individual at a selection of time points, we define multiple landmark times and develop a model for each of these.</p>
+<blockquote>
+<p>Continuing the example and supposing we wish to be able to predict the risk of CVD disease for any age between 45 and 50 years old, we define six landmark ages (45, … , 50 years old) and fit six models for each of these. This is demonstrated in Figure 1.</p>
+</blockquote>
+<div class="figure">
+<img src="images/landmarking_models.png" alt="*Figure 1: Illustration of a landmark model with six landmark times (ages 45 to 50 years). The blue solid line represents the time interval of repeat measures data to be inputted into the longitudinal submodel. The red dashed line represents the time interval of the time-to-event data to be inputted into the survival submodel. Events after the time horizon should be censored.*" width="70%"><p class="caption">
+<em>Figure 1: Illustration of a landmark model with six landmark times (ages 45 to 50 years). The blue solid line represents the time interval of repeat measures data to be inputted into the longitudinal submodel. The red dashed line represents the time interval of the time-to-event data to be inputted into the survival submodel. Events after the time horizon should be censored.</em>
+</p>
+</div>
+<p>To form a model at each landmark age, landmark models use a <strong>2-stage approach</strong> that is comprised of a <strong>longitudinal submodel</strong> and <strong>survival submodel</strong>. The typical form of the longitudinal submodel and survival submodel is the last observation carried forward model (LOCF) and the Cox proportional hazards model respectively, although there are extensions and these are discussed in the next section. Figure 1 shows the time intervals of the repeat measures data and time-to-event data that is included when using the model, which is relative to the landmark age and time horizon. It should be noted that to develop the longitudinal submodel all the repeat measures data may be used, including those passed the landmark age. The survival submodel is fit only for the time-to-event data between the landmark age and the time horizon with all individuals censored at the time horizon. For a Cox proportional hazard survival submodel, this has the advantage that proportional hazards is only assumed for the short period between the landmark time and the time horizon rather than the entire period up until the end of study.</p>
+</div>
+<div id="what-are-the-advantages-of-the-landmark-model" class="section level2">
+<h2 class="hasAnchor">
+<a href="#what-are-the-advantages-of-the-landmark-model" class="anchor" aria-hidden="true"></a>What are the advantages of the landmark model?</h2>
+<p>The other main statistical framework for this dynamic prediction problem is joint modelling. In comparison to joint modelling, the landmarking model is less computationally intensive and makes a less strong assumption about proportional hazards. Specifically this assumption only applies to the period between the landmark timeand time horizon when using the landmark model.</p>
+</div>
+<div id="features-of-the-r-package-landmarking" class="section level2">
+<h2 class="hasAnchor">
+<a href="#features-of-the-r-package-landmarking" class="anchor" aria-hidden="true"></a>Features of the R package Landmarking</h2>
+<p>The package <strong>Landmarking</strong> offers benefits over existing packages <em>dynpred</em> and <em>landpred</em> for landmark model analysis. In particular, three features of the package are outlined below.</p>
+<div id="linear-mixed-effects-modelling" class="section level3">
+<h3 class="hasAnchor">
+<a href="#linear-mixed-effects-modelling" class="anchor" aria-hidden="true"></a>1. Linear mixed effects modelling</h3>
+<p>The package <strong>Landmarking</strong> offers benefits over existing packages <strong>dynpred</strong> and <strong>landpred</strong> for landmark model analysis. In particular, three features of the package are outlined below.</p>
+<p>The LME model is an alternative to using the LOCF model for the longitudinal submodel. Using LME modelling means that the entire history of a risk factor is used to evaluate predicted risk, as opposed to the LOCF model where only one (the most recent) measurement is used. Moreover the LME allows a patient to have <strong>missing values</strong> for the variables in the random effects component.</p>
+<p>Figure 2 illustrates the use of these two types of models to predict systolic blood pressure at the landmark time. The LOCF model simply uses the most recently observed value of a risk factor. On the other hand, the LME model uses the entire history of the values of the risk factor from the individual, in combination with the trend in the risk factor from individuals used to develop the model. Using the Landmarking package, it is possible include a covariance structure in the random effects meaning that other risk factors can inform predictions. This improves the accuracy of the estimated value of the risk factor at the landmark time value compared to the LOCF model.</p>
+<div class="figure">
+<img src="images/landmarking_lme_model.png" alt="*Figure 2: Comparison of the LOCF and LME model to predict systolic blood pressure at a landmark age for an individual with 8 repeat measures.*" width="90%"><p class="caption">
+<em>Figure 2: Comparison of the LOCF and LME model to predict systolic blood pressure at a landmark age for an individual with 8 repeat measures.</em>
+</p>
+</div>
+</div>
+<div id="competing-risks-modelling" class="section level3">
+<h3 class="hasAnchor">
+<a href="#competing-risks-modelling" class="anchor" aria-hidden="true"></a>2. Competing risks modelling</h3>
+<p>The Landmarking R package has the ability to fit competing risks models for the survival submodel. There are two types of competing risks model that can be fit using this package, the Fine Gray model and the cause-specific model, using the parameter <em>survival_submodel</em> in the function <em>fit_LOCF_landmark_model</em> or <em>fit_LME_landmark_model</em>. The cause-specific model involves regression on the cause-specific hazard function. A covariate with a hazard rate greater than 1 is associated with an increased rate of the event of interest and less than 1 with a decreased rate of the event. Conversely, the Fine Gray model involves regression on the cumulative incidence function (CIF). In this case, a covariate with a hazard rate greater than 1 is associated with an increased incidence of the event of interest and less than 1 with a decreased incidence of the event. Their differences has led to the proposal that the cause-specific model is preferred when the aim is to study the aetiology of a disease, and the Fine Gray model is preferred when the aim is prediction of the risk of an event.</p>
+</div>
+<div id="cross-validation" class="section level3">
+<h3 class="hasAnchor">
+<a href="#cross-validation" class="anchor" aria-hidden="true"></a>3. Cross-validation</h3>
+<p>Another feature of this package is that is makes it easy to perform k-fold cross validation. The function <em>add_cv_number</em> assigns a fold to each individual in a dataset. This can be inputted as a parameters within the functions <em>fit_LOCF_landmark_model</em> or <em>fit_LME_landmark_model</em>, which ensure the same folds are used for both the longitudinal and survival submodels.</p>
+</div>
+</div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
 
-      </div>
+        <nav id="toc" data-toggle="toc"><h2 data-toc-skip>Contents</h2>
+    </nav>
+</div>
 
 </div>
 
 
 
       <footer><div class="copyright">
-  <p>Developed by Isobel Barrott, Jessica Barrett.</p>
+  <p></p>
+<p>Developed by Isobel Barrott, Jessica Barrett.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
+  <p></p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link external-link">pkgdown</a> 1.6.1.9001.</p>
 </div>
 
       </footer>
@@ -120,6 +173,8 @@
 
   
 
+
+  
 
   </body>
 </html>
