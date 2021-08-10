@@ -48,8 +48,6 @@ which contain the times at which repeat measures were recorded. This should eith
 the same length as \code{random_effects}. In the latter case the order of elements must correspond to the
 order of elements in \code{random_effects}.}
 
-\item{random_intercept}{Boolean indicating whether to include a random intercept in the LME model}
-
 \item{random_slope}{Boolean indicating whether to include a random slope in the LME model}
 
 \item{standardise_time}{Boolean indicating whether to standarise the time variable by subtracting the mean
