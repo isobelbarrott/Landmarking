@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Articles • Landmarking</title>
+<title>Predict the risk of an event for a new individual using the landmark model — predict.landmark • Landmarking</title>
 
 
 <!-- jquery -->
@@ -39,7 +39,9 @@
 
 
 
-<meta property="og:title" content="Articles" />
+<meta property="og:title" content="Predict the risk of an event for a new individual using the landmark model — predict.landmark" />
+<meta property="og:description" content="This function predicts the risk of an event for new data using the landmark model fitted by fit_LME_landmark_model or fit_LOCF_landmark_model. The event is that which has
+event_status equal to 1." />
 
 
 
@@ -66,7 +68,7 @@
   <body data-spy="scroll" data-target="#toc">
     
 
-    <div class="container template-article-index">
+    <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-standard navbar-fixed-top" role="navigation">
   <div class="container">
@@ -128,20 +130,58 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-      <h1>Articles</h1>
+    <h1>Predict the risk of an event for a new individual using the landmark model</h1>
+    <small class="dont-index">Source: <a href='https://github.com/isobelbarrott/Landmarking/blob/master/R/predict.landmark.R'><code>R/predict.landmark.R</code></a></small>
+    <div class="hidden name"><code>predict.landmark.Rd</code></div>
     </div>
 
-    <div class="section ">
-      <h3>All vignettes</h3>
-      <p class="section-desc"></p>
-
-      <dl>
-        <dt><a href="how_to_use.html">How to use the R package 'Landmarking'</a></dt>
-        <dd></dt>
-        <dt><a href="Landmarking.html">Introduction to landmark models</a></dt>
-        <dd></dt>
-      </dl>
+    <div class="ref-description">
+    <p>This function predicts the risk of an event for new data using the landmark model fitted by <code>fit_LME_landmark_model</code> or <code>fit_LOCF_landmark_model</code>. The event is that which has
+<code>event_status</code> equal to 1.</p>
     </div>
+
+    <div class="ref-usage sourceCode"><pre class='sourceCode r'><code><span class='co'># S3 method for landmark</span>
+<span class='fu'><a href='https://rdrr.io/r/stats/predict.html'>predict</a></span><span class='op'>(</span><span class='va'>object</span>, <span class='va'>x_L</span>, <span class='va'>x_hor</span>, <span class='va'>newdata</span>, cv_fold <span class='op'>=</span> <span class='cn'>NA</span>, <span class='va'>...</span><span class='op'>)</span></code></pre></div>
+
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>object</th>
+      <td><p>Object inheriting the class <code>landmark</code>, this should be the output from either <code>fit_LME_landmark_model</code> or <code>fit_LOCF_landmark_model</code>. It should contain a list
+of landmark models corresponding to different landmark times <code>x_L</code>.</p></td>
+    </tr>
+    <tr>
+      <th>x_L</th>
+      <td><p>Numeric specifying the landmark time. This indicates which landmark model in <code>object</code> to use.</p></td>
+    </tr>
+    <tr>
+      <th>x_hor</th>
+      <td><p>Numeric specifying the horizon time, The function assesses the risk of event before this time.</p></td>
+    </tr>
+    <tr>
+      <th>newdata</th>
+      <td><p>Data frame containing new data to return the risk prediction of the event of interest. The data should be in in long format
+and the columns must contain the covariates and time variables that are used to fit the model.
+For the LME model this the variables <code>fixed_effects</code>, <code>random_effects</code>, <code>fixed_effects_time</code>, and
+<code>random_effects_time</code>. For the LOCF model this is <code>covariates</code> and <code>covariates_time</code>.
+Unfortunately there seems to be a bug in other packages meaning that for categorical covariates, all the possible categories need to be contained in <code>newdata</code>.</p></td>
+    </tr>
+    <tr>
+      <th>cv_fold</th>
+      <td><p>If cross validation is used to fit <code>fit_LME_landmark_model</code> or <code>fit_LOCF_landmark_model</code>, then the cross validation fold to use when making risk predictions needs to be specified.</p></td>
+    </tr>
+    </table>
+
+    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
+
+    <p>Data frame <code>newdata</code> updated to contained a new column <code>event_prediction</code></p>
+
+  </div>
+  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
+    <nav id="toc" data-toggle="toc" class="sticky-top">
+      <h2 data-toc-skip>Contents</h2>
+    </nav>
   </div>
 </div>
 

@@ -9,6 +9,7 @@ reference:
     contents:
       - '`fit_LOCF_landmark_model`'
       - '`fit_LME_landmark_model`'
+      - '`predict.landmark`'
       - '`add_cv_number`'
       - '`get_model_assessment`'
       - '`mixoutsamp`'
@@ -26,9 +27,9 @@ navbar:
   left:
     - icon: fa-home
       href: index.html
-    - text: "How To"
+    - text: "Vignettes"
       menu:
-      -  text: Introduction to landmark models
+      -  text: Introduction to Landmark Models
          href: articles/Landmarking.html
       -  text: How to use the R package ‘Landmarking’
          href: articles/how_to_use.html
