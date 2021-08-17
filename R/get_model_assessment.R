@@ -79,10 +79,10 @@ get_model_assessment <-
 
     data[["event_time"]]<-data[[event_time]]
     data[["event_status"]]<-data[[event_status]]
-
-      c_index <-
+    data[["event_prediction"]]<-data[[event_prediction]]
+    c_index <-
         pec::cindex(
-          object = matrix(data[[event_prediction]]),
+          object = matrix(data[["event_prediction"]]),
           formula = Hist(event_time, event_status) ~ 1,
           cause = 1,
           data = data,
@@ -118,7 +118,7 @@ get_model_assessment <-
 
       brier_score <-
         pec::pec(
-          object = matrix(cbind(0, data[[event_prediction]]), ncol =
+          object = matrix(cbind(0, data[["event_prediction"]]), ncol =
                             2),
           formula = Hist(event_time, event_status) ~ 1,
           cause = 1,
@@ -180,8 +180,13 @@ c_index_bootstrap <-
     bootstrap_sample <- sample(n, replace = TRUE)
     Hist<-prodlim::Hist
     Surv<-survival::Surv
+
+    data[["event_time"]]<-data[[event_time]]
+    data[["event_status"]]<-data[[event_status]]
+    data[["event_prediction"]]<-data[[event_prediction]]
+
     pec::cindex(
-      object = matrix(data[[event_prediction]][bootstrap_sample]),
+      object = matrix(data[["event_prediction"]][bootstrap_sample]),
       formula = Hist(event_time, event_status) ~ 1,
       cause = 1,
       data = data[bootstrap_sample,],
@@ -203,8 +208,12 @@ brier_bootstrap <-
            x_hor) {
     bootstrap_sample <- sample(n, replace = TRUE)
 
+    data[["event_time"]]<-data[[event_time]]
+    data[["event_status"]]<-data[[event_status]]
+    data[["event_prediction"]]<-data[[event_prediction]]
+
     pec::pec(
-      object = matrix(cbind(0, data[[event_prediction]][bootstrap_sample]), ncol =
+      object = matrix(cbind(0, data[["event_prediction"]][bootstrap_sample]), ncol =
                         2),
       formula = Hist(event_time, event_status) ~ 1,
       cause = 1,
