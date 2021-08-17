@@ -68,7 +68,7 @@
 
     <div class="container template-reference-index">
       <header>
-      <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <div class="navbar navbar-standard navbar-fixed-top" role="navigation">
   <div class="container">
     <div class="navbar-header">
       <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false">
@@ -86,32 +86,33 @@
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
         <li>
-  <a href="../articles/Landmarking.html">Get started</a>
-</li>
-<li>
-  <a href="../reference/index.html">Reference</a>
+  <a href="../index.html">
+    <span class="fa fa-home"></span>
+     
+  </a>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Articles
+    How To
      
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/how_to_use.html">How to use the R package 'Landmarking'</a>
+      <a href="../articles/Landmarking.html">Introduction to landmark models</a>
+    </li>
+    <li>
+      <a href="../articles/how_to_use.html">How to use the R package ‘Landmarking’</a>
     </li>
   </ul>
-</li>
-<li>
-  <a href="../news/index.html">Changelog</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
-  <a href="https://github.com/isobelbarrott/Landmarking/">
-    <span class="fab fa-github fa-lg"></span>
+  <a href="https://https://github.com/isobelbarrott/Landmarking/">
+    <span class="fa fa-github fa-lg"></span>
      
+    github
   </a>
 </li>
       </ul>
@@ -141,7 +142,7 @@
     <tbody>
       <tr>
         <th colspan="2">
-          <h2 id="section-all-functions" class="hasAnchor"><a href="#section-all-functions" class="anchor"></a>All functions</h2>
+          <h2 id="section-functions" class="hasAnchor"><a href="#section-functions" class="anchor"></a>Functions</h2>
           <p class="section-desc"></p>
         </th>
       </tr>
@@ -153,10 +154,53 @@
       <tr>
         
         <td>
+          <p><code><a href="fit_LOCF_landmark_model.html">fit_LOCF_landmark_model()</a></code> </p>
+        </td>
+        <td><p>Fit a landmarking model using a last observation carried forward (LOCF) model for the longitudinal submodel</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="fit_LME_landmark_model.html">fit_LME_landmark_model()</a></code> </p>
+        </td>
+        <td><p>Fit a landmarking model using a linear mixed effects (LME) model for the longitudinal submodel</p></td>
+      </tr><tr>
+        
+        <td>
           <p><code><a href="add_cv_number.html">add_cv_number()</a></code> </p>
         </td>
         <td><p>Assign a k-fold cross-validation number</p></td>
       </tr><tr>
+        
+        <td>
+          <p><code><a href="get_model_assessment.html">get_model_assessment()</a></code> </p>
+        </td>
+        <td><p>Compute C-index and Brier score</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="mixoutsamp.html">mixoutsamp()</a></code> </p>
+        </td>
+        <td><p>Calculate point estimates from a linear mixed effects (LME) model for new data</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="return_ids_with_LOCF.html">return_ids_with_LOCF()</a></code> </p>
+        </td>
+        <td><p>Select individuals in a dataset with a last observation carried forward (LOCF) at a landmark time</p></td>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-data" class="hasAnchor"><a href="#section-data" class="anchor"></a>Data</h2>
+          <p class="section-desc"></p>
+        </th>
+      </tr>
+      
+      
+    </tbody><tbody>
+      
+      
+      <tr>
         
         <td>
           <p><code><a href="data_landmark_cv.html">data_landmark_cv</a></code> </p>
@@ -186,36 +230,6 @@
           <p><code><a href="data_repeat_outcomes.html">data_repeat_outcomes</a></code> </p>
         </td>
         <td><p>Simulated data for use in a landmarking analysis</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="fit_LME_landmark_model.html">fit_LME_landmark_model()</a></code> </p>
-        </td>
-        <td><p>Fit a landmarking model using a linear mixed effects (LME) model for the longitudinal submodel</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="fit_LOCF_landmark_model.html">fit_LOCF_landmark_model()</a></code> </p>
-        </td>
-        <td><p>Fit a landmarking model using a last observation carried forward (LOCF) model for the longitudinal submodel</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="get_model_assessment.html">get_model_assessment()</a></code> </p>
-        </td>
-        <td><p>Compute C-index and Brier score</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="mixoutsamp.html">mixoutsamp()</a></code> </p>
-        </td>
-        <td><p>Calculate point estimates from a linear mixed effects (LME) model for new data</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="return_ids_with_LOCF.html">return_ids_with_LOCF()</a></code> </p>
-        </td>
-        <td><p>Select individuals in a dataset with a last observation carried forward (LOCF) at a landmark time</p></td>
       </tr>
     </tbody>
     </table>
