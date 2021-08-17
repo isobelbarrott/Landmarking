@@ -94,7 +94,7 @@ The first issue is that the presence of `NA` values means that some individuals 
 Helpfully, the `Landmarking` package contains a function `return_ids_with_LOCF` to create a dataset with individuals with a LOCF for all covariates contained in the `covariates` parameter at landmark time `x_L`.
 
 ```{r 9}
-data_repeat_outcomes<-return_ids_with_LOCF(data=data_repeat_outcomes,patient_id="id",covariates=c("ethnicity","smoking","diabetes","sbp_stnd","tchdl_stnd"),covariates_time=c(rep("response_time_sbp_stnd",4),"response_time_tchdl_stnd"),x_L=60)
+data_repeat_outcomes<-return_ids_with_LOCF(data=data_repeat_outcomes,patient_id="id",covariates=c("ethnicity","smoking","diabetes","sbp_stnd","tchdl_stnd"),covariates_time=c(rep("response_time_sbp_stnd",4),"response_time_tchdl_stnd"),x_L=c(60,61))
 ```
 
 The second issue is to do with cross-validation, but we will deal with this once we have fitted the LOCF landmark model.
@@ -166,10 +166,6 @@ data_model_landmark_LME<-fit_LME_landmark_model(data_long=data_repeat_outcomes,
                                                     event_time="event_time",
                                                     event_status="event_status",
                                                     survival_submodel = "cause_specific")
-
-
-
-
 ```
 
 Comparing the prediction error for the landmarking with LOCF and LME, we can see a slight improvement when the LME model is used.

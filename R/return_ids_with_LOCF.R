@@ -28,6 +28,8 @@ return_ids_with_LOCF <-
            x_L,
            covariates,
            covariates_time) {
+
+
     for (col in c(covariates,
                   patient_id,
                   covariates_time)) {
@@ -41,21 +43,24 @@ return_ids_with_LOCF <-
 
     if (length(covariates_time)==1){covariates_time<-rep(covariates_time,times=length(covariates))}
 
-    #Pick out IDs with one LOCF before Ln for each exposure
-    LOCF_IDs_by_variable <-
-      lapply(1:length(c(covariates)), function(i) {
-        var <- c(covariates)[i]
-        time <- c(covariates_time)[i]
-        data_var <- data[data[[time]] <= x_L,]
-        data_var <-
-          data_var[!is.na(data_var[[var]]),]
-        data_var <-
-          data_var[order(data_var[[time]], decreasing = TRUE),]
-        data_var <-
-          data_var[!duplicated(data_var[[patient_id]]),]
-        return(data_var[[patient_id]])
-      })
-    LOCF_IDs_by_variable <- Reduce(intersect, LOCF_IDs_by_variable)
-    data <- data[data[[patient_id]] %in% LOCF_IDs_by_variable,]
-    data
+    out_list<-lapply(x_L,function(x_l){
+      #Pick out IDs with one LOCF before Ln for each exposure
+      LOCF_IDs_by_variable <-
+        lapply(1:length(c(covariates)), function(i) {
+          var <- c(covariates)[i]
+          time <- c(covariates_time)[i]
+          data_var <- data[data[[time]] <= x_l,]
+          data_var <-
+            data_var[!is.na(data_var[[var]]),]
+          data_var <-
+            data_var[order(data_var[[time]], decreasing = TRUE),]
+          data_var <-
+            data_var[!duplicated(data_var[[patient_id]]),]
+          return(data_var[[patient_id]])
+        })
+      LOCF_IDs_by_variable <- Reduce(intersect, LOCF_IDs_by_variable)
+      data <- data[data[[patient_id]] %in% LOCF_IDs_by_variable,]
+      data
+    })
+    if(length(x_L)==1){out_list[[1]]}else{names(out_list)<-x_L;out_list}
   }
