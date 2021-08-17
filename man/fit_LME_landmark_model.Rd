@@ -12,7 +12,6 @@ fit_LME_landmark_model(
   random_effects,
   fixed_effects_time,
   random_effects_time,
-  random_intercept = TRUE,
   random_slope = TRUE,
   standardise_time = FALSE,
   patient_id,
@@ -82,20 +81,25 @@ regression model (\code{"fine_gray"})}
 \item{b}{Integer specifying the number of bootstrap samples to take when calcluating standard error of c-index and Brier score}
 }
 \value{
-List containing \code{data}, \code{model_longitudinal}, \code{model_survival}, and \code{prediction_error}.
+List containing \code{data}, \code{model_longitudinal}, \code{model_LME}, \code{model_LME_standardise_time}, \code{model_survival}, and \code{prediction_error}.
 
 \code{data} is a data frame that includes the LOCF values of the \code{fixed_effects} and estimates
 of the \code{random_effects} predicted from the LME model (see Details section). It also includes the predicted
 probability that the event of interest has occured by time \code{x_L}, labelled as \code{"event_prediction"}.
 There is one row for each individual.
 
-\code{model_longitudinal} contains the output from
+\code{model_longitudinal} indicates that the longitudinal submodel is LME.
+
+\code{model_LME} contains the output from
 the \code{lme} function from package \code{nlme}. For a model using cross-validation,
-\code{model_longitudinal} contains a list of outputs with each
+\code{model_LME} contains a list of outputs with each
 element in the list corresponds to a different cross-validation fold.
 \code{prediction_error} contains a list indicating the c-index and Brier score at time \code{x_hor} and their standard errors if parameter \code{b} is used.
 For more information on how the prediction error is calculated
 please see \code{?get_model_assessment} which is the function used to do this within \code{fit_LME_landmark_model}.
+
+\code{model_LME_standardise_time} contains a list of two objects \code{mean_response_time} and \code{sd_response_time} if the parameter \code{standardise_time=TRUE} is used. This
+is the mean and standard deviation use to normalise times when fitting the LME model.
 
 \code{model_survival} contains the outputs from
 the survival submodel functions, including the estimated parameters of the model. For a model using cross-validation,
