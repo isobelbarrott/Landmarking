@@ -394,7 +394,7 @@ fit_survival_model <- function(data,
       }
 
       if (survival_submodel == "cause_specific") {
-        if(any(table(data_train[[event_status]]))==0){
+        if(any(table(data_train[[event_status]])==0)==TRUE){
           stop("Not enough competing risk events to train competing risks model")
         }
 
@@ -419,7 +419,7 @@ fit_survival_model <- function(data,
       }
 
       if (survival_submodel == "fine_gray") {
-        if(any(table(data_train[[event_status]]))==0){
+        if(any(table(data_train[[event_status]])==0)==TRUE){
           stop("Not enough competing risk events to train competing risks model")
         }
         formula_survival <-
