@@ -30,7 +30,8 @@ Imports:
 	methods,
 	prodlim,
 	stats,
-	survival
+	survival,
+	parallel
 RoxygenNote: 7.1.1
 Suggests: 
     testthat (>= 3.0.0),
