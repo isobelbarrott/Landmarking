@@ -33,6 +33,7 @@ Imports:
 	survival
 RoxygenNote: 7.1.1
 Suggests: 
+    testthat (>= 3.0.0),
     knitr,
     rmarkdown
 VignetteBuilder: knitr
@@ -41,3 +42,4 @@ Depends:
 Roxygen: list(markdown = TRUE)
 URL: https://github.com/isobelbarrott/Landmarking
 BugReports: https://github.com/isobelbarrott/Landmarking/issues
+Config/testthat/edition: 3
