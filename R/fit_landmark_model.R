@@ -240,7 +240,7 @@ fit_LME_longitudinal_model <- function(data,
   }
 
 
-  cl<-parallel::make_Cluster(parallel::detectCores()-1,type="SOCK")
+  cl<-parallel::makeCluster(parallel::detectCores()-1,type="SOCK")
   cv_numbers <- unique(data_LME_model_dev[[cv_name]])
 
   model_LME <- parallel::clusterApply(cl,cv_numbers, function(cv_number) {
