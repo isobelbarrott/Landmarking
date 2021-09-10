@@ -27,7 +27,8 @@ fit_LME_landmark_model(
 )
 }
 \arguments{
-\item{data_long}{Data frame containing repeat measurements data and time-to-event data in long format}
+\item{data_long}{Data frame or list of data frames each corresponding to a landmark age x_L (each element of the list must be named the value of x_L it corresponds to)
+Each data frame contains repeat measurements data and time-to-event data in long format.}
 
 \item{x_L}{Numeric specifying the landmark time}
 
@@ -71,7 +72,7 @@ which contains the event time}
 
 \item{event_status}{Character string specifying the column name in \code{data}
 which contains the event status (where 0=censoring, 1=event of interest, if there are competing events these are labelled
-2 or above.)}
+2 or above). Events at time x_hor should be labelled censored.}
 
 \item{survival_submodel}{Character string specifying which survival submodel to
 use. Three options: the standard Cox model i.e. no competing risks (\code{"standard_cox"}),
