@@ -36,23 +36,6 @@
 
 #' Simulated data for use in a landmarking analysis
 #'
-#' A combination of the `data_repeat` and `data_outcomes` data, modified to perform a landmark analysis. See the vignette associated with the `Landmarking`
-#' package (`browseVignettes("Landmarking")`) for more information about how this dataset was formed.
-#'
-#'@format A dataset with 22888 rows and 17 columns.
-"data_repeat_outcomes"
-
-#' Simulated data for use in a landmarking analysis
-#'
-#' A combination of the `data_repeat` and `data_outcomes` data, modified to perform a landmark analysis. See the vignette associated with the `Landmarking`
-#' package (`browseVignettes("Landmarking")`) for more information about how this dataset was formed.
-#'
-#'@format A dataset with 22427 rows and 18 columns.
-"data_landmark_cv"
-
-
-#' Simulated data for use in a landmarking analysis
-#'
 #' This dataset includes risk predictions for a CVD event. See the vignette associated with the `Landmarking`
 #' package (`browseVignettes("Landmarking")`) for more information about how this dataset was formed.
 #'
