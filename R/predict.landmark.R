@@ -11,15 +11,34 @@
 #' and the columns must contain the covariates and time variables that are used to fit the model.
 #' For the LME model this the variables `fixed_effects`, `random_effects`, `fixed_effects_time`, and
 #' `random_effects_time`. For the LOCF model this is `covariates` and `covariates_time`.
-#' Unfortunately there seems to be a bug in other packages meaning that for categorical covariates, all the possible categories need to be contained in `newdata`.
 #' @param cv_fold If cross validation is used to fit `fit_LME_landmark_model` or `fit_LOCF_landmark_model`, then the cross validation fold to use when making risk predictions needs to be specified.
 #' @return Data frame `newdata` updated to contained a new column `event_prediction`
+#' @examples
+#' newdata<-rbind(data.frame(id=c(3001,3001,3001),response_time_sbp_stnd=c(57,58,59),smoking=c(0,0,0),diabetes=c(0,0,0),
+#'   ethnicity=c("Indian","Indian","Indian"),sbp_stnd=c(0.45,0.87,0.85),tchdl_stnd=c(-0.7,0.24,0.3),response_time_tchdl_stnd=c(57,58,59)))
+#'   data_model_landmark_LOCF<-fit_LOCF_landmark_model(data_long=data_repeat_outcomes,
+#'   x_L=c(60,61),
+#'   x_hor=c(65,66),
+#'   covariates=c("ethnicity","smoking","diabetes","sbp_stnd","tchdl_stnd"),
+#'   covariates_time=c(rep("response_time_sbp_stnd",4),"response_time_tchdl_stnd"),
+#'   k=10,
+#'   start_study_time="start_time",
+#'   end_study_time="event_time",
+#'   patient_id="id",
+#'   event_time="event_time",
+#'   event_status="event_status",
+#'   survival_submodel = "cause_specific"
+#' )
+#' predict(object=data_model_landmark_LOCF,x_L=60,x_hor=62,newdata=newdata,cv_fold=1)
 #' @export
 predict.landmark<-function(object,x_L,x_hor,newdata,cv_fold=NA,...){
   if(class(object)!="landmark"){stop("object must have class 'landmark'")}
   if(!(as.character(x_L) %in% names(object))){stop("x_L must be the name of an element in 'object'")}
 
   call<-lapply(as.list(object[[as.character(x_L)]]$call),eval)
+  for (covariate in call$covariates){
+    if(is.factor(object[[as.character(x_L)]]$data[[covariate]])){newdata[[covariate]]<-as.factor(newdata[[covariate]])}
+  }
 
   model_longitudinal<-object[[as.character(x_L)]]$model_longitudinal
 
@@ -85,17 +104,12 @@ predict.landmark<-function(object,x_L,x_hor,newdata,cv_fold=NA,...){
     response_predictions <-
       which(data_longitudinal$predict == 1)
 
-    if (!is.na(cv_fold)){
-      model_LME<-object[[as.character(x_L)]]$model_LME[[as.character(cv_fold)]]
-    }else{
-      model_LME<-object[[as.character(x_L)]]$model_LME
-    }
+
 
       data_longitudinal <-
         mixoutsamp(model = model_LME,
                    newdata = data_longitudinal)$preddata[response_predictions, ][, c(patient_id,
                                                                                       fixed_effects,
-
                                                                                       "response_type",
                                                                                       "fitted")]
       data_longitudinal <-
@@ -112,13 +126,12 @@ predict.landmark<-function(object,x_L,x_hor,newdata,cv_fold=NA,...){
     }
   }
 
-  if(is.na(cv_fold)){
-    model_survival<-object[[as.character(x_L)]]$model_survival
-  }else{
-    model_survival<-object[[as.character(x_L)]]$model_survival[[as.character(cv_fold)]]
-  }
-
-
+  if (!is.na(cv_fold)){
+      model_survival<-object[[as.character(x_L)]]$model_survival[[as.character(cv_fold)]]
+    }else{
+      model_survival<-object[[as.character(x_L)]]$model_survival
+    }
+  if(!(class(model_survival) %in% c("CauseSpecificCox","FGR","coxph"))){stop("Class of survival model should be 'CauseSpecificCox','FGR', or 'coxph'")}
   if (class(model_survival) %in% c("CauseSpecificCox","FGR")) {
     data_longitudinal$event_prediction <- as.numeric(
       riskRegression::predictRisk(
