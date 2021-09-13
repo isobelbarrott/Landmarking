@@ -17,8 +17,7 @@ of landmark models corresponding to different landmark times \code{x_L}.}
 \item{newdata}{Data frame containing new data to return the risk prediction of the event of interest. The data should be in in long format
 and the columns must contain the covariates and time variables that are used to fit the model.
 For the LME model this the variables \code{fixed_effects}, \code{random_effects}, \code{fixed_effects_time}, and
-\code{random_effects_time}. For the LOCF model this is \code{covariates} and \code{covariates_time}.
-Unfortunately there seems to be a bug in other packages meaning that for categorical covariates, all the possible categories need to be contained in \code{newdata}.}
+\code{random_effects_time}. For the LOCF model this is \code{covariates} and \code{covariates_time}.}
 
 \item{cv_fold}{If cross validation is used to fit \code{fit_LME_landmark_model} or \code{fit_LOCF_landmark_model}, then the cross validation fold to use when making risk predictions needs to be specified.}
 }
@@ -28,4 +27,22 @@ Data frame \code{newdata} updated to contained a new column \code{event_predicti
 \description{
 This function predicts the risk of an event for new data using the landmark model fitted by \code{fit_LME_landmark_model} or \code{fit_LOCF_landmark_model}. The event is that which has
 \code{event_status} equal to 1.
+}
+\examples{
+newdata<-rbind(data.frame(id=c(3001,3001,3001),response_time_sbp_stnd=c(57,58,59),smoking=c(0,0,0),diabetes=c(0,0,0),
+  ethnicity=c("Indian","Indian","Indian"),sbp_stnd=c(0.45,0.87,0.85),tchdl_stnd=c(-0.7,0.24,0.3),response_time_tchdl_stnd=c(57,58,59)))
+  data_model_landmark_LOCF<-fit_LOCF_landmark_model(data_long=data_repeat_outcomes,
+  x_L=c(60,61),
+  x_hor=c(65,66),
+  covariates=c("ethnicity","smoking","diabetes","sbp_stnd","tchdl_stnd"),
+  covariates_time=c(rep("response_time_sbp_stnd",4),"response_time_tchdl_stnd"),
+  k=10,
+  start_study_time="start_time",
+  end_study_time="event_time",
+  patient_id="id",
+  event_time="event_time",
+  event_status="event_status",
+  survival_submodel = "cause_specific"
+)
+predict(object=data_model_landmark_LOCF,x_L=60,x_hor=62,newdata=newdata,cv_fold=1)
 }
