@@ -22,6 +22,7 @@
 #'     as.numeric((
 #'       as.Date(data_repeat$response_date_tchdl_stnd, format = "yyyy-mm-dd") -
 #'         as.Date(data_repeat$dob, format = "yyyy-mm-dd")
+#'         ) / 365.25)
 #'   data_repeat$response_time_sbp_stnd <-
 #'     as.numeric((
 #'       as.Date(data_repeat$response_date_sbp_stnd, format = "yyyy-mm-dd") -
@@ -84,9 +85,7 @@ predict.landmark<-function(object,x_L,x_hor,newdata,cv_fold=NA,...){
   if(!(as.character(x_L) %in% names(object))){stop("x_L must be the name of an element in 'object'")}
 
   call<-lapply(as.list(object[[as.character(x_L)]]$call),eval)
-  for (covariate in call$covariates){
-    if(is.factor(object[[as.character(x_L)]]$data[[covariate]])){newdata[[covariate]]<-as.factor(newdata[[covariate]])}
-  }
+
 
   model_longitudinal<-object[[as.character(x_L)]]$model_longitudinal
 
@@ -94,6 +93,10 @@ predict.landmark<-function(object,x_L,x_hor,newdata,cv_fold=NA,...){
     covariates<-call$covariates
     covariates_time<-call$covariates_time
     patient_id<-call$patient_id
+    for (covariate in covariates){
+      if(is.factor(object[[as.character(x_L)]]$data[[covariate]])){newdata[[covariate]]<-as.factor(newdata[[covariate]])
+      levels(newdata[[covariate]])<-levels(object[[as.character(x_L)]]$data[[covariate]])}
+    }
 
     data_model_longitudinal<-fit_LOCF_longitudinal_model(data=newdata,
                                                          x_L=x_L,
@@ -104,6 +107,17 @@ predict.landmark<-function(object,x_L,x_hor,newdata,cv_fold=NA,...){
   }
 
   if (model_longitudinal=="LME"){
+    random_effects<-call$random_effects
+    fixed_effects<-call$fixed_effects
+    fixed_effects_time<-call$fixed_effects_time
+    random_effects_time<-call$random_effects_time
+    patient_id<-call$patient_id
+
+    for (fixed_effect in fixed_effects){
+      if(is.factor(object[[as.character(x_L)]]$data[[fixed_effect]])){newdata[[fixed_effect]]<-as.factor(newdata[[fixed_effect]])
+      levels(newdata[[fixed_effect]])<-levels(object[[as.character(x_L)]]$data[[fixed_effect]])}
+    }
+
     if (!is.na(cv_fold)){
       model_LME<-object[[as.character(x_L)]]$model_LME[[as.character(cv_fold)]]
       model_LME_standardise_time<-object[[as.character(x_L)]]$model_LME_standardise_time[[as.character(cv_fold)]]
@@ -111,11 +125,6 @@ predict.landmark<-function(object,x_L,x_hor,newdata,cv_fold=NA,...){
       model_LME<-object[[as.character(x_L)]]$model_LME
       model_LME_standardise_time<-object[[as.character(x_L)]]$model_LME_standardise_time
     }
-    random_effects<-call$random_effects
-    fixed_effects<-call$fixed_effects
-    fixed_effects_time<-call$fixed_effects_time
-    random_effects_time<-call$random_effects_time
-    patient_id<-call$patient_id
 
     data_model_longitudinal<-fit_LOCF_longitudinal_model(data=newdata,
                                                          x_L=x_L,
@@ -198,8 +207,7 @@ predict.landmark<-function(object,x_L,x_hor,newdata,cv_fold=NA,...){
         model_survival,
         cause = 1,
         newdata = data_longitudinal,
-        times = x_hor,
-        ...
+        times = x_hor,...
       )
     )
   }

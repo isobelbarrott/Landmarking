@@ -35,14 +35,16 @@ Both datasets contain column `id` which specifies the patient identifier which i
 ```{r 2}
 library(Landmarking)
 set.seed(1)
-data(data_repeat);head(data_repeat)
-data(data_outcomes);head(data_outcomes)
+data(data_repeat)
+head(data_repeat)
+data(data_outcomes)
+head(data_outcomes)
 ```
 
 Looking further at these datasets we see that there are `r length(unique(data_repeat$id))` patients in this study, each with an average of `r mean(table(data_repeat$id))` assessments.
 
 ```{r 3}
-length(unique(data_repeat$id)) 
+length(unique(data_repeat$id))
 mean(table(data_repeat$id))
 ```
 
@@ -60,10 +62,16 @@ So `r length(which(data_outcomes$event_status==1))` patients in the study (out o
 To use the Landmarking package, the datasets need to be in a certain format. Firstly, instead of the date of the CVD assessment being recorded, the age of the patient should be recorded. These can be calculated as follows.
 
 ```{r 5}
-data_repeat$response_time_tchdl_stnd<-
-    as.numeric((as.Date(data_repeat$response_date_tchdl_stnd,format="yyyy-mm-dd")-as.Date(data_repeat$dob,format="yyyy-mm-dd"))/365.25)
-data_repeat$response_time_sbp_stnd<-
-    as.numeric((as.Date(data_repeat$response_date_sbp_stnd,format="yyyy-mm-dd")-as.Date(data_repeat$dob,format="yyyy-mm-dd"))/365.25)
+data_repeat$response_time_tchdl_stnd <-
+  as.numeric((
+    as.Date(data_repeat$response_date_tchdl_stnd, format = "yyyy-mm-dd") - as.Date(data_repeat$dob, format =
+                                                                                     "yyyy-mm-dd")
+  ) / 365.25)
+data_repeat$response_time_sbp_stnd <-
+  as.numeric((
+    as.Date(data_repeat$response_date_sbp_stnd, format = "yyyy-mm-dd") - as.Date(data_repeat$dob, format =
+                                                                                   "yyyy-mm-dd")
+  ) / 365.25)
 ```
 
 We also need to define a time of entry into the study and time of exit from the study for each patient. This is necessary in order to work out which individuals are in the risk set at the landmark time. For this study the time of entry into the study is the date of first assessment for an individual. This is the earliest time of `response_time_sbp_stnd` and can be calculated as:
@@ -94,7 +102,14 @@ The first issue is that the presence of `NA` values means that some individuals 
 Helpfully, the `Landmarking` package contains a function `return_ids_with_LOCF` to create a dataset with individuals with a LOCF for all covariates contained in the `covariates` parameter at landmark time `x_L`.
 
 ```{r 9}
-data_repeat_outcomes<-return_ids_with_LOCF(data=data_repeat_outcomes,patient_id="id",covariates=c("ethnicity","smoking","diabetes","sbp_stnd","tchdl_stnd"),covariates_time=c(rep("response_time_sbp_stnd",4),"response_time_tchdl_stnd"),x_L=c(60,61))
+data_repeat_outcomes <-
+  return_ids_with_LOCF(
+    data = data_repeat_outcomes,
+    patient_id = "id",
+    covariates = c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
+    covariates_time = c(rep("response_time_sbp_stnd", 4), "response_time_tchdl_stnd"),
+    x_L = c(60, 61)
+  )
 ```
 
 The second issue is to do with cross-validation, but we will deal with this once we have fitted the LOCF landmark model.
@@ -103,26 +118,32 @@ So we can now  fit the landmark model using the LOCF longitudinal submodel. To d
 
 
 ```{r 11}
-data_model_landmark_LOCF<-fit_LOCF_landmark_model(data_long=data_repeat_outcomes,
-                                                  x_L=c(60,61),
-                                                  x_hor=c(65,66), 
-                                                  covariates=c("ethnicity","smoking","diabetes","sbp_stnd","tchdl_stnd"),
-                                                  covariates_time=c(rep("response_time_sbp_stnd",4),"response_time_tchdl_stnd"),
-                                                  k=10,
-                                                  start_study_time="start_time",
-                                                  end_study_time="event_time",
-                                                  patient_id="id",
-                                                  event_time="event_time",
-                                                  event_status="event_status",
-                                                  survival_submodel = "cause_specific"
-                                                  )
+data_model_landmark_LOCF <-
+  fit_LOCF_landmark_model(
+    data_long = data_repeat_outcomes,
+    x_L = c(60, 61),
+    x_hor = c(65, 66),
+    covariates = c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
+    covariates_time = c(rep("response_time_sbp_stnd", 4), "response_time_tchdl_stnd"),
+    k = 10,
+    start_study_time = "start_time",
+    end_study_time = "event_time",
+    patient_id = "id",
+    event_time = "event_time",
+    event_status = "event_status",
+    survival_submodel = "cause_specific"
+  )
 ```
 
 We can see that fitting this model returns the warnings such as `Loglik converged before variable  2 ; coefficient may be infinite.`. Taking a look at the model fit contained in `data_model_landmark_LOCF$model_survival`, we can see the upper confidence interval for `ethnicityIndian` is `inf` for certain folds. This is due there being few individuals that have ethnicity 'Indian' and few individuals that experienced death from other causes. However, as only the point estimate of the coefficient is needed to calculate the risk prediction, not having the standard error is not a problem. Indeed we have obtained the risk predictions and can take a look at their distribution.
 
 
 ```{r 12}
-plot(density(100*data_model_landmark_LOCF[["60"]]$data$event_prediction), xlab="Predicted risk of CVD event (%)",main="Landmark age 60")
+plot(
+  density(100 * data_model_landmark_LOCF[["60"]]$data$event_prediction),
+  xlab = "Predicted risk of CVD event (%)",
+  main = "Landmark age 60"
+)
 ```
 
 Printing the object that has been outputted returns a list of datasets corresponding to each of the landmark groups. These contain the column `event_prediction` which indicates the risk prediction of the event of interest.
@@ -137,12 +158,20 @@ The output also contains the prediction error for the model, which is assessed u
 data_model_landmark_LOCF[["60"]]$prediction_error
 data_model_landmark_LOCF[["61"]]$prediction_error
 ```
+
+In order to assess the performance of the model, there is also the function `calplot` which creates a calibration plot which can assess the calibration of the model. The perfect prediction model will have points along the y=x line and deviations from this suggest poor calibration.
+
+```{r 20}
+calplot.landmark(data_model_landmark_LOCF, x_L = 60, n = 5)
+```
+
+
 Now we can move on to fitting the landmark model using the LME longitudinal submodel.  For more information about this function, see the Details section of the `fit_LME_landmark_model` documentation. The variables standardised systolic blood pressure (SBP) and standardised total cholesterol to high density lipoprotein (HDL) ratio are continuous and repeatedly measured and so these are included as random effects in the LME model.  
 
 The second issue which was mentioned previously is related to cross-validation. In particular we wish to perform k-fold cross-validation using exactly the same folds for both LOCF and LME models to ensure a fair comparison. To do this we use the parameter `cross_validation_df` which uses a list of data frames that indicate which fold each individual belongs to. We create this list using the output of `fit_LOCF_landmark_model`.
 
 ```{r 15}
-cross_validation_list<-lapply(data_model_landmark_LOCF,"[[",i=1)
+cross_validation_list <- lapply(data_model_landmark_LOCF, "[[", i = 1)
 ```
 
 There are a couple of computational considerations to highlight about fitting the LME model. The parameter `lme_control` can be altered in order to change the  default values of parameters (such as maximum number of iterations) for the algorithm which fits the LME model. Also setting `standardise_time = TRUE` standardises time values which helps fitting the LME model (see `help("fit_LME_landmark_model")`).
@@ -150,22 +179,28 @@ There are a couple of computational considerations to highlight about fitting th
 So we fit the LME landmark model in a similar way to the LOCF landmark model, but with a few extra parameters.
 
 ```{r 16}
-data_model_landmark_LME<-fit_LME_landmark_model(data_long=data_repeat_outcomes,
-                                                  x_L=c(60,61),
-                                                  x_hor=c(65,66),
-                                                  cross_validation_df=cross_validation_list,
-                                                  start_study_time="start_time",
-                                                  end_study_time="event_time",
-                                                    fixed_effects=c("ethnicity","smoking","diabetes"),
-                                                    fixed_effects_time="response_time_sbp_stnd",
-                                                    random_effects=c("sbp_stnd","tchdl_stnd"),
-                                                random_effects_time=c("response_time_sbp_stnd","response_time_tchdl_stnd"),
-                                                    patient_id="id",
-                                                    standardise_time = TRUE,
-                                                    lme_control = nlme::lmeControl(maxIter=100,msMaxIter=100),
-                                                    event_time="event_time",
-                                                    event_status="event_status",
-                                                    survival_submodel = "cause_specific")
+data_model_landmark_LME <-
+  fit_LME_landmark_model(
+    data_long = data_repeat_outcomes,
+    x_L = c(60, 61),
+    x_hor = c(65, 66),
+    cross_validation_df =
+      cross_validation_list,
+    start_study_time = "start_time",
+    end_study_time = "event_time",
+    fixed_effects = c("ethnicity", "smoking", "diabetes"),
+    fixed_effects_time =
+      "response_time_sbp_stnd",
+    random_effects = c("sbp_stnd", "tchdl_stnd"),
+    random_effects_time = c("response_time_sbp_stnd", "response_time_tchdl_stnd"),
+    patient_id = "id",
+    standardise_time = TRUE,
+    lme_control = nlme::lmeControl(maxIter =
+                                     100, msMaxIter = 100),
+    event_time = "event_time",
+    event_status = "event_status",
+    survival_submodel = "cause_specific"
+  )
 ```
 
 Comparing the prediction error for the landmarking with LOCF and LME, we can see a slight improvement when the LME model is used.
@@ -173,4 +208,35 @@ Comparing the prediction error for the landmarking with LOCF and LME, we can see
 ```{r 17}
 data_model_landmark_LME[["60"]]$prediction_error
 data_model_landmark_LME[["61"]]$prediction_error
+```
+
+Suppose that we wish to predict the risk of the event of interest for a new patient. We need to create a data frame that contains records of all the covariates that were used to form the landmark model. As cross-validation was used, it is necessary to specify which cross-validation fold to use in the prediction. It is possible to predict the risk of the event of interest at any time before the horizon time.
+
+```{r 18}
+newdata <-
+  data.frame(
+    id = c(3001, 3001, 3001),
+    response_time_sbp_stnd = c(57, 58, 59),
+    smoking = c(0, 0, 0),
+    diabetes = c(0, 0, 0),
+    ethnicity = c("Indian", "Indian", "Indian"),
+    sbp_stnd = c(0.45, 0.87, 0.85),
+    tchdl_stnd = c(-0.7, 0.24, 0.3),
+    response_time_tchdl_stnd = c(57, 58, 59)
+  )
+predict.landmark(
+  object = data_model_landmark_LME,
+  x_L = 60,
+  x_hor = 62,
+  newdata = newdata,
+  cv_fold = 1
+)
+predict.landmark(
+  object = data_model_landmark_LME,
+  x_L = 60,
+  x_hor = 64,
+  newdata = newdata,
+  cv_fold = 1
+)
+
 ```
