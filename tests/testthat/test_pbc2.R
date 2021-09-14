@@ -1,22 +1,21 @@
-test_check("pbc2")
-library(Landmarking)
-data("pbc2")
-new_status<-data.frame(status=c(0,1,2),status_cr=c(0,2,1))
-pbc2<-dplyr::left_join(pbc2,new_status,by="status")
-pbc2<-return_ids_with_LOCF(data=pbc2,
-                           patient_id="id",
-                           x_L=c(40),
-                           covariates=c("drug","serBilir","serChol"),
-                           covariates_time="year")
-data_model_landmark_LOCF<-fit_LOCF_landmark_model(data_long=pbc2,
-                                                  x_L=c(40),
-                                                  x_hor=c(45),
-                                                  covariates=c("drug","serBilir","serChol"),
-                                                  covariates_time="year",
-                                                  start_study_time="age",
-                                                  end_study_time="years",
-                                                  patient_id="id",
-                                                  event_time="years",
-                                                  event_status="status_cr",
-                                                  survival_submodel = "cause_specific",
-                                                  b=50)
+# library(Landmarking)
+# data("pbc2")
+# new_status<-data.frame(status=c(0,1,2),status_cr=c(0,2,1))
+# pbc2<-dplyr::left_join(pbc2,new_status,by="status")
+# pbc2<-return_ids_with_LOCF(data=pbc2,
+#                            patient_id="id",
+#                            x_L=c(40),
+#                            covariates=c("drug","serBilir","serChol"),
+#                            covariates_time="year")
+# data_model_landmark_LOCF<-fit_LOCF_landmark_model(data_long=pbc2,
+#                                                   x_L=c(40),
+#                                                   x_hor=c(45),
+#                                                   covariates=c("drug","serBilir","serChol"),
+#                                                   covariates_time="year",
+#                                                   start_study_time="age",
+#                                                   end_study_time="years",
+#                                                   patient_id="id",
+#                                                   event_time="years",
+#                                                   event_status="status_cr",
+#                                                   survival_submodel = "cause_specific",
+#                                                   b=50)
