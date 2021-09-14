@@ -35,7 +35,6 @@ Imports:
 	prodlim,
 	stats,
 	survival,
-	parallel,
 	mstate,
 	ggplot2
 RoxygenNote: 7.1.1
