@@ -179,23 +179,59 @@ For the survival submodel, there are three choices of model:
 The latter two models estimate the probability of the event of interest in the presence of competing events.
 }
 \examples{
-\dontrun{data(data_repeat_outcomes)
-data_model_landmark_LME<-fit_LME_landmark_model(data_long=data_repeat_outcomes,
-x_L=c(60,61),
-x_hor=c(65,66),
-k=10,
-start_study_time="start_time",
-end_study_time="event_time",
-fixed_effects=c("ethnicity","smoking","diabetes"),
-fixed_effects_time="response_time_sbp_stnd",
-random_effects=c("sbp_stnd","tchdl_stnd"),
-random_effects_time=c("response_time_sbp_stnd","response_time_tchdl_stnd"),
-patient_id="id",
-standardise_time = TRUE,
-lme_control = nlme::lmeControl(maxIter=100,msMaxIter=100),
-event_time="event_time",
-event_status="event_status",
-survival_submodel = "cause_specific")
+\dontrun{
+#' library(Landmarking)
+ data(data_repeat)
+ data(data_outcomes)
+ data_repeat$response_time_tchdl_stnd <-
+   as.numeric((
+     as.Date(data_repeat$response_date_tchdl_stnd, format = "yyyy-mm-dd") -
+       as.Date(data_repeat$dob, format = "yyyy-mm-dd")
+   ) / 365.25)
+ data_repeat$response_time_sbp_stnd <-
+   as.numeric((
+     as.Date(data_repeat$response_date_sbp_stnd, format = "yyyy-mm-dd") -
+       as.Date(data_repeat$dob, format = "yyyy-mm-dd")
+   ) / 365.25)
+start_time <-
+  stats::aggregate(stats::as.formula(
+  paste0("response_time_sbp_stnd", "~", "id")
+  ), data_repeat, function(x) {
+    min(x)
+  })
+names(start_time)[2] <- "start_time"
+data_repeat <- dplyr::left_join(data_repeat, start_time, by = "id")
+ data_repeat_outcomes <-
+   dplyr::left_join(data_repeat, data_outcomes, by = "id")
+ data_repeat_outcomes <-
+   return_ids_with_LOCF(
+     data = data_repeat_outcomes,
+     patient_id = "id",
+     covariates =
+       c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
+     covariates_time =
+       c(rep("response_time_sbp_stnd", 4), "response_time_tchdl_stnd"),
+     x_L = c(60, 61)
+   )
+data_model_landmark_LME <-
+  fit_LME_landmark_model(
+    data_long = data_repeat_outcomes,
+    x_L = c(60, 61),
+    x_hor = c(65, 66),
+    k = 10,
+    start_study_time = "start_time",
+    end_study_time = "event_time",
+    fixed_effects = c("ethnicity", "smoking", "diabetes"),
+    fixed_effects_time = "response_time_sbp_stnd",
+    random_effects = c("sbp_stnd", "tchdl_stnd"),
+    random_effects_time = c("response_time_sbp_stnd", "response_time_tchdl_stnd"),
+    patient_id = "id",
+    standardise_time = TRUE,
+    lme_control = nlme::lmeControl(maxIter = 100, msMaxIter = 100),
+    event_time = "event_time",
+    event_status = "event_status",
+    survival_submodel = "cause_specific"
+  )
 }
 }
 \author{
