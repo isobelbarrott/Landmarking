@@ -229,7 +229,7 @@ predict(
   x_L = 60,
   x_hor = 62,
   newdata = newdata,
-#  cv_fold = 1
+  cv_fold = 1
 )
 predict(
   object = data_model_landmark_LME,
