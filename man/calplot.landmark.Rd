@@ -13,6 +13,8 @@ of landmark models corresponding to different landmark times \code{x_L}.}
 \item{x_L}{Numeric specifying the landmark time. This indicates which landmark model in \code{object} to use.}
 
 \item{n}{Numeric specifying the number of bins to use.}
+
+\item{\dots}{Arguments passed on to the \code{aes()} function}
 }
 \value{
 Calibration plot showing the value of predicted probabilities against observed frequencies, with a \code{y=x} line.
@@ -29,20 +31,55 @@ and used to calculate the risk of an event at the horizon time. The predictions 
 }
 \examples{
 library(Landmarking)
-data(data_repeat_outcomes)
-data_model_landmark_LOCF<-fit_LOCF_landmark_model(data_long=data_repeat_outcomes,
-  x_L=c(60,61),
-  x_hor=c(65,66),
-  covariates=c("diabetes","sbp_stnd","tchdl_stnd"),
-  covariates_time=c(rep("response_time_sbp_stnd",2),"response_time_tchdl_stnd"),
-  k=10,
-  start_study_time="start_time",
-  end_study_time="event_time",
-  patient_id="id",
-  event_time="event_time",
-  event_status="event_status",
-  survival_submodel = "cause_specific"
-)
-calplot.landmark(object=data_model_landmark_LOCF,x_L=60,n=5)
-calplot.landmark(object=data_model_landmark_LOCF,x_L=61,n=5)
+ data(data_repeat)
+ data(data_outcomes)
+ data_repeat$response_time_tchdl_stnd <-
+   as.numeric((
+     as.Date(data_repeat$response_date_tchdl_stnd, format = "yyyy-mm-dd") -
+       as.Date(data_repeat$dob, format = "yyyy-mm-dd")
+   ) / 365.25)
+ data_repeat$response_time_sbp_stnd <-
+   as.numeric((
+     as.Date(data_repeat$response_date_sbp_stnd, format = "yyyy-mm-dd") -
+       as.Date(data_repeat$dob, format = "yyyy-mm-dd")
+   ) / 365.25)
+start_time <-
+  stats::aggregate(stats::as.formula(
+  paste0("response_time_sbp_stnd", "~", "id")
+  ), data_repeat, function(x) {
+    min(x)
+  })
+names(start_time)[2] <- "start_time"
+data_repeat <- dplyr::left_join(data_repeat, start_time, by = "id")
+ data_repeat_outcomes <-
+   dplyr::left_join(data_repeat, data_outcomes, by = "id")
+ data_repeat_outcomes <-
+   return_ids_with_LOCF(
+     data = data_repeat_outcomes,
+     patient_id = "id",
+     covariates =
+       c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
+     covariates_time =
+       c(rep("response_time_sbp_stnd", 4), "response_time_tchdl_stnd"),
+     x_L = c(60, 61)
+   )
+ data_model_landmark_LOCF <-
+   fit_LOCF_landmark_model(
+     data_long = data_repeat_outcomes,
+     x_L = c(60, 61),
+     x_hor = c(65, 66),
+     covariates =
+       c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
+     covariates_time =
+       c(rep("response_time_sbp_stnd", 4), "response_time_tchdl_stnd"),
+     k = 10,
+     start_study_time = "start_time",
+     end_study_time = "event_time",
+     patient_id = "id",
+     event_time = "event_time",
+     event_status = "event_status",
+     survival_submodel = "cause_specific"
+   )
+ calplot.landmark(object=data_model_landmark_LOCF,x_L=60,n=5)
+ calplot.landmark(object=data_model_landmark_LOCF,x_L=61,n=5)
 }

@@ -12,24 +12,72 @@
 #' For the LME model this the variables `fixed_effects`, `random_effects`, `fixed_effects_time`, and
 #' `random_effects_time`. For the LOCF model this is `covariates` and `covariates_time`.
 #' @param cv_fold If cross validation is used to fit `fit_LME_landmark_model` or `fit_LOCF_landmark_model`, then the cross validation fold to use when making risk predictions needs to be specified.
+#' @param \dots Arguments passed on to `riskRegression::predictRisk`
 #' @return Data frame `newdata` updated to contained a new column `event_prediction`
 #' @examples
-#' newdata<-rbind(data.frame(id=c(3001,3001,3001),response_time_sbp_stnd=c(57,58,59),smoking=c(0,0,0),diabetes=c(0,0,0),
-#'   ethnicity=c("Indian","Indian","Indian"),sbp_stnd=c(0.45,0.87,0.85),tchdl_stnd=c(-0.7,0.24,0.3),response_time_tchdl_stnd=c(57,58,59)))
-#'   data_model_landmark_LOCF<-fit_LOCF_landmark_model(data_long=data_repeat_outcomes,
-#'   x_L=c(60,61),
-#'   x_hor=c(65,66),
-#'   covariates=c("ethnicity","smoking","diabetes","sbp_stnd","tchdl_stnd"),
-#'   covariates_time=c(rep("response_time_sbp_stnd",4),"response_time_tchdl_stnd"),
-#'   k=10,
-#'   start_study_time="start_time",
-#'   end_study_time="event_time",
-#'   patient_id="id",
-#'   event_time="event_time",
-#'   event_status="event_status",
-#'   survival_submodel = "cause_specific"
-#' )
-#' predict(object=data_model_landmark_LOCF,x_L=60,x_hor=62,newdata=newdata,cv_fold=1)
+#'  library(Landmarking)
+#'   data(data_repeat)
+#'   data(data_outcomes)
+#'   data_repeat$response_time_tchdl_stnd <-
+#'     as.numeric((
+#'       as.Date(data_repeat$response_date_tchdl_stnd, format = "yyyy-mm-dd") -
+#'         as.Date(data_repeat$dob, format = "yyyy-mm-dd")
+#'   data_repeat$response_time_sbp_stnd <-
+#'     as.numeric((
+#'       as.Date(data_repeat$response_date_sbp_stnd, format = "yyyy-mm-dd") -
+#'         as.Date(data_repeat$dob, format = "yyyy-mm-dd")
+#'     ) / 365.25)
+#'  start_time <-
+#'    stats::aggregate(stats::as.formula(
+#'    paste0("response_time_sbp_stnd", "~", "id")
+#'    ), data_repeat, function(x) {
+#'      min(x)
+#'    })
+#'  names(start_time)[2] <- "start_time"
+#'  data_repeat <- dplyr::left_join(data_repeat, start_time, by = "id")
+#'  data_repeat_outcomes <-
+#'     dplyr::left_join(data_repeat, data_outcomes, by = "id")
+#'  data_repeat_outcomes <-
+#'     return_ids_with_LOCF(
+#'       data = data_repeat_outcomes,
+#'       patient_id = "id",
+#'       covariates =
+#'         c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
+#'       covariates_time =
+#'         c(rep("response_time_sbp_stnd", 4), "response_time_tchdl_stnd"),
+#'       x_L = c(60, 61)
+#'     )
+#'   data_model_landmark_LOCF <-
+#'     fit_LOCF_landmark_model(
+#'       data_long = data_repeat_outcomes,
+#'       x_L = c(60, 61),
+#'       x_hor = c(65, 66),
+#'       covariates =
+#'         c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
+#'       covariates_time =
+#'         c(rep("response_time_sbp_stnd", 4), "response_time_tchdl_stnd"),
+#'       k = 10,
+#'       start_study_time = "start_time",
+#'       end_study_time = "event_time",
+#'       patient_id = "id",
+#'       event_time = "event_time",
+#'       event_status = "event_status",
+#'       survival_submodel = "cause_specific"
+#'     )
+#'  newdata <-
+#'    rbind(
+#'      data.frame(
+#'        id = c(3001, 3001, 3001),
+#'        response_time_sbp_stnd = c(57, 58, 59),
+#'        smoking = c(0, 0, 0),
+#'        diabetes = c(0, 0, 0),
+#'        ethnicity = c("Indian", "Indian", "Indian"),
+#'        sbp_stnd = c(0.45, 0.87, 0.85),
+#'        tchdl_stnd = c(-0.7, 0.24, 0.3),
+#'        response_time_tchdl_stnd = c(57, 58, 59)
+#'      )
+#'    )
+#'  predict(object=data_model_landmark_LOCF,x_L=60,x_hor=62,newdata=newdata,cv_fold=1)
 #' @export
 predict.landmark<-function(object,x_L,x_hor,newdata,cv_fold=NA,...){
   if(class(object)!="landmark"){stop("object must have class 'landmark'")}
@@ -56,14 +104,26 @@ predict.landmark<-function(object,x_L,x_hor,newdata,cv_fold=NA,...){
   }
 
   if (model_longitudinal=="LME"){
+    if (!is.na(cv_fold)){
+      model_LME<-object[[as.character(x_L)]]$model_LME[[as.character(cv_fold)]]
+      model_LME_standardise_time<-object[[as.character(x_L)]]$model_LME_standardise_time[[as.character(cv_fold)]]
+    }else{
+      model_LME<-object[[as.character(x_L)]]$model_LME
+      model_LME_standardise_time<-object[[as.character(x_L)]]$model_LME_standardise_time
+    }
+    random_effects<-call$random_effects
+    fixed_effects<-call$fixed_effects
+    fixed_effects_time<-call$fixed_effects_time
+    random_effects_time<-call$random_effects_time
+    patient_id<-call$patient_id
 
     data_model_longitudinal<-fit_LOCF_longitudinal_model(data=newdata,
                                                          x_L=x_L,
-                                                         covariates=call$fixed_effects,
-                                                         covariates_time=call$fixed_effects_time,
-                                                         patient_id=call$patient_id)
+                                                         covariates=fixed_effects,
+                                                         covariates_time=fixed_effects_time,
+                                                         patient_id=patient_id)
     data_LOCF<-data_model_longitudinal$data_longitudinal
-    random_effects<-call$random_effects
+
     response_type <- Reduce(c,lapply(random_effects,function(i){rep(i,dim(data_LOCF)[1])}))
     response <- as.numeric(rep(NA,length(response_type)))
     response_time<-as.numeric(rep(x_L,length(response_type)))
@@ -138,16 +198,16 @@ predict.landmark<-function(object,x_L,x_hor,newdata,cv_fold=NA,...){
         model_survival,
         cause = 1,
         newdata = data_longitudinal,
-        times = x_hor
+        times = x_hor,
+        ...
       )
     )
   }
-  if (class(model_survival) %in% c("coxph")) {
+  if (class(model_survival)=="coxph") {
     data_longitudinal$event_prediction <- as.numeric(
-      riskRegression::predictRisk(model_survival, times = x_hor, newdata = data_longitudinal)
+      riskRegression::predictRisk(model_survival, times = x_hor, newdata = data_longitudinal,...)
     )
   }
-
   data_longitudinal
 }
 
