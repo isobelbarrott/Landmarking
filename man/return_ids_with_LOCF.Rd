@@ -33,12 +33,39 @@ Individuals have a LOCF if there is a non-\code{NA} entry for each of the covari
 \code{covariates} up until (and including) time \code{x_L}.
 }
 \examples{
-data(data_repeat_outcomes)
-data_repeat_outcomes<-return_ids_with_LOCF(data=data_repeat_outcomes,
-  patient_id="id",
-  covariates=c("ethnicity","smoking","diabetes","sbp_stnd","tchdl_stnd"),
-  covariates_time=c(rep("response_time_sbp_stnd",4),"response_time_tchdl_stnd"),
-  x_L=60)
+library(Landmarking)
+data(data_repeat)
+data(data_outcomes)
+ data_repeat$response_time_tchdl_stnd <-
+   as.numeric((
+     as.Date(data_repeat$response_date_tchdl_stnd, format = "yyyy-mm-dd") -
+       as.Date(data_repeat$dob, format = "yyyy-mm-dd")
+   ) / 365.25)
+ data_repeat$response_time_sbp_stnd <-
+   as.numeric((
+     as.Date(data_repeat$response_date_sbp_stnd, format = "yyyy-mm-dd") -
+       as.Date(data_repeat$dob, format = "yyyy-mm-dd")
+   ) / 365.25)
+start_time <-
+  stats::aggregate(stats::as.formula(
+  paste0("response_time_sbp_stnd", "~", "id")
+  ), data_repeat, function(x) {
+    min(x)
+  })
+names(start_time)[2] <- "start_time"
+data_repeat <- dplyr::left_join(data_repeat, start_time, by = "id")
+ data_repeat_outcomes <-
+   dplyr::left_join(data_repeat, data_outcomes, by = "id")
+ data_repeat_outcomes <-
+   return_ids_with_LOCF(
+     data = data_repeat_outcomes,
+     patient_id = "id",
+     covariates =
+       c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
+     covariates_time =
+       c(rep("response_time_sbp_stnd", 4), "response_time_tchdl_stnd"),
+     x_L = c(60, 61)
+   )
 }
 \author{
 Isobel Barrott \email{isobel.barrott@gmail.com}
