@@ -40,4 +40,4 @@
 #' package (`browseVignettes("Landmarking")`) for more information about how this dataset was formed.
 #'
 #' @format A dataset with 6921 rows and 12 columns.
-"data_landmark_LOCF"
+"pbc2"
