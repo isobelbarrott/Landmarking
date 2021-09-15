@@ -34,6 +34,20 @@
 #'
 "data_outcomes"
 
+#' Simulated time-to-event data
+#' @description A simulated dataset formed using a cause specific model, whose parameters were based on CVD events of patients
+#' at primary care practices in New Zealand. The dataset contains time-to-event data from 10000 patients.
+#'
+#' @format A dataset with 10000 rows and 3 columns:
+#'
+#' \describe{
+#'   \item{id}{Patient ID}
+#'   \item{event_status}{Event status, 0 indicates censoring, 1 indicates CVD event, 2 indicates death from other causes}
+#'   \item{event_time}{Event time}
+#' }
+#'
+"data_repeat_outcomes"
+
 #' Simulated data for use in a landmarking analysis
 #'
 #' This dataset includes risk predictions for a CVD event. See the vignette associated with the `Landmarking`
