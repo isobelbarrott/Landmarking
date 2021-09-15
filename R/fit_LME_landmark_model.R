@@ -225,7 +225,7 @@ fit_LME_longitudinal_model <- function(data,
   data_LME<-data_LME[,order(match(names(data_LME),names(data)))]
   rownames(data_LME)<-NULL
 
-  if (names(model_LME)==1){model_LME<-model_LME[[1]]}
+  if (length(cv_numbers)==1){model_LME<-model_LME[[1]]}
   if(length(unique(data[[cv_name]]))==1){data[[cv_name]]<-NULL}
 
   return(list(
@@ -276,7 +276,7 @@ fit_survival_model <- function(data,
   survival_submodel <- match.arg(survival_submodel)
 
   if(survival_submodel %in% c("cause_specific", "fine_gray")){
-    if(!(setequal(data[[event_status]],0:0:max(data[[event_status]])))){
+    if(!(setequal(data[[event_status]],0:max(data[[event_status]])))){
       stop("event_status column should contain only values 0, 1, and 2 for cause_specific or fine_gray survival submodel,
         or values 0 and 1 for standard_cox survival submodel")
     }
@@ -624,21 +624,21 @@ fit_LME_landmark_model<-function(data_long,
       x_h<-x_hor[i]
 
 
-      data_long_x_L<-data_long[[as.character(x_l)]]
+      data_long_x_l<-data_long[[as.character(x_l)]]
       if(survival_submodel %in% c("cause_specific", "fine_gray")){
-        if(!(setequal(data_long_x_L[[event_status]],0:2))){
+        if(!(setequal(data_long_x_l[[event_status]],0:2))){
           stop("event_status column should contain only values 0, 1, and 2 for cause_specific or fine_gray survival submodel,
           or values 0 and 1 for standard_cox survival submodel")
         }
       }
       if(survival_submodel %in% c("standard_cox")){
-        if(!(setequal(data_long_x_L[[event_status]],0:1))){
+        if(!(setequal(data_long_x_l[[event_status]],0:1))){
           stop("event_status column should contain only values 0, 1, and 2 for cause_specific or fine_gray survival submodel,
           or values 0 and 1 for standard_cox survival submodel")
         }
       }
 
-      if(!is.numeric(data_long_x_L[[event_status]])){stop("Column event_status should have class numeric")}
+      if(!is.numeric(data_long_x_l[[event_status]])){stop("Column event_status should have class numeric")}
 
       if (!all(is.numeric(x_l))){
         stop("'x_L' should be numeric")}
@@ -655,28 +655,28 @@ fit_LME_landmark_model<-function(data_long,
         event_time,
         event_status
       )) {
-        if (!(col %in% names(data_long_x_L))) {
+        if (!(col %in% names(data_long_x_l))) {
           stop(col, " is not a column name in data_long")
         }
       }
-      data_long_x_L[[patient_id]]<-as.factor(data_long_x_L[[patient_id]])
+      data_long_x_l[[patient_id]]<-as.factor(data_long_x_l[[patient_id]])
 
-      if(dim(return_ids_with_LOCF(data=data_long_x_L,
+      if(dim(return_ids_with_LOCF(data=data_long_x_l,
                                   patient_id=patient_id,
                                   x_L=x_l,
                                   covariates=fixed_effects,
-                                  covariates_time=fixed_effects_time))[1]!=dim(data_long_x_L)[1]){
+                                  covariates_time=fixed_effects_time))[1]!=dim(data_long_x_l)[1]){
         stop("data_long contains individuals that do not have a LOCF for all fixed_effects.
              Use function return_ids_with_LOCF to remove these individuals from the dataset")
       }
 
-      data_long_x_L<-data_long_x_L[data_long_x_L[[start_study_time]]<=x_l & data_long_x_L[[end_study_time]]>x_l,]
-      data_long_x_L[[event_status]][data_long_x_L[[event_time]]>x_h]<-0
-      data_long_x_L[[event_time]][data_long_x_L[[event_time]]>x_h]<-x_h
+      data_long_x_l<-data_long_x_l[data_long_x_l[[start_study_time]]<=x_l & data_long_x_l[[end_study_time]]>x_l,]
+      data_long_x_l[[event_status]][data_long_x_l[[event_time]]>x_h]<-0
+      data_long_x_l[[event_time]][data_long_x_l[[event_time]]>x_h]<-x_h
 
-      if(cross_validation_df_add==TRUE){data_long_x_L<-
-        dplyr::left_join(data_long_x_L,cross_validation_df[[as.character(x_l)]][,c(patient_id,"cross_validation_number")],by=patient_id)}
-      return(data_long_x_L)
+      if(cross_validation_df_add==TRUE){data_long_x_l<-
+        dplyr::left_join(data_long_x_l,cross_validation_df[[as.character(x_l)]][,c(patient_id,"cross_validation_number")],by=patient_id)}
+      return(data_long_x_l)
     })
   names(data_long_x_L)<-x_L
   if(k_add==TRUE){
@@ -689,7 +689,6 @@ fit_LME_landmark_model<-function(data_long,
     x_h<-x_hor[i]
 
     data_long<-data_long_x_L[[as.character(x_l)]]
-
     print(paste0("Fitting longitudinal submodel, landmark age ", x_l))
     data_model_longitudinal<-fit_LME_longitudinal_model(data=data_long,
                                                         x_L=x_l,
