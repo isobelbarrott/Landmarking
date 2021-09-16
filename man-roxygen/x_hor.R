@@ -1,1 +1,1 @@
-#' @param x_hor Numeric specifying the horizon time
+#' @param x_hor Numeric specifying the horizon time(s)

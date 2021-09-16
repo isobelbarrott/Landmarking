@@ -1,1 +1,1 @@
-#' @param x_L Numeric specifying the landmark time
+#' @param x_L Numeric specifying the landmark time(s)
