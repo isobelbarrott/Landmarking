@@ -3,9 +3,9 @@
 #' Creates a calibration plot for the landmark model fitted by `fit_LME_landmark_model` or `fit_LOCF_landmark_model`.
 #' This function plots the observed frequencies of the event of interest against the predicted probabilities of the event of interest.
 #'
-#' @param object Object inheriting the class `landmark`, this should be the output from either `fit_LME_landmark_model` or `fit_LOCF_landmark_model`. It should contain a list
+#' @param x Object inheriting the class `landmark`, this should be the output from either `fit_LME_landmark_model` or `fit_LOCF_landmark_model`. It should contain a list
 #' of landmark models corresponding to different landmark times `x_L`.
-#' @param x_L Numeric specifying the landmark time. This indicates which landmark model in `object` to use.
+#' @param x_L Numeric specifying the landmark time. This indicates which landmark model in `x` to use.
 #' @param n Numeric specifying the number of bins to use.
 #' @param \dots Arguments passed on to the `aes()` function
 #' @return Calibration plot showing the value of predicted probabilities against observed frequencies, with a `y=x` line.
@@ -64,28 +64,28 @@
 #'      event_status = "event_status",
 #'      survival_submodel = "cause_specific"
 #'    )
-#'  calplot.landmark(object=data_model_landmark_LOCF,x_L=60,n=5)
-#'  calplot.landmark(object=data_model_landmark_LOCF,x_L=61,n=5)
+#'  plot(x=data_model_landmark_LOCF,x_L=60,n=5)
+#'  plot(x=data_model_landmark_LOCF,x_L=61,n=5)
 #' @export
 
-calplot.landmark<-function(object,x_L,n,...){
-  if(class(object)!="landmark"){
-    stop("object must have class 'landmark'")}
+plot.landmark<-function(x,x_L,n,...){
+  if(class(x)!="landmark"){
+    stop("x must have class 'landmark'")}
   if(!is.numeric(x_L)){
     stop("x_L should be numeric")
   }
   if(!is.numeric(n)){stop("n must have class numeric")}
-  if(!(as.character(x_L) %in% names(object))){stop("x_L must be the name of an element in 'object'")}
-  object<-object[[as.character(x_L)]]
-  event_status<-object$call$event_status
+  if(!(as.character(x_L) %in% names(x))){stop("x_L must be the name of an element in 'x'")}
+  x<-x[[as.character(x_L)]]
+  event_status<-x$call$event_status
 
   strata<-survival::strata
   actual<-c()
   predicted<-c()
-  data_survival<-object$data
-  event_time<-object$call$event_time
+  data_survival<-x$data
+  event_time<-x$call$event_time
   data_survival[["event_time"]]<-data_survival[[event_time]]
-  events<-unique(object[["data"]][[event_status]])
+  events<-unique(x[["data"]][[event_status]])
 
   data_survival$quantile<-.bincode(data_survival$event_prediction, breaks=stats::quantile(data_survival$event_prediction,seq(0,1,by=1/n)),include.lowest=TRUE)
   if(length(table(data_survival$quantile))!=n){stop("Not enough data for number of quantiles, select lower value of n")}
