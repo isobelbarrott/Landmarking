@@ -11,7 +11,7 @@ return_ids_with_LOCF(data, patient_id, x_L, covariates, covariates_time)
 
 \item{patient_id}{Character string specifying the column name in \code{data} which contains the individual identifiers}
 
-\item{x_L}{Numeric specifying the landmark time}
+\item{x_L}{Numeric specifying the landmark time(s)}
 
 \item{covariates}{Vector of character strings specifying the column names in \code{data}
 which correspond to the covariates}

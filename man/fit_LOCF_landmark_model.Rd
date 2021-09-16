@@ -25,9 +25,9 @@ fit_LOCF_landmark_model(
 \item{data_long}{Data frame or list of data frames each corresponding to a landmark age x_L (each element of the list must be named the value of x_L it corresponds to)
 Each data frame contains repeat measurements data and time-to-event data in long format.}
 
-\item{x_L}{Numeric specifying the landmark time}
+\item{x_L}{Numeric specifying the landmark time(s)}
 
-\item{x_hor}{Numeric specifying the horizon time}
+\item{x_hor}{Numeric specifying the horizon time(s)}
 
 \item{covariates}{Vector of character strings specifying the column names in \code{data}
 which correspond to the covariates}

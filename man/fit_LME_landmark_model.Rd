@@ -30,9 +30,9 @@ fit_LME_landmark_model(
 \item{data_long}{Data frame or list of data frames each corresponding to a landmark age x_L (each element of the list must be named the value of x_L it corresponds to)
 Each data frame contains repeat measurements data and time-to-event data in long format.}
 
-\item{x_L}{Numeric specifying the landmark time}
+\item{x_L}{Numeric specifying the landmark time(s)}
 
-\item{x_hor}{Numeric specifying the horizon time}
+\item{x_hor}{Numeric specifying the horizon time(s)}
 
 \item{fixed_effects}{Vector of character strings specifying the column names in \code{data}
 which correspond to the fixed effects}
@@ -116,7 +116,6 @@ please see \code{?fit_survival_model} which is the function used to do this with
 \description{
 This function performs the two-stage landmarking analysis. In the first stage the longitudinal submodel is fitted using the LME model and in the
 second stage the survival submodel is fitted.
-Integer specifying the number of bootstrap samples to take
 }
 \details{
 There are two parts to fitting the landmark model: the longitudinal submodel and the survival submodel.

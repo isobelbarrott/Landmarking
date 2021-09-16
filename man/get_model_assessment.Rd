@@ -29,7 +29,7 @@ which contains the event status (where 0=censoring, 1=event of interest, if ther
 \item{event_time}{Character string specifying the column name in \code{data}
 which contains the event time}
 
-\item{x_hor}{Numeric specifying the horizon time}
+\item{x_hor}{Numeric specifying the horizon time(s)}
 
 \item{b}{Integer specifying the number of bootstrap samples to take when calcluating standard error of c-index and Brier score}
 }
