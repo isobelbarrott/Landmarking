@@ -159,10 +159,10 @@ data_model_landmark_LOCF[["60"]]$prediction_error
 data_model_landmark_LOCF[["61"]]$prediction_error
 ```
 
-In order to assess the performance of the model, there is also the function `calplot` which creates a calibration plot which can assess the calibration of the model. The perfect prediction model will have points along the y=x line and deviations from this suggest poor calibration.
+In order to assess the performance of the model, there is also the `plot` method which creates a calibration plot which can assess the calibration of the model. The perfect prediction model will have points along the y=x line and deviations from this suggest poor calibration.
 
 ```{r 20}
-calplot.landmark(object = data_model_landmark_LOCF, x_L = 60, n = 5)
+plot(x = data_model_landmark_LOCF, x_L = 60, n = 5)
 ```
 
 
