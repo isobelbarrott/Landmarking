@@ -380,7 +380,7 @@ fit_survival_model <- function(data,
 #'
 #' This function performs the two-stage landmarking analysis. In the first stage the longitudinal submodel is fitted using the LME model and in the
 #' second stage the survival submodel is fitted.
-#' Integer specifying the number of bootstrap samples to take
+#'
 #' @param data_long Data frame or list of data frames each corresponding to a landmark age x_L (each element of the list must be named the value of x_L it corresponds to)
 #' Each data frame contains repeat measurements data and time-to-event data in long format.
 #' @template x_L
