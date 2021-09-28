@@ -18,7 +18,7 @@ get_model_assessment(
 \item{data}{Data frame containing survival outcomes and the event predictions from the model,
 there should be one row for each individual}
 
-\item{patient_id}{Character string specifying the column name in \code{data} which contains the individual identifiers}
+\item{patient_id}{Character string specifying the column name in \code{data_long} which contains the individual identifiers}
 
 \item{event_prediction}{Character string specifying the column name in \code{data} containing the predicted probability of the event of interest}
 
@@ -65,57 +65,36 @@ The c-index is calculated using the \code{cindex} function in package \code{pec}
 }
 \examples{
 \dontrun{
-#' library(Landmarking)
- data(data_repeat)
- data(data_outcomes)
- data_repeat$response_time_tchdl_stnd <-
-   as.numeric((
-     as.Date(data_repeat$response_date_tchdl_stnd, format = "yyyy-mm-dd") -
-       as.Date(data_repeat$dob, format = "yyyy-mm-dd")
-   ) / 365.25)
- data_repeat$response_time_sbp_stnd <-
-   as.numeric((
-     as.Date(data_repeat$response_date_sbp_stnd, format = "yyyy-mm-dd") -
-       as.Date(data_repeat$dob, format = "yyyy-mm-dd")
-   ) / 365.25)
-start_time <-
-  stats::aggregate(stats::as.formula(
-  paste0("response_time_sbp_stnd", "~", "id")
-  ), data_repeat, function(x) {
-    min(x)
-  })
-names(start_time)[2] <- "start_time"
-data_repeat <- dplyr::left_join(data_repeat, start_time, by = "id")
- data_repeat_outcomes <-
-   dplyr::left_join(data_repeat, data_outcomes, by = "id")
- data_repeat_outcomes <-
-   return_ids_with_LOCF(
-     data = data_repeat_outcomes,
-     patient_id = "id",
-     covariates =
-       c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
-     covariates_time =
-       c(rep("response_time_sbp_stnd", 4), "response_time_tchdl_stnd"),
-     x_L = c(60, 61)
-   )
- data_model_landmark_LOCF <-
-   fit_LOCF_landmark_model(
-     data_long = data_repeat_outcomes,
-     x_L = c(60, 61),
-     x_hor = c(65, 66),
-     covariates =
-       c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
-     covariates_time =
-       c(rep("response_time_sbp_stnd", 4), "response_time_tchdl_stnd"),
-     k = 10,
-     start_study_time = "start_time",
-     end_study_time = "event_time",
-     patient_id = "id",
-     event_time = "event_time",
-     event_status = "event_status",
-     survival_submodel = "cause_specific"
-   )
-get_model_assessment(data = data_landmark_LOCF,
+library(Landmarking)
+data(data_repeat_outcomes)
+data_repeat_outcomes <-
+  return_ids_with_LOCF(
+    data_long = data_repeat_outcomes,
+    patient_id = "id",
+    covariates =
+      c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
+    covariates_time =
+      c(rep("response_time_sbp_stnd", 4), "response_time_tchdl_stnd"),
+    x_L = c(60,61)
+  )
+data_model_landmark_LOCF <-
+  fit_LOCF_landmark_model(
+    data_long = data_repeat_outcomes,
+    x_L = c(60, 61),
+    x_hor = c(65, 66),
+    covariates =
+      c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
+    covariates_time =
+      c(rep("response_time_sbp_stnd", 4), "response_time_tchdl_stnd"),
+    k = 10,
+    start_study_time = "start_time",
+    end_study_time = "event_time",
+    patient_id = "id",
+    event_time = "event_time",
+    event_status = "event_status",
+    survival_submodel = "cause_specific"
+  )
+get_model_assessment(data = data_model_landmark_LOCF,
   patient_id = "id",
   event_prediction = "event_prediction",
   event_status = "event_status",
