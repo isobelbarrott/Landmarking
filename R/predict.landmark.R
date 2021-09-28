@@ -15,56 +15,35 @@
 #' @param \dots Arguments passed on to `riskRegression::predictRisk`
 #' @return Data frame `newdata` updated to contained a new column `event_prediction`
 #' @examples
-#'  library(Landmarking)
-#'   data(data_repeat)
-#'   data(data_outcomes)
-#'   data_repeat$response_time_tchdl_stnd <-
-#'     as.numeric((
-#'       as.Date(data_repeat$response_date_tchdl_stnd, format = "yyyy-mm-dd") -
-#'         as.Date(data_repeat$dob, format = "yyyy-mm-dd")
-#'         ) / 365.25)
-#'   data_repeat$response_time_sbp_stnd <-
-#'     as.numeric((
-#'       as.Date(data_repeat$response_date_sbp_stnd, format = "yyyy-mm-dd") -
-#'         as.Date(data_repeat$dob, format = "yyyy-mm-dd")
-#'     ) / 365.25)
-#'  start_time <-
-#'    stats::aggregate(stats::as.formula(
-#'    paste0("response_time_sbp_stnd", "~", "id")
-#'    ), data_repeat, function(x) {
-#'      min(x)
-#'    })
-#'  names(start_time)[2] <- "start_time"
-#'  data_repeat <- dplyr::left_join(data_repeat, start_time, by = "id")
-#'  data_repeat_outcomes <-
-#'     dplyr::left_join(data_repeat, data_outcomes, by = "id")
-#'  data_repeat_outcomes <-
-#'     return_ids_with_LOCF(
-#'       data = data_repeat_outcomes,
-#'       patient_id = "id",
-#'       covariates =
-#'         c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
-#'       covariates_time =
-#'         c(rep("response_time_sbp_stnd", 4), "response_time_tchdl_stnd"),
-#'       x_L = c(60, 61)
-#'     )
-#'   data_model_landmark_LOCF <-
-#'     fit_LOCF_landmark_model(
-#'       data_long = data_repeat_outcomes,
-#'       x_L = c(60, 61),
-#'       x_hor = c(65, 66),
-#'       covariates =
-#'         c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
-#'       covariates_time =
-#'         c(rep("response_time_sbp_stnd", 4), "response_time_tchdl_stnd"),
-#'       k = 10,
-#'       start_study_time = "start_time",
-#'       end_study_time = "event_time",
-#'       patient_id = "id",
-#'       event_time = "event_time",
-#'       event_status = "event_status",
-#'       survival_submodel = "cause_specific"
-#'     )
+#' library(Landmarking)
+#' data(data_repeat_outcomes)
+#' data_repeat_outcomes <-
+#'   return_ids_with_LOCF(
+#'     data_long = data_repeat_outcomes,
+#'     patient_id = "id",
+#'     covariates =
+#'       c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
+#'     covariates_time =
+#'       c(rep("response_time_sbp_stnd", 4), "response_time_tchdl_stnd"),
+#'     x_L = c(60,61)
+#'   )
+#' data_model_landmark_LOCF <-
+#'   fit_LOCF_landmark_model(
+#'     data_long = data_repeat_outcomes,
+#'     x_L = c(60, 61),
+#'     x_hor = c(65, 66),
+#'     covariates =
+#'       c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
+#'     covariates_time =
+#'       c(rep("response_time_sbp_stnd", 4), "response_time_tchdl_stnd"),
+#'     k = 10,
+#'     start_study_time = "start_time",
+#'     end_study_time = "event_time",
+#'     patient_id = "id",
+#'     event_time = "event_time",
+#'     event_status = "event_status",
+#'     survival_submodel = "cause_specific"
+#'   )
 #'  newdata <-
 #'    rbind(
 #'      data.frame(
@@ -94,11 +73,13 @@ predict.landmark<-function(object,x_L,x_hor,newdata,cv_fold=NA,...){
     covariates_time<-call$covariates_time
     patient_id<-call$patient_id
     for (covariate in covariates){
-      if(is.factor(object[[as.character(x_L)]]$data[[covariate]])){newdata[[covariate]]<-as.factor(newdata[[covariate]])
-      levels(newdata[[covariate]])<-levels(object[[as.character(x_L)]]$data[[covariate]])}
-    }
+      if(is.factor(object[[as.character(x_L)]]$data[[covariate]])){
+        newdata[[covariate]]<-factor(newdata[[covariate]],levels=levels(object[[as.character(x_L)]]$data[[covariate]]))
+        }
+      }
 
-    data_model_longitudinal<-fit_LOCF_longitudinal_model(data=newdata,
+
+    data_model_longitudinal<-fit_LOCF_longitudinal_model(data_long=newdata,
                                                          x_L=x_L,
                                                          covariates=covariates,
                                                          covariates_time=covariates_time,
@@ -114,8 +95,9 @@ predict.landmark<-function(object,x_L,x_hor,newdata,cv_fold=NA,...){
     patient_id<-call$patient_id
 
     for (fixed_effect in fixed_effects){
-      if(is.factor(object[[as.character(x_L)]]$data[[fixed_effect]])){newdata[[fixed_effect]]<-as.factor(newdata[[fixed_effect]])
-      levels(newdata[[fixed_effect]])<-levels(object[[as.character(x_L)]]$data[[fixed_effect]])}
+      if(is.factor(object[[as.character(x_L)]]$data[[fixed_effect]])){
+        newdata[[fixed_effect]]<-factor(newdata[[fixed_effect]],levels=levels(object[[as.character(x_L)]]$data[[fixed_effect]]))
+      }
     }
 
     if (!is.na(cv_fold)){
@@ -126,7 +108,7 @@ predict.landmark<-function(object,x_L,x_hor,newdata,cv_fold=NA,...){
       model_LME_standardise_time<-object[[as.character(x_L)]]$model_LME_standardise_time
     }
 
-    data_model_longitudinal<-fit_LOCF_longitudinal_model(data=newdata,
+    data_model_longitudinal<-fit_LOCF_longitudinal_model(data_long=newdata,
                                                          x_L=x_L,
                                                          covariates=fixed_effects,
                                                          covariates_time=fixed_effects_time,
