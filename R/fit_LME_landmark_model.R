@@ -1,25 +1,38 @@
-
-return_LOCF_by_variable <- function(data,
-                                    i,
-                                    covariates,
-                                    covariates_time,
-                                    patient_id, x_L) {
-  var <- covariates[i]
-  time <- covariates_time[i]
-  data_var <-
-    data[data[[time]] <= x_L,][, c(patient_id, var, time)]
-  data_var <-
-    data_var[!is.na(data_var[[var]]),]#removes NA values
-  data_var <-
-    data_var[order(data_var[[time]], decreasing = TRUE), ]
-  data_var <-
-    data_var[!duplicated(data_var[[patient_id]]), ]
-  return(data_var[, c(patient_id, var)])
-}
-
-
-
-fit_LME_longitudinal_model <- function(data,
+#' Fit a landmarking model using a linear mixed effects (LME) model for the longitudinal submodel
+#'
+#' This function is a helper function for `fit_LME_landmark_model`.
+#'
+#' @param data_long Data frame containing repeat measurement data and time-to-event data in long format.
+#' @template x_L
+#' @param standardise_time Boolean indicating whether to standarise the time variable by subtracting the mean
+#' and dividing by the standard deviation (see Details section for more information)
+#' @param cv_name Character string specifying the column name in `data_long` that indicates cross-validation fold
+#' @template patient_id
+#' @template fixed_effects
+#' @template random_effects
+#' @template fixed_effects_time
+#' @template random_effects_time
+#' @param random_slope Boolean indicating whether to include a random slope in the LME model
+#' @param lme_control Object created using `nlme::lmeControl()`, which will be passed to the `control` argument of the `lme` function
+#' @return List containing `data_longitudinal`, `model_longitudinal`, `model_LME`, and `model_LME_standardise_time`.
+#'
+#' `data_longitudinal` has one row for each individual in `data_long` and
+#' contains the predicted value at the landmark time `x_L`of the `fixed_effects` using the LOCF model and
+#' `random_effects` using the LME model.
+#'
+#' `model_longitudinal` indicates that the longitudinal submodel is LME.
+#'
+#' `model_LME` contains the output from
+#' the `lme` function from package `nlme`. For a model using cross-validation,
+#' `model_LME` contains a list of outputs with each
+#' element in the list corresponds to a different cross-validation fold.
+#'
+#' `model_LME_standardise_time` contains a list of two objects `mean_response_time` and `sd_response_time` if the parameter `standardise_time=TRUE` is used. This
+#' is the mean and standard deviation use to normalise times when fitting the LME model.
+#'
+#'
+#' @export
+fit_LME_longitudinal_model <- function(data_long,
                                        x_L,
                                        fixed_effects,
                                        random_effects,
@@ -31,8 +44,8 @@ fit_LME_longitudinal_model <- function(data,
                                        patient_id,
                                        lme_control = nlme::lmeControl()) {
   call <- match.call()
-  if (!(is.data.frame(data))) {
-    stop("data should be a dataframe")
+  if (!(is.data.frame(data_long))) {
+    stop("data_long should be a dataframe")
   }
   if (!(is.numeric(x_L))){
     stop("'x_L' should be numeric")}
@@ -44,21 +57,21 @@ fit_LME_longitudinal_model <- function(data,
     random_effects_time,
     patient_id
   )) {
-    if (!(col %in% names(data))) {
-      stop(col, " is not a column name in data")
+    if (!(col %in% names(data_long))) {
+      stop(col, " is not a column name in data_long")
     }
   }
 
   if (!is.na(cv_name)) {
-    if (!(cv_name %in% names(data))) {
-      stop(cv_name, " is not a column name in data")
+    if (!(cv_name %in% names(data_long))) {
+      stop(cv_name, " is not a column name in data_long")
     }
-    if (any(is.na(data[[cv_name]]))){
+    if (any(is.na(data_long[[cv_name]]))){
       stop("The column ",cv_name, " contains NA values")
     }
   }
 
-  if(is.na(cv_name)){data[["cross_validation_number"]]<-1;cv_name<-"cross_validation_number"}
+  if(is.na(cv_name)){data_long[["cross_validation_number"]]<-1;cv_name<-"cross_validation_number"}
 
   if (!(length(fixed_effects_time) %in% c(length(fixed_effects),1))){
     stop("Length of fixed_effects_time should be equal to length of fixed_effects or 1")}
@@ -70,25 +83,25 @@ fit_LME_longitudinal_model <- function(data,
 
   if (length(random_effects_time)==1){random_effects_time<-rep(random_effects_time,times=length(random_effects))}
 
-  if(dim(return_ids_with_LOCF(data=data,
+  if(dim(return_ids_with_LOCF(data_long=data_long,
                               patient_id=patient_id,
                               x_L=x_L,
                               covariates=fixed_effects,
-                              covariates_time=fixed_effects_time))[1]!=dim(data)[1]){
-    stop("data contains individuals that do not have a LOCF for all fixed_effects. Use function return_ids_with_LOCF to remove these individuals from the dataset data.")
+                              covariates_time=fixed_effects_time))[1]!=dim(data_long)[1]){
+    stop("data_long contains individuals that do not have a LOCF for all fixed_effects. Use function return_ids_with_LOCF to remove these individuals from the dataset data_long.")
   }
 
 
-  data[[patient_id]] <- as.factor(data[[patient_id]])
+  data_long[[patient_id]] <- as.factor(data_long[[patient_id]])
 
-  data_LOCF <- data
-  data_LME <- data
+  data_LOCF <- data_long
+  data_LME <- data_long
 
   #Pick out LOCF for each exposure#
   LOCF_values_by_variable <-
     lapply(1:length(c(fixed_effects, random_effects)), function(x) {
       return_LOCF_by_variable(
-        data = data_LOCF,
+        data_long = data_LOCF,
         i = x,
         covariates=c(fixed_effects, random_effects),
         covariates_time = c(fixed_effects_time, random_effects_time),
@@ -98,10 +111,10 @@ fit_LME_longitudinal_model <- function(data,
       )
     })
   data_LOCF <- Reduce(merge, LOCF_values_by_variable)
-  data_LOCF<-data_LOCF[match(unique(data[[patient_id]]),data_LOCF[[patient_id]]),]
+  data_LOCF<-data_LOCF[match(unique(data_long[[patient_id]]),data_LOCF[[patient_id]]),]
 
   data_LOCF <-
-    dplyr::left_join(data_LOCF, unique(data[c(patient_id, cv_name)]), by =
+    dplyr::left_join(data_LOCF, unique(data_long[c(patient_id, cv_name)]), by =
                          patient_id)
 
 
@@ -141,7 +154,7 @@ fit_LME_longitudinal_model <- function(data,
   x_L<-(x_L-mean_response_time)/sd_response_time
   standardise_time<-list(mean_response_time=mean_response_time,sd_response_time=sd_response_time)
 
-  data_LME_model_val <- data_LME[data_LME$response_time <= x_L,]
+  data_LME_model_val <- data_LME[data_LME$response_time < x_L,]
   data_LME_model_dev <- data_LME[!is.na(data_LME$response),]
   #####
 
@@ -221,12 +234,12 @@ fit_LME_longitudinal_model <- function(data,
   })
   data_LME <- do.call("rbind", data_LME)
 
-  data_LME<-data_LME[match(unique(data[[patient_id]]),data_LME[[patient_id]]),]
-  data_LME<-data_LME[,order(match(names(data_LME),names(data)))]
+  data_LME<-data_LME[match(unique(data_long[[patient_id]]),data_LME[[patient_id]]),]
+  data_LME<-data_LME[,order(match(names(data_LME),names(data_long)))]
   rownames(data_LME)<-NULL
 
   if (length(cv_numbers)==1){model_LME<-model_LME[[1]]}
-  if(length(unique(data[[cv_name]]))==1){data[[cv_name]]<-NULL}
+  if(length(unique(data_long[[cv_name]]))==1){data_long[[cv_name]]<-NULL}
 
   return(list(
       data_longitudinal = data_LME,
@@ -237,144 +250,6 @@ fit_LME_longitudinal_model <- function(data,
     ))
 }
 
-fit_survival_model <- function(data,
-                               patient_id,
-                               cv_name=NA,
-                               covariates,
-                               event_time,
-                               event_status,
-                               survival_submodel = c("standard_cox", "cause_specific", "fine_gray"),
-                               x_hor) {
-  #Checks
-  #####
-  if (!(is.data.frame(data))) {
-    stop("data should be a dataframe")
-  }
-  if (!(is.numeric(x_hor))) {
-    stop("x_hor should be numeric")
-  }
-  for (col in c(covariates,
-                event_time,
-                event_status,
-                patient_id)) {
-    if (!(col %in% names(data))) {
-      stop(col, " is not a column name in data")
-    }
-  }
-
-  if (!is.na(cv_name)) {
-    if (!(cv_name %in% names(data))) {
-      stop(cv_name, " is not a column name in data")
-    }
-    if (any(is.na(data[[cv_name]]))){
-      stop("The column ",cv_name, " contains NA values")
-    }
-  }
-
-  if(is.na(cv_name)){data[["cross_validation_number"]]<-1;cv_name<-"cross_validation_number"}
-
-  survival_submodel <- match.arg(survival_submodel)
-
-  if(survival_submodel %in% c("cause_specific", "fine_gray")){
-    if(!(setequal(data[[event_status]],0:max(data[[event_status]])))){
-      stop("event_status column should contain only values 0, 1, and 2 for cause_specific or fine_gray survival submodel,
-        or values 0 and 1 for standard_cox survival submodel")
-    }
-  }
-  if(survival_submodel %in% c("standard_cox")){
-    if(!(setequal(data[[event_status]],0:1))){
-      stop("event_status column should contain only values 0, 1, and 2 for cause_specific or fine_gray survival submodel,
-        or values 0 and 1 for standard_cox survival submodel")
-    }
-  }
-
-  data[[patient_id]] <- as.factor(data[[patient_id]])
-
-  if(is.na(cv_name)){data[["cross_validation_number"]]<-1;cv_name<-"cross_validation_number"}
-
-    cv_numbers <- unique(data[[cv_name]])
-    model <- as.list(cv_numbers)
-    names(model) <- cv_numbers
-
-    data_cv <- lapply(cv_numbers, function(cv_number) {
-
-      if (length(cv_numbers)==1) {
-        data_test <- data
-        data_train <- data
-      }else{
-        data_test <- data[data[[cv_name]] == cv_number, ]
-        data_train <- data[data[[cv_name]] != cv_number, ]
-      }
-
-      model_survival <- c()
-
-      if (survival_submodel == "standard_cox") {
-        formula_survival <-
-          as.formula(paste0("Surv(", event_time, ", ", event_status, "==1) ~",
-                            paste0(covariates, collapse = "+")))
-        model_survival <- coxph(formula_survival, data = data_train,x=TRUE)
-        data_test$event_prediction <-riskRegression::predictRisk(model_survival, times = x_hor, newdata = data_test)
-      }
-
-      if (survival_submodel == "cause_specific") {
-        if(length(unique(data_train[[event_status]]))!=length(unique(data[[event_status]]))){
-          stop("Not enough competing risk events to train competing risks model")
-        }
-
-        formula_survival <-
-          as.formula(paste0("Hist(", event_time, ", ", event_status, ") ~",
-                            paste0(covariates, collapse = "+")))
-        model_survival <-
-          riskRegression::CSC(
-            formula_survival,
-            data = data_train,
-            fitter = "coxph",
-            cause = 1
-          )
-        data_test$event_prediction <- as.numeric(
-          riskRegression::predictRisk(
-            model_survival,
-            cause = 1,
-            newdata = data_test,
-            times = x_hor
-          )
-        )
-      }
-
-      if (survival_submodel == "fine_gray") {
-        if(length(unique(data_train[[event_status]]))!=length(unique(data[[event_status]]))){
-          stop("Not enough competing risk events to train competing risks model")
-        }
-        formula_survival <-
-          as.formula(paste0("Hist(", event_time, ", ", event_status, ") ~",
-                            paste0(covariates, collapse = "+")))
-        model_survival <-
-          riskRegression::FGR(formula_survival, data = data_train, cause = 1)
-        data_test$event_prediction <-
-          as.numeric(
-            riskRegression::predictRisk(
-              model_survival,
-              cause = 1,
-              newdata = data_test,
-              times = x_hor
-            )
-          )
-      }
-
-      return(list(data_test = data_test, model_survival = model_survival))
-    })
-    data_survival <-
-      data.frame(Reduce(dplyr::bind_rows, lapply(data_cv, `[[`, 1)))
-    model_survival <- lapply(data_cv, `[[`, 2)
-    names(model_survival)<-cv_numbers
-    if (length(cv_numbers)==1) {
-      model_survival<-model_survival[[1]]
-    }
-
-  data_survival<-data_survival[order(match(data_survival[[patient_id]],data[[patient_id]])),]
-  rownames(data_survival)<-NULL
-  list(data_survival = data_survival, model_survival = model_survival)
-}
 
 #' Fit a landmarking model using a linear mixed effects (LME) model for the longitudinal submodel
 #'
@@ -434,6 +309,11 @@ fit_survival_model <- function(data,
 #'
 #' `prediction_error` contains a list indicating the c-index and Brier score at time `x_hor` and their standard errors if parameter `b` is used.
 #' @details
+#' This function selects the individuals in the risk set at the landmark time \code{x_L}. Specifically, the individuals in the risk set are those that have entered the study before the landmark age
+#' (\code{start_study_time} is less than \code{x_L}) and exited the study on or after the landmark age (\code{end_study_time} is the same as or more than \code{x_L})). If the option to use cross validation
+#' is selected, this function then assigns the individuals in the risk set to cross-validation folds and fits the landmark model using training and test datasets. If cross-validation is not selected then the landmark model is
+#' fit to the entire group of individuals in the risk set. The performance of the model is then assessed on the set of predictions from the entire set of individuals in the risk set
+#' by calculating Brier score and C-index.
 #'
 #' There are two parts to fitting the landmark model: the longitudinal submodel and the survival submodel.
 #' This function id used to fit the LME model as the longitudinal submodel. This model will be described in more detail.
@@ -494,39 +374,18 @@ fit_survival_model <- function(data,
 #'
 #' @author Isobel Barrott \email{isobel.barrott@@gmail.com}
 #' @examples \dontrun{
-#' #' library(Landmarking)
-#'  data(data_repeat)
-#'  data(data_outcomes)
-#'  data_repeat$response_time_tchdl_stnd <-
-#'    as.numeric((
-#'      as.Date(data_repeat$response_date_tchdl_stnd, format = "yyyy-mm-dd") -
-#'        as.Date(data_repeat$dob, format = "yyyy-mm-dd")
-#'    ) / 365.25)
-#'  data_repeat$response_time_sbp_stnd <-
-#'    as.numeric((
-#'      as.Date(data_repeat$response_date_sbp_stnd, format = "yyyy-mm-dd") -
-#'        as.Date(data_repeat$dob, format = "yyyy-mm-dd")
-#'    ) / 365.25)
-#' start_time <-
-#'   stats::aggregate(stats::as.formula(
-#'   paste0("response_time_sbp_stnd", "~", "id")
-#'   ), data_repeat, function(x) {
-#'     min(x)
-#'   })
-#' names(start_time)[2] <- "start_time"
-#' data_repeat <- dplyr::left_join(data_repeat, start_time, by = "id")
-#'  data_repeat_outcomes <-
-#'    dplyr::left_join(data_repeat, data_outcomes, by = "id")
-#'  data_repeat_outcomes <-
-#'    return_ids_with_LOCF(
-#'      data = data_repeat_outcomes,
-#'      patient_id = "id",
-#'      covariates =
-#'        c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
-#'      covariates_time =
-#'        c(rep("response_time_sbp_stnd", 4), "response_time_tchdl_stnd"),
-#'      x_L = c(60, 61)
-#'    )
+#' library(Landmarking)
+#' data(data_repeat_outcomes)
+#' data_repeat_outcomes <-
+#'   return_ids_with_LOCF(
+#'     data_long = data_repeat_outcomes,
+#'     patient_id = "id",
+#'     covariates =
+#'       c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
+#'     covariates_time =
+#'       c(rep("response_time_sbp_stnd", 4), "response_time_tchdl_stnd"),
+#'     x_L = c(60,61)
+#'   )
 #' data_model_landmark_LME <-
 #'   fit_LME_landmark_model(
 #'     data_long = data_repeat_outcomes,
@@ -550,7 +409,6 @@ fit_survival_model <- function(data,
 #' @importFrom stats as.formula
 #' @importFrom prodlim Hist
 #' @export
-
 
 fit_LME_landmark_model<-function(data_long,
                                  x_L,
@@ -617,14 +475,19 @@ fit_LME_landmark_model<-function(data_long,
     if(!setequal(names(data_long),x_L)){stop("Names of elements in data_long should be landmark ages x_L")}
   }
 
+
   if (missing(b)){b<-NA}
 
   data_long_x_L<-lapply(1:length(x_L),function(i){
       x_l<-x_L[i]
       x_h<-x_hor[i]
 
-
       data_long_x_l<-data_long[[as.character(x_l)]]
+
+      if(!is.null(levels(data_long_x_l[[event_status]]))){
+        data_long_x_l[[event_status]]<-as.numeric(levels(data_long_x_l[[event_status]]))[data_long_x_l[[event_status]]]
+      }
+
       if(survival_submodel %in% c("cause_specific", "fine_gray")){
         if(!(setequal(data_long_x_l[[event_status]],0:2))){
           stop("event_status column should contain only values 0, 1, and 2 for cause_specific or fine_gray survival submodel,
@@ -661,7 +524,7 @@ fit_LME_landmark_model<-function(data_long,
       }
       data_long_x_l[[patient_id]]<-as.factor(data_long_x_l[[patient_id]])
 
-      if(dim(return_ids_with_LOCF(data=data_long_x_l,
+      if(dim(return_ids_with_LOCF(data_long=data_long_x_l,
                                   patient_id=patient_id,
                                   x_L=x_l,
                                   covariates=fixed_effects,
@@ -670,9 +533,9 @@ fit_LME_landmark_model<-function(data_long,
              Use function return_ids_with_LOCF to remove these individuals from the dataset")
       }
 
-      data_long_x_l<-data_long_x_l[data_long_x_l[[start_study_time]]<=x_l & data_long_x_l[[end_study_time]]>x_l,]
-      data_long_x_l[[event_status]][data_long_x_l[[event_time]]>x_h]<-0
-      data_long_x_l[[event_time]][data_long_x_l[[event_time]]>x_h]<-x_h
+      data_long_x_l<-data_long_x_l[data_long_x_l[[start_study_time]]<x_l & data_long_x_l[[end_study_time]]>=x_l,]
+      data_long_x_l[[event_status]][data_long_x_l[[event_time]]>=x_h]<-0
+      data_long_x_l[[event_time]][data_long_x_l[[event_time]]>=x_h]<-x_h
 
       if(cross_validation_df_add==TRUE){data_long_x_l<-
         dplyr::left_join(data_long_x_l,cross_validation_df[[as.character(x_l)]][,c(patient_id,"cross_validation_number")],by=patient_id)}
@@ -680,7 +543,7 @@ fit_LME_landmark_model<-function(data_long,
     })
   names(data_long_x_L)<-x_L
   if(k_add==TRUE){
-    data_long_x_L_cv<-add_cv_number(data=Reduce("rbind",data_long_x_L), patient_id=patient_id, k=k)
+    data_long_x_L_cv<-add_cv_number(data_long=Reduce("rbind",data_long_x_L), patient_id=patient_id, k=k)
     data_long_x_L<-lapply(data_long_x_L,function(x){dplyr::left_join(x,dplyr::distinct(data_long_x_L_cv[,c(patient_id,"cross_validation_number")]),by=patient_id)})
   }
 
@@ -690,7 +553,7 @@ fit_LME_landmark_model<-function(data_long,
 
     data_long<-data_long_x_L[[as.character(x_l)]]
     print(paste0("Fitting longitudinal submodel, landmark age ", x_l))
-    data_model_longitudinal<-fit_LME_longitudinal_model(data=data_long,
+    data_model_longitudinal<-fit_LME_longitudinal_model(data_long=data_long,
                                                         x_L=x_l,
                                                         fixed_effects=fixed_effects,
                                                         random_effects=random_effects,
