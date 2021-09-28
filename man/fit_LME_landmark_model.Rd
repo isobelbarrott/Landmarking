@@ -53,7 +53,7 @@ order of elements in \code{random_effects}.}
 \item{standardise_time}{Boolean indicating whether to standarise the time variable by subtracting the mean
 and dividing by the standard deviation (see Details section for more information)}
 
-\item{patient_id}{Character string specifying the column name in \code{data} which contains the individual identifiers}
+\item{patient_id}{Character string specifying the column name in \code{data_long} which contains the individual identifiers}
 
 \item{start_study_time}{Character string specifying the column name in \code{data} which indicates the time that an individual enters the study}
 
@@ -118,6 +118,12 @@ This function performs the two-stage landmarking analysis. In the first stage th
 second stage the survival submodel is fitted.
 }
 \details{
+This function selects the individuals in the risk set at the landmark time \code{x_L}. Specifically, the individuals in the risk set are those that have entered the study before the landmark age
+(\code{start_study_time} is less than \code{x_L}) and exited the study on or after the landmark age (\code{end_study_time} is the same as or more than \code{x_L})). If the option to use cross validation
+is selected, this function then assigns the individuals in the risk set to cross-validation folds and fits the landmark model using training and test datasets. If cross-validation is not selected then the landmark model is
+fit to the entire group of individuals in the risk set. The performance of the model is then assessed on the set of predictions from the entire set of individuals in the risk set
+by calculating Brier score and C-index.
+
 There are two parts to fitting the landmark model: the longitudinal submodel and the survival submodel.
 This function id used to fit the LME model as the longitudinal submodel. This model will be described in more detail.
 
@@ -179,39 +185,18 @@ The latter two models estimate the probability of the event of interest in the p
 }
 \examples{
 \dontrun{
-#' library(Landmarking)
- data(data_repeat)
- data(data_outcomes)
- data_repeat$response_time_tchdl_stnd <-
-   as.numeric((
-     as.Date(data_repeat$response_date_tchdl_stnd, format = "yyyy-mm-dd") -
-       as.Date(data_repeat$dob, format = "yyyy-mm-dd")
-   ) / 365.25)
- data_repeat$response_time_sbp_stnd <-
-   as.numeric((
-     as.Date(data_repeat$response_date_sbp_stnd, format = "yyyy-mm-dd") -
-       as.Date(data_repeat$dob, format = "yyyy-mm-dd")
-   ) / 365.25)
-start_time <-
-  stats::aggregate(stats::as.formula(
-  paste0("response_time_sbp_stnd", "~", "id")
-  ), data_repeat, function(x) {
-    min(x)
-  })
-names(start_time)[2] <- "start_time"
-data_repeat <- dplyr::left_join(data_repeat, start_time, by = "id")
- data_repeat_outcomes <-
-   dplyr::left_join(data_repeat, data_outcomes, by = "id")
- data_repeat_outcomes <-
-   return_ids_with_LOCF(
-     data = data_repeat_outcomes,
-     patient_id = "id",
-     covariates =
-       c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
-     covariates_time =
-       c(rep("response_time_sbp_stnd", 4), "response_time_tchdl_stnd"),
-     x_L = c(60, 61)
-   )
+library(Landmarking)
+data(data_repeat_outcomes)
+data_repeat_outcomes <-
+  return_ids_with_LOCF(
+    data_long = data_repeat_outcomes,
+    patient_id = "id",
+    covariates =
+      c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
+    covariates_time =
+      c(rep("response_time_sbp_stnd", 4), "response_time_tchdl_stnd"),
+    x_L = c(60,61)
+  )
 data_model_landmark_LME <-
   fit_LME_landmark_model(
     data_long = data_repeat_outcomes,
