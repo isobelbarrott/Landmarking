@@ -4,17 +4,17 @@
 \alias{add_cv_number}
 \title{Assign a k-fold cross-validation number}
 \usage{
-add_cv_number(data, patient_id, k)
+add_cv_number(data_long, patient_id, k)
 }
 \arguments{
-\item{data}{Data frame; there may be more than one row per individual}
+\item{data_long}{Data frame; there may be more than one row per individual}
 
-\item{patient_id}{Character string specifying the column name in \code{data} which contains the individual identifiers}
+\item{patient_id}{Character string specifying the column name in \code{data_long} which contains the individual identifiers}
 
 \item{k}{Integer specifying the number of folds for cross-validation}
 }
 \value{
-Data frame \code{data} updated to contain a new column \code{cross_validation_number}
+Data frame \code{data_long} updated to contain a new column \code{cross_validation_number}
 indicating the fold to which the individual has been assigned.
 }
 \description{
@@ -22,10 +22,7 @@ Randomly assigns a k-fold cross-validation number to each individual in a datase
 }
 \examples{
 data(data_repeat)
-data(data_outcomes)
-data_repeat_outcomes <-
-  dplyr::left_join(data_repeat, data_outcomes, by = "id")
-data_repeat_outcomes <- add_cv_number(data = data_repeat_outcomes,
+data_repeat_outcomes <- add_cv_number(data_long = data_repeat,
                                       patient_id = "id",
                                       k = 10)
 }
