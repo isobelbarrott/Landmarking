@@ -26,7 +26,7 @@ First of all, let's take a look at the datasets we are going to analyse.
 
 There are two datasets:
 
-* `data_repeats` contains repeat measurements data from CVD risk assessments in long format. Each row corresponds to a different assessment and an individual may have multiple assessments. The dataset contains information about an individual's ethnicity, smoking status, diabetes, and standardised systolic blood pressure (SBP). These were recorded on the date specified in `response_date_sbp_stnd`. The standardised total cholesterol to high density lipoprotein (HDL) ratio was also recorded as part of the assessment but was recorded on the date specified in `response_date_tchdl_stnd`, which is up to a month after the other variables were measured.
+* `data_repeats` contains repeat measurements data from CVD risk assessments in long format. Each row corresponds to a different assessment and an individual may have multiple assessments. The dataset contains information about an individual's ethnicity, smoking status, diabetes, and standardised systolic blood pressure (SBP). These were recorded at the patient age specified in `response_time_sbp_stnd`. The standardised total cholesterol to high density lipoprotein (HDL) ratio was also recorded as part of the assessment but was recorded at the patient age specified in `response_time_tchdl_stnd`, which is up to a month after the other variables were measured.
 
 * `data_outcomes` contains CVD event data, indicating the time and status of event that each individual experiences. There are three types of events: censoring (this is due to loss to follow-up or the end of the study, indicated by status `0`), CVD event (indicated by status `1`), or death from other causes (indicated by status `2`). It is important when using this package that 0 is used to indicate censoring, 1 to indicate the event of interest, and values 2 or above indicate different competing risks.
 
@@ -59,22 +59,7 @@ So `r length(which(data_outcomes$event_status==1))` patients in the study (out o
 
 ## Set-up
 
-To use the Landmarking package, the datasets need to be in a certain format. Firstly, instead of the date of the CVD assessment being recorded, the age of the patient should be recorded. These can be calculated as follows.
-
-```{r 5}
-data_repeat$response_time_tchdl_stnd <-
-  as.numeric((
-    as.Date(data_repeat$response_date_tchdl_stnd, format = "yyyy-mm-dd") - as.Date(data_repeat$dob, format =
-                                                                                     "yyyy-mm-dd")
-  ) / 365.25)
-data_repeat$response_time_sbp_stnd <-
-  as.numeric((
-    as.Date(data_repeat$response_date_sbp_stnd, format = "yyyy-mm-dd") - as.Date(data_repeat$dob, format =
-                                                                                   "yyyy-mm-dd")
-  ) / 365.25)
-```
-
-We also need to define a time of entry into the study and time of exit from the study for each patient. This is necessary in order to work out which individuals are in the risk set at the landmark time. For this study the time of entry into the study is the date of first assessment for an individual. This is the earliest time of `response_time_sbp_stnd` and can be calculated as:
+To use the Landmarking package, we need to define a time of entry into the study and time of exit from the study for each patient. This is necessary in order to work out which individuals are in the risk set at the landmark time. For this study the time of entry into the study is the date of first assessment for an individual. This is the earliest time of `response_time_sbp_stnd` and can be calculated as:
 
 ```{r 7}
 start_time<-stats::aggregate(stats::as.formula(paste0("response_time_sbp_stnd","~","id")),data_repeat,function(x){min(x)})
@@ -104,7 +89,7 @@ Helpfully, the `Landmarking` package contains a function `return_ids_with_LOCF` 
 ```{r 9}
 data_repeat_outcomes <-
   return_ids_with_LOCF(
-    data = data_repeat_outcomes,
+    data_long = data_repeat_outcomes,
     patient_id = "id",
     covariates = c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
     covariates_time = c(rep("response_time_sbp_stnd", 4), "response_time_tchdl_stnd"),
@@ -238,5 +223,4 @@ predict(
   newdata = newdata,
   cv_fold = 1
 )
-
 ```
