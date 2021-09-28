@@ -5,7 +5,7 @@
 \alias{data_outcomes}
 \title{Simulated time-to-event data}
 \format{
-A dataset with 10000 rows and 3 columns:
+A dataset with 3000 rows and 3 columns:
 
 \describe{
 \item{id}{Patient ID}
@@ -18,6 +18,6 @@ data_outcomes
 }
 \description{
 A simulated dataset formed using a cause specific model, whose parameters were based on CVD events of patients
-at primary care practices in New Zealand. The dataset contains time-to-event data from 10000 patients.
+at primary care practices in New Zealand. The dataset contains time-to-event data from 3000 patients.
 }
 \keyword{datasets}
