@@ -5,3 +5,8 @@
 ^Meta$
 ^README\.Rmd$
 ^cran-comments.md
+^_pkgdown.yaml
+^docs
+^man-roxygen
+^\.travis\.yml$
+^\.github$
