@@ -36,12 +36,13 @@ Imports:
 	stats,
 	survival,
 	mstate,
-	ggplot2
+	ggplot2,
 RoxygenNote: 7.1.1
 Suggests: 
     testthat (>= 3.0.0),
     knitr,
-    rmarkdown
+    rmarkdown,
+    JM
 VignetteBuilder: knitr
 Depends: 
     R (>= 2.10)
