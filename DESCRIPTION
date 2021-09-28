@@ -1,6 +1,6 @@
 Package: Landmarking
 Title: Analysis using landmark models
-Version: 0.0.0.9000
+Version: 1.0.0
 Authors@R: c(
     person(given = "Isobel",
            family = "Barrott",
