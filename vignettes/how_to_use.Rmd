@@ -69,7 +69,7 @@ data_repeat<-dplyr::left_join(data_repeat,start_time,by="id")
 
 The patient exits the study either by having an event or being censored at the end of the study on 1st January 2010. All individuals have been censored after this date in the dataset `data_outcome`. The end of study time is therefore simply the `event_time` column. 
 
-Finally, the package Landmarking requires that both datasets are joined into one.
+Finally, the package Landmarking requires that both time-to-event data and repeat measurement data are joined into one data frame.
 
 ```{r 8}
 data_repeat_outcomes<-dplyr::left_join(data_repeat,data_outcomes,by="id")
@@ -120,7 +120,7 @@ data_model_landmark_LOCF <-
   )
 ```
 
-We can see that fitting this model returns the warnings such as `Loglik converged before variable  2 ; coefficient may be infinite.`. Taking a look at the model fit contained in `data_model_landmark_LOCF$model_survival`, we can see the upper confidence interval for `ethnicityIndian` is `inf` for certain folds. This is due there being few individuals that have ethnicity 'Indian' and few individuals that experienced death from other causes. However, as only the point estimate of the coefficient is needed to calculate the risk prediction, not having the standard error is not a problem. Indeed we have obtained the risk predictions and can take a look at their distribution.
+We can see that fitting this model returns the warnings such as `Loglik converged before variable  2 ; coefficient may be infinite.`. Taking a look at the model fit contained in `data_model_landmark_LOCF$model_survival`, we can see the confidence intervals for certain folds is very large. This is due there being few observations for these covariates. However, as only the point estimate of the coefficient is needed to calculate the risk prediction, inaccurate standard error values is not a problem. Indeed we have obtained the risk predictions and can take a look at their distribution.
 
 
 ```{r 12}
@@ -144,12 +144,11 @@ data_model_landmark_LOCF[["60"]]$prediction_error
 data_model_landmark_LOCF[["61"]]$prediction_error
 ```
 
-In order to assess the performance of the model, there is also the `plot` method which creates a calibration plot which can assess the calibration of the model. The perfect prediction model will have points along the y=x line and deviations from this suggest poor calibration.
+In order to assess the performance of the model, there is also the `plot` method which creates a calibration plot which can assess the calibration of the model. The perfect prediction model will have points along the y=x line and deviations from this suggest poor calibration. However, the calibration for this model appears to be fairly good.
 
 ```{r 20}
 plot(x = data_model_landmark_LOCF, x_L = 60, n = 5)
 ```
-
 
 Now we can move on to fitting the landmark model using the LME longitudinal submodel.  For more information about this function, see the Details section of the `fit_LME_landmark_model` documentation. The variables standardised systolic blood pressure (SBP) and standardised total cholesterol to high density lipoprotein (HDL) ratio are continuous and repeatedly measured and so these are included as random effects in the LME model.  
 
@@ -161,19 +160,19 @@ cross_validation_list <- lapply(data_model_landmark_LOCF, "[[", i = 1)
 
 There are a couple of computational considerations to highlight about fitting the LME model. The parameter `lme_control` can be altered in order to change the  default values of parameters (such as maximum number of iterations) for the algorithm which fits the LME model. Also setting `standardise_time = TRUE` standardises time values which helps fitting the LME model (see `help("fit_LME_landmark_model")`).
 
-So we fit the LME landmark model in a similar way to the LOCF landmark model, but with a few extra parameters.
+We fit the LME landmark model in a similar way to the LOCF landmark model, but with a few extra parameters. Fitting the LME model can take some time so here we only use landmark age 60 for demonstration purposes. 
 
 ```{r 16}
 data_model_landmark_LME <-
   fit_LME_landmark_model(
-    data_long = data_repeat_outcomes,
-    x_L = c(60, 61),
-    x_hor = c(65, 66),
+    data_long = data_repeat_outcomes[["60"]],
+    x_L = c(60),
+    x_hor = c(65),
     cross_validation_df =
       cross_validation_list,
     start_study_time = "start_time",
     end_study_time = "event_time",
-    fixed_effects = c("ethnicity", "smoking", "diabetes"),
+    fixed_effects = c("ethnicity", "smoking","diabetes"),
     fixed_effects_time =
       "response_time_sbp_stnd",
     random_effects = c("sbp_stnd", "tchdl_stnd"),
@@ -191,8 +190,8 @@ data_model_landmark_LME <-
 Comparing the prediction error for the landmarking with LOCF and LME, we can see a slight improvement when the LME model is used.
 
 ```{r 17}
+data_model_landmark_LOCF[["60"]]$prediction_error
 data_model_landmark_LME[["60"]]$prediction_error
-data_model_landmark_LME[["61"]]$prediction_error
 ```
 
 Suppose that we wish to predict the risk of the event of interest for a new patient. We need to create a data frame that contains records of all the covariates that were used to form the landmark model. As cross-validation was used, it is necessary to specify which cross-validation fold to use in the prediction. It is possible to predict the risk of the event of interest at any time before the horizon time.
