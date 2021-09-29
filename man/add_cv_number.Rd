@@ -9,7 +9,7 @@ add_cv_number(data_long, patient_id, k)
 \arguments{
 \item{data_long}{Data frame; there may be more than one row per individual}
 
-\item{patient_id}{Character string specifying the column name in \code{data_long} which contains the individual identifiers}
+\item{patient_id}{Character string specifying the column name in \code{data_long}/\code{data} which contains the individual identifiers}
 
 \item{k}{Integer specifying the number of folds for cross-validation}
 }

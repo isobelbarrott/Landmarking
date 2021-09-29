@@ -9,7 +9,7 @@ return_ids_with_LOCF(data_long, patient_id, x_L, covariates, covariates_time)
 \arguments{
 \item{data_long}{Data frame with repeated measurements data in long format}
 
-\item{patient_id}{Character string specifying the column name in \code{data_long} which contains the individual identifiers}
+\item{patient_id}{Character string specifying the column name in \code{data_long}/\code{data} which contains the individual identifiers}
 
 \item{x_L}{Numeric specifying the landmark time(s)}
 

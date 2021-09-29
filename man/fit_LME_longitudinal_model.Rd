@@ -44,7 +44,7 @@ and dividing by the standard deviation (see Details section for more information
 
 \item{cv_name}{Character string specifying the column name in \code{data_long} that indicates cross-validation fold}
 
-\item{patient_id}{Character string specifying the column name in \code{data_long} which contains the individual identifiers}
+\item{patient_id}{Character string specifying the column name in \code{data_long}/\code{data} which contains the individual identifiers}
 
 \item{lme_control}{Object created using \code{nlme::lmeControl()}, which will be passed to the \code{control} argument of the \code{lme} function}
 }

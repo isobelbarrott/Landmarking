@@ -18,7 +18,7 @@ get_model_assessment(
 \item{data}{Data frame containing survival outcomes and the event predictions from the model,
 there should be one row for each individual}
 
-\item{patient_id}{Character string specifying the column name in \code{data_long} which contains the individual identifiers}
+\item{patient_id}{Character string specifying the column name in \code{data_long}/\code{data} which contains the individual identifiers}
 
 \item{event_prediction}{Character string specifying the column name in \code{data} containing the predicted probability of the event of interest}
 

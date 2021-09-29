@@ -53,7 +53,7 @@ order of elements in \code{random_effects}.}
 \item{standardise_time}{Boolean indicating whether to standarise the time variable by subtracting the mean
 and dividing by the standard deviation (see Details section for more information)}
 
-\item{patient_id}{Character string specifying the column name in \code{data_long} which contains the individual identifiers}
+\item{patient_id}{Character string specifying the column name in \code{data_long}/\code{data} which contains the individual identifiers}
 
 \item{start_study_time}{Character string specifying the column name in \code{data} which indicates the time that an individual enters the study}
 

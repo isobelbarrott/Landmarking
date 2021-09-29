@@ -18,7 +18,7 @@ fit_survival_model(
 \arguments{
 \item{data}{Data frame containing covariates and time-to-event data, one row for each individual.}
 
-\item{patient_id}{Character string specifying the column name in \code{data_long} which contains the individual identifiers}
+\item{patient_id}{Character string specifying the column name in \code{data_long}/\code{data} which contains the individual identifiers}
 
 \item{cv_name}{Character string specifying the column name in \code{data} that indicates cross-validation fold}
 
