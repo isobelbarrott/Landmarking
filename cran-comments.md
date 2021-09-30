@@ -1,3 +1,8 @@
-# Landmarking 0.0.0.9000
+## Test environments
+* local Windows 10 install, R 4.1.0
+* Ubuntu Xenial 16.04 (on travis-ci), R 3.2.4
 
-* Added a `NEWS.md` file to track changes to the package.
+## R CMD check results
+There were no ERRORs or WARNINGs or NOTEs. 
+
+* This is a new release
