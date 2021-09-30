@@ -137,7 +137,7 @@ Printing the object that has been outputted returns a list of datasets correspon
 data_model_landmark_LOCF
 ```
 
-The output also contains the prediction error for the model, which is assessed using the Brier score and c-index. The standard error for these estimates can be calculated by setting parameter `b` to the desired number of bootstrap samples. 
+The output also contains the prediction error for the model, which is assessed using the Brier score and C-index. The standard error for these estimates can be calculated by setting parameter `b` to the desired number of bootstrap samples. 
 
 ```{r 14}
 data_model_landmark_LOCF[["60"]]$prediction_error
@@ -172,7 +172,7 @@ data_model_landmark_LME <-
       cross_validation_list,
     start_study_time = "start_time",
     end_study_time = "event_time",
-    fixed_effects = c("ethnicity", "smoking","diabetes"),
+    fixed_effects = c("ethnicity", "smoking", "diabetes"),
     fixed_effects_time =
       "response_time_sbp_stnd",
     random_effects = c("sbp_stnd", "tchdl_stnd"),
