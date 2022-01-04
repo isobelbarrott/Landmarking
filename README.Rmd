@@ -35,19 +35,19 @@ library(Landmarking)
 data(pbc2,package="JM")
 levels(pbc2$status)<-c("0","2","1")
 pbc2<-return_ids_with_LOCF(data=pbc2,
-                           patient_id="id",
+                           individual_id="id",
                            x_L=c(5),
                            covariates=c("drug","serBilir","serChol"),
                            covariates_time="year")
 pbc2$years<-pbc2$years+pbc2$age
-data_model_landmark_LOCF<-fit_LOCF_landmark_model(data=pbc2,
+data_model_landmark_LOCF<-fit_LOCF_landmark(data=pbc2,
                                                   x_L=c(40),
                                                   x_hor=c(45),
                                                   covariates=c("drug","serBilir","serChol"),
                                                   covariates_time="year",
                                                   start_study_time="age",
                                                   end_study_time="years",
-                                                  patient_id="id",
+                                                  individual_id="id",
                                                   event_time="years",
                                                   event_status="status",
                                                   survival_submodel = "cause_specific",
