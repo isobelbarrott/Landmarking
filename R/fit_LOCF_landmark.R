@@ -1,28 +1,30 @@
-#' Fit a longitudinal sub-model using a last observation carried forward (LOCF) model
+#' Find the last observation carried forward (LOCF) values for covariates in a dataset
 #'
-#' This function is a helper function for `fit_LOCF_landmark_model`.
+#' This function is a helper function for `fit_LOCF_landmark`.
 #'
-#' @param data_long Data frame containing repeat measurements data and time-to-event data in long format.
+#' @param data_long Data frame in long format i.e. there may be more than one row per individual
 #' @template x_L
 #' @template covariates
 #' @template covariates_time
 #' @param cv_name Character string specifying the column name in `data_long` that indicates cross-validation fold
-#' @template patient_id
-#' @return List containing `data_longitudinal` and `model_longitudinal`
+#' @template individual_id
+#' @return List containing `data_longitudinal`, `model_longitudinal`, and `call`.
 #'
 #' `data_longitudinal` has one row for each individual in `data_long` and
-#' contains the predicted value of `covariates` at the landmark time `x_L` using the LOCF model.
+#' contains the LOCF value of `covariates` at the landmark time `x_L` using the LOCF model.
 #'
 #' `model_longitudinal` indicates that the longitudinal submodel is LOCF.
 #'
+#' `call` contains the call of the function.
+#'
 #' @author Isobel Barrott \email{isobel.barrott@@gmail.com}
 #' @export
-fit_LOCF_longitudinal_model <- function(data_long,
+fit_LOCF_longitudinal <- function(data_long,
                                         x_L,
                                         covariates,
                                         covariates_time,
                                         cv_name=NA,
-                                        patient_id) {
+                                        individual_id) {
   call <- match.call()
   if (!(is.data.frame(data_long))) {
     stop("data_long should be a data frame")
@@ -33,7 +35,7 @@ fit_LOCF_longitudinal_model <- function(data_long,
   for (col in c(
     covariates,
     covariates_time,
-    patient_id
+    individual_id
   )) {
     if (!(col %in% names(data_long))) {
       stop(col, " is not a column name in data_long")
@@ -55,7 +57,7 @@ fit_LOCF_longitudinal_model <- function(data_long,
   if (length(covariates_time)==1){covariates_time<-rep(covariates_time,times=length(covariates))}
 
   if(dim(return_ids_with_LOCF(data_long=data_long,
-                              patient_id=patient_id,
+                              individual_id=individual_id,
                               x_L=x_L,
                               covariates=covariates,
                               covariates_time=covariates_time))[1]!=dim(data_long)[1]){
@@ -63,7 +65,7 @@ fit_LOCF_longitudinal_model <- function(data_long,
                   Use function return_ids_with_LOCF to remove these individuals from the dataset data_long."))
   }
 
-  data_long[[patient_id]] <- as.factor(data_long[[patient_id]])
+  data_long[[individual_id]] <- as.factor(data_long[[individual_id]])
   data_LOCF <- data_long
 
   #Pick out LOCF for each exposure#
@@ -74,19 +76,19 @@ fit_LOCF_longitudinal_model <- function(data_long,
         i = x,
         covariates = covariates,
         covariates_time = covariates_time,
-        patient_id = patient_id,
+        individual_id = individual_id,
         x_L = x_L
       )
     })
   data_LOCF <- Reduce(merge, LOCF_values_by_variable)
-  data_LOCF<-data_LOCF[match(unique(data_long[[patient_id]]),data_LOCF[[patient_id]]),]
+  data_LOCF<-data_LOCF[match(unique(data_long[[individual_id]]),data_LOCF[[individual_id]]),]
   if (!is.na(cv_name)){
     data_LOCF <-
-      dplyr::left_join(data_LOCF, unique(data_long[c(patient_id, cv_name)]), by =
-                         patient_id)
+      dplyr::left_join(data_LOCF, unique(data_long[c(individual_id, cv_name)]), by =
+                         individual_id)
   }
   data_LOCF<-data_LOCF[,order(match(names(data_LOCF),names(data_long)))]
-  data_LOCF<-data_LOCF[order(match(data_LOCF[[patient_id]],data_long[[patient_id]])),]
+  data_LOCF<-data_LOCF[order(match(data_LOCF[[individual_id]],data_long[[individual_id]])),]
   rownames(data_LOCF)<-NULL
 
   list(data_longitudinal = data_LOCF,
@@ -94,12 +96,12 @@ fit_LOCF_longitudinal_model <- function(data_long,
        call = call)
 }
 
-#' Fit a landmarking model using a last observation carried forward (LOCF) model for the longitudinal submodel
+#' Fit a landmark model using a last observation carried forward (LOCF) method for the longitudinal data
 #'
-#' This function performs the two-stage landmarking analysis. In the first stage, the longitudinal submodel is fitted using the LOCF model and in the
+#' This function performs the two-stage landmarking analysis. In the first stage, the longitudinal submodel is fitted using the LOCF method and in the
 #' second stage the survival submodel is fitted.
 #'
-#' @param data_long Data frame or list of data frames each corresponding to a landmark age x_L (each element of the list must be named the value of x_L it corresponds to).
+#' @param data_long Data frame or list of data frames each corresponding to a landmark age `x_L` (each element of the list must be named the value of `x_L` it corresponds to).
 #' Each data frame contains repeat measurements data and time-to-event data in long format.
 #' @template x_L
 #' @template x_hor
@@ -107,12 +109,13 @@ fit_LOCF_longitudinal_model <- function(data_long,
 #' @template event_time
 #' @template start_study_time
 #' @template end_study_time
+#' @param k Integer specifying the number of folds for cross-validation. An alternative to setting parameter `cross_validation_df` for performing cross-validation;
+#' if both are missing no cross-validation is used.
 #' @template cross_validation_df
-#' @template k
 #' @template b
 #' @template covariates
 #' @template covariates_time
-#' @template patient_id
+#' @template individual_id
 #' @template survival_submodel
 #' @return List containing one element for each value of `x_L`, each of these elements is a list containing elements
 #' `data`, `model_longitudinal`, `model_survival`, and `prediction_error`.
@@ -127,23 +130,23 @@ fit_LOCF_longitudinal_model <- function(data_long,
 #' `model_survival` contains the outputs from the function used to fit the survival submodel, including the estimated parameters of the model.
 #' For a model using cross-validation, `model_survival` contains a list of outputs with each
 #' element in the list corresponding to a different cross-validation fold. For more information on how the survival model is fitted
-#' please see `?fit_survival_model` which is a function used within `fit_LOCF_landmark_model`.
+#' please see `?fit_survival_model` which is a function used within `fit_LOCF_landmark`.
 #'
 #' `prediction_error` contains a list indicating the c-index and Brier score at time `x_hor` and their standard errors if parameter `b` is used.
 #' For more information on how the prediction error is calculated
-#' please see `?get_model_assessment` which is the function used to do this within `fit_LOCF_landmark_model`.
+#' please see `?get_model_assessment` which is the function used to do this within `fit_LOCF_landmark`.
 #'
 #' @details
-#' This function selects the individuals in the risk set at the landmark time \code{x_L}. Specifically, the individuals in the risk set are those that have entered the study before the landmark age
+#' Firstly, this function selects the individuals in the risk set at the landmark time \code{x_L}. Specifically, the individuals in the risk set are those that have entered the study before the landmark age
 #' (\code{start_study_time} is less than \code{x_L}) and exited the study on or after the landmark age (\code{end_study_time} is the same as or more than \code{x_L})). If the option to use cross validation
 #' is selected, this function then assigns the individuals in the risk set to cross-validation folds and fits the landmark model using training and test datasets. If cross-validation is not selected then the landmark model is
 #' fit to the entire group of individuals in the risk set. The performance of the model is then assessed on the set of predictions from the entire set of individuals in the risk set
 #' by calculating Brier score and C-index.
 #'
-#' There are two parts to fitting the landmark model: the longitudinal submodel and the survival submodel.
+#' There are two parts to fitting the landmark model: using the longitudinal data and using the survival data.
 #'
-#' For the longitudinal model, this function uses the most recent values of the covariates at the landmark
-#' age \code{x_L}. This is the LOCF model.
+#' For the longitudinal data, this function uses the most recent values of the covariates at the landmark
+#' age \code{x_L}.
 #'
 #' For the survival submodel, there are three choices of model:
 #' * the standard Cox model, this is a wrapper function for \code{coxph} from the package \code{survival}
@@ -159,7 +162,7 @@ fit_LOCF_longitudinal_model <- function(data_long,
 #' data_repeat_outcomes <-
 #'   return_ids_with_LOCF(
 #'     data_long = data_repeat_outcomes,
-#'     patient_id = "id",
+#'     individual_id = "id",
 #'     covariates =
 #'       c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
 #'     covariates_time =
@@ -167,7 +170,7 @@ fit_LOCF_longitudinal_model <- function(data_long,
 #'     x_L = c(60,61)
 #'   )
 #' data_model_landmark_LOCF <-
-#'    fit_LOCF_landmark_model(
+#'    fit_LOCF_landmark(
 #'      data_long = data_repeat_outcomes,
 #'      x_L = c(60, 61),
 #'      x_hor = c(65, 66),
@@ -178,7 +181,7 @@ fit_LOCF_longitudinal_model <- function(data_long,
 #'      k = 10,
 #'      start_study_time = "start_time",
 #'      end_study_time = "event_time",
-#'      patient_id = "id",
+#'      individual_id = "id",
 #'      event_time = "event_time",
 #'      event_status = "event_status",
 #'      survival_submodel = "cause_specific"
@@ -189,7 +192,7 @@ fit_LOCF_longitudinal_model <- function(data_long,
 #' @importFrom prodlim Hist
 #' @export
 
-fit_LOCF_landmark_model<-function(data_long,
+fit_LOCF_landmark<-function(data_long,
                                   x_L,
                                   x_hor,
                                   covariates,
@@ -198,7 +201,7 @@ fit_LOCF_landmark_model<-function(data_long,
                                   end_study_time,
                                   k,
                                   cross_validation_df,
-                                  patient_id,
+                                  individual_id,
                                   event_time,
                                   event_status,
                                   survival_submodel=c("standard_cox", "cause_specific", "fine_gray"),
@@ -219,9 +222,9 @@ fit_LOCF_landmark_model<-function(data_long,
   if (cross_validation_df_add==TRUE) {
     if(class(cross_validation_df)=="list") {
       if(!all(x_L %in% names(cross_validation_df))){stop("The names of elements in cross_validation_df list should be the landmark times in x_L")}
-      if(any(Reduce("c",lapply(cross_validation_df,function(x){any(duplicated(dplyr::distinct(x[,c(patient_id,"cross_validation_number")])[,patient_id]))})))){
+      if(any(Reduce("c",lapply(cross_validation_df,function(x){any(duplicated(dplyr::distinct(x[,c(individual_id,"cross_validation_number")])[,individual_id]))})))){
         stop("Cross validation folds should be the same for the same individual")}}else if(class(cross_validation_df)=="data.frame"){
-        if(any(duplicated(dplyr::distinct(cross_validation_df[,c(patient_id,"cross_validation_number")])[,patient_id]))){
+        if(any(duplicated(dplyr::distinct(cross_validation_df[,c(individual_id,"cross_validation_number")])[,individual_id]))){
           stop("Cross validation folds should be the same for the same individual")
         }
     }else{stop("cross_validation_df should be either a data frame or a list")}
@@ -276,7 +279,7 @@ fit_LOCF_landmark_model<-function(data_long,
     for (col in c(
       covariates,
       covariates_time,
-      patient_id,
+      individual_id,
       start_study_time,
       end_study_time,
       event_time,
@@ -286,10 +289,10 @@ fit_LOCF_landmark_model<-function(data_long,
         stop(col, " is not a column name in data_long")
       }
     }
-    data_long_x_l[[patient_id]]<-as.factor(data_long_x_l[[patient_id]])
+    data_long_x_l[[individual_id]]<-as.factor(data_long_x_l[[individual_id]])
 
       if(dim(return_ids_with_LOCF(data_long=data_long_x_l,
-                                  patient_id=patient_id,
+                                  individual_id=individual_id,
                                   x_L=x_l,
                                   covariates=covariates,
                                   covariates_time=covariates_time))[1]!=dim(data_long_x_l)[1]){
@@ -303,15 +306,15 @@ fit_LOCF_landmark_model<-function(data_long,
     data_long_x_l[[event_time]][data_long_x_l[[event_time]]>=x_h]<-x_h
 
     if(cross_validation_df_add==TRUE){data_long_x_l<-
-      dplyr::left_join(data_long_x_l,cross_validation_df[[as.character(x_l)]][,c(patient_id,"cross_validation_number")],by=patient_id)}
+      dplyr::left_join(data_long_x_l,cross_validation_df[[as.character(x_l)]][,c(individual_id,"cross_validation_number")],by=individual_id)}
     return(data_long_x_l)
   })
 
   names(data_long_x_L)<-x_L
 
   if(k_add==TRUE){
-    data_long_x_L_cv<-add_cv_number(data_long=Reduce("rbind",data_long_x_L), patient_id=patient_id, k=k)
-    data_long_x_L<-lapply(data_long_x_L,function(x){dplyr::left_join(x,dplyr::distinct(data_long_x_L_cv[,c(patient_id,"cross_validation_number")]),by=patient_id)})
+    data_long_x_L_cv<-add_cv_number(data_long=Reduce("rbind",data_long_x_L), individual_id=individual_id, k=k)
+    data_long_x_L<-lapply(data_long_x_L,function(x){dplyr::left_join(x,dplyr::distinct(data_long_x_L_cv[,c(individual_id,"cross_validation_number")]),by=individual_id)})
   }
 
   out<-lapply(1:length(x_L),function(i){
@@ -321,21 +324,21 @@ fit_LOCF_landmark_model<-function(data_long,
     data_long<-data_long_x_L[[as.character(x_l)]]
 
     print(paste0("Fitting longitudinal submodel, landmark age ",x_l))
-    data_model_longitudinal<-fit_LOCF_longitudinal_model(data_long=data_long,
+    data_model_longitudinal<-fit_LOCF_longitudinal(data_long=data_long,
                                                          x_L=x_l,
                                                          covariates=covariates,
                                                          covariates_time=covariates_time,
                                                          cv_name=cv_name,
-                                                         patient_id=patient_id)
+                                                         individual_id=individual_id)
 
     print(paste0("Complete, landmark age ",x_l))
 
-    data_events<-dplyr::distinct(data_long[,c(patient_id, event_status,event_time)])
-    data_longitudinal<-dplyr::left_join(data_model_longitudinal$data_longitudinal,data_events,by=patient_id)
+    data_events<-dplyr::distinct(data_long[,c(individual_id, event_status,event_time)])
+    data_longitudinal<-dplyr::left_join(data_model_longitudinal$data_longitudinal,data_events,by=individual_id)
 
     print(paste0("Fitting survival submodel, landmark age ",x_l))
     data_model_survival<-fit_survival_model(data=data_longitudinal,
-                                            patient_id=patient_id,
+                                            individual_id=individual_id,
                                             cv_name=cv_name,
                                             covariates=covariates,
                                             event_time=event_time,
@@ -346,7 +349,7 @@ fit_LOCF_landmark_model<-function(data_long,
 
 
     prediction_error<-get_model_assessment(data=data_model_survival$data_survival,
-                                               patient_id=patient_id,
+                                               individual_id=individual_id,
                                                event_prediction="event_prediction",
                                                event_status=event_status,
                                                event_time=event_time,

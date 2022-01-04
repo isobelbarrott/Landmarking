@@ -1,13 +1,13 @@
 #' Fit a landmarking model using a linear mixed effects (LME) model for the longitudinal submodel
 #'
-#' This function is a helper function for `fit_LME_landmark_model`.
+#' This function is a helper function for `fit_LME_landmark`.
 #'
 #' @param data_long Data frame containing repeat measurement data and time-to-event data in long format.
 #' @template x_L
-#' @param standardise_time Boolean indicating whether to standarise the time variable by subtracting the mean
+#' @param standardise_time Boolean indicating whether to standardise the time variable by subtracting the mean
 #' and dividing by the standard deviation (see Details section for more information)
 #' @param cv_name Character string specifying the column name in `data_long` that indicates cross-validation fold
-#' @template patient_id
+#' @template individual_id
 #' @template fixed_effects
 #' @template random_effects
 #' @template fixed_effects_time
@@ -32,7 +32,7 @@
 #'
 #'
 #' @export
-fit_LME_longitudinal_model <- function(data_long,
+fit_LME_longitudinal <- function(data_long,
                                        x_L,
                                        fixed_effects,
                                        random_effects,
@@ -41,7 +41,7 @@ fit_LME_longitudinal_model <- function(data_long,
                                        standardise_time=FALSE,
                                        random_slope = TRUE,
                                        cv_name=NA,
-                                       patient_id,
+                                       individual_id,
                                        lme_control = nlme::lmeControl()) {
   call <- match.call()
   if (!(is.data.frame(data_long))) {
@@ -55,7 +55,7 @@ fit_LME_longitudinal_model <- function(data_long,
     random_effects,
     fixed_effects_time,
     random_effects_time,
-    patient_id
+    individual_id
   )) {
     if (!(col %in% names(data_long))) {
       stop(col, " is not a column name in data_long")
@@ -84,7 +84,7 @@ fit_LME_longitudinal_model <- function(data_long,
   if (length(random_effects_time)==1){random_effects_time<-rep(random_effects_time,times=length(random_effects))}
 
   if(dim(return_ids_with_LOCF(data_long=data_long,
-                              patient_id=patient_id,
+                              individual_id=individual_id,
                               x_L=x_L,
                               covariates=fixed_effects,
                               covariates_time=fixed_effects_time))[1]!=dim(data_long)[1]){
@@ -92,7 +92,7 @@ fit_LME_longitudinal_model <- function(data_long,
   }
 
 
-  data_long[[patient_id]] <- as.factor(data_long[[patient_id]])
+  data_long[[individual_id]] <- as.factor(data_long[[individual_id]])
 
   data_LOCF <- data_long
   data_LME <- data_long
@@ -105,17 +105,17 @@ fit_LME_longitudinal_model <- function(data_long,
         i = x,
         covariates=c(fixed_effects, random_effects),
         covariates_time = c(fixed_effects_time, random_effects_time),
-        patient_id = patient_id,
+        individual_id = individual_id,
         x_L =
           x_L
       )
     })
   data_LOCF <- Reduce(merge, LOCF_values_by_variable)
-  data_LOCF<-data_LOCF[match(unique(data_long[[patient_id]]),data_LOCF[[patient_id]]),]
+  data_LOCF<-data_LOCF[match(unique(data_long[[individual_id]]),data_LOCF[[individual_id]]),]
 
   data_LOCF <-
-    dplyr::left_join(data_LOCF, unique(data_long[c(patient_id, cv_name)]), by =
-                         patient_id)
+    dplyr::left_join(data_LOCF, unique(data_long[c(individual_id, cv_name)]), by =
+                         individual_id)
 
 
   #Create validation and development dataset
@@ -136,7 +136,7 @@ fit_LME_longitudinal_model <- function(data_long,
     data_fixed_effects<-
       do.call("rbind", replicate(
         n = length(random_effects),
-        data_LME[, c(patient_id, fixed_effects, cv_name)],
+        data_LME[, c(individual_id, fixed_effects, cv_name)],
         simplify = FALSE
       ))
 
@@ -160,13 +160,13 @@ fit_LME_longitudinal_model <- function(data_long,
 
   if (length(random_effects)==1){
     formula_weights <- NULL
-    if (random_slope == FALSE) {formula_random<-as.formula(paste0(" ~ 1 |",patient_id))}else{formula_random<-as.formula(paste0(" ~ 1 + response_time |",patient_id))}
+    if (random_slope == FALSE) {formula_random<-as.formula(paste0(" ~ 1 |",individual_id))}else{formula_random<-as.formula(paste0(" ~ 1 + response_time |",individual_id))}
     formula_fixed<-as.formula(paste0(c(paste0("response~ 1 "), c("response_time", fixed_effects)), collapse = "+"))
   }
   if (length(random_effects)>1){
     formula_weights <- nlme::varIdent(form = ~ 1 | "response_type")
-    if (random_slope == FALSE) {formula_random<-as.formula(paste0(" ~ -1 + response_type | ",patient_id))}else{
-     formula_random<-as.formula(paste0(" ~-1 + response_type + response_type:response_time | ",patient_id))}
+    if (random_slope == FALSE) {formula_random<-as.formula(paste0(" ~ -1 + response_type | ",individual_id))}else{
+     formula_random<-as.formula(paste0(" ~-1 + response_type + response_type:response_time | ",individual_id))}
     formula_fixed<-as.formula(paste0(c(
     paste0(c(paste0("response~-1+ response_type"), c("response_time", fixed_effects)), collapse = "+"),
     paste0(paste0(paste0(
@@ -198,7 +198,7 @@ fit_LME_longitudinal_model <- function(data_long,
   response_type <- Reduce(c,lapply(random_effects,function(i){rep(i,dim(data_LOCF)[1])}))
   response <- as.numeric(rep(NA,length(response_type)))
   response_time<-as.numeric(rep(x_L,length(response_type)))
-  data_fixed_effects<-do.call("rbind",replicate(n=length(random_effects),data_LOCF[,c(patient_id,fixed_effects,cv_name)],simplify=FALSE))
+  data_fixed_effects<-do.call("rbind",replicate(n=length(random_effects),data_LOCF[,c(individual_id,fixed_effects,cv_name)],simplify=FALSE))
   data_LOCF_model_val<-data.frame(data_fixed_effects,response_type,response,response_time,predict=1)
   data_LME_model_val$predict<-0
   data_LME_model_val<-dplyr::bind_rows(data_LOCF_model_val,data_LME_model_val)
@@ -208,12 +208,12 @@ fit_LME_longitudinal_model <- function(data_long,
       data_LME_model_val_cv <-
         data_LME_model_val[which(data_LME_model_val[[cv_name]] == cv_number), ]
       data_LME_model_val_cv<-droplevels(data_LME_model_val_cv)
-      model_LME_cv <- model_LME[[cv_number]]
+      model_LME_cv <- model_LME[[as.character(cv_number)]]
       response_predictions <-
         which(data_LME_model_val_cv$predict == 1)
       data_LME_model_val_cv <-
         mixoutsamp(model = model_LME_cv,
-                   newdata = data_LME_model_val_cv)$preddata[response_predictions, ][, c(patient_id,
+                   newdata = data_LME_model_val_cv)$preddata[response_predictions, ][, c(individual_id,
                                                                                          fixed_effects,
                                                                                          cv_name,
                                                                                          "response_type",
@@ -222,19 +222,19 @@ fit_LME_longitudinal_model <- function(data_long,
           stats::reshape(
             data_LME_model_val_cv,
             timevar = "response_type",
-            idvar = c(patient_id, fixed_effects, cv_name),
+            idvar = c(individual_id, fixed_effects, cv_name),
             direction = "wide"
           )
       for (name in random_effects) {
         names(data_LME_model_val_cv)[grep(paste0("fitted.",name), names(data_LME_model_val_cv))] <-
           name
       }
-      data_LME_model_val_cv[[cv_name]]<-cv_number
+      data_LME_model_val_cv[[as.character(cv_name)]]<-cv_number
       data_LME_model_val_cv
   })
   data_LME <- do.call("rbind", data_LME)
 
-  data_LME<-data_LME[match(unique(data_long[[patient_id]]),data_LME[[patient_id]]),]
+  data_LME<-data_LME[match(unique(data_long[[individual_id]]),data_LME[[individual_id]]),]
   data_LME<-data_LME[,order(match(names(data_LME),names(data_long)))]
   rownames(data_LME)<-NULL
 
@@ -256,17 +256,17 @@ fit_LME_longitudinal_model <- function(data_long,
 #' This function performs the two-stage landmarking analysis. In the first stage the longitudinal submodel is fitted using the LME model and in the
 #' second stage the survival submodel is fitted.
 #'
-#' @param data_long Data frame or list of data frames each corresponding to a landmark age x_L (each element of the list must be named the value of x_L it corresponds to)
+#' @param data_long Data frame or list of data frames each corresponding to a landmark age `x_L` (each element of the list must be named the value of `x_L` it corresponds to)
 #' Each data frame contains repeat measurements data and time-to-event data in long format.
 #' @template x_L
 #' @template x_hor
-#' @param standardise_time Boolean indicating whether to standarise the time variable by subtracting the mean
+#' @param standardise_time Boolean indicating whether to standardise the time variable by subtracting the mean
 #' and dividing by the standard deviation (see Details section for more information)
 #' @template event_status
 #' @template event_time
 #' @template k
 #' @template cross_validation_df
-#' @template patient_id
+#' @template individual_id
 #' @template start_study_time
 #' @template end_study_time
 #' @template fixed_effects
@@ -274,6 +274,7 @@ fit_LME_longitudinal_model <- function(data_long,
 #' @template fixed_effects_time
 #' @template random_effects_time
 #' @param random_slope Boolean indicating whether to include a random slope in the LME model
+#' @param random_slope Boolean indicating whether to include the estimated value of the random slope in the LME model
 #' @param lme_control Object created using `nlme::lmeControl()`, which will be passed to the `control` argument of the `lme`
 #' function
 #' @template b
@@ -293,7 +294,7 @@ fit_LME_longitudinal_model <- function(data_long,
 #' element in the list corresponds to a different cross-validation fold.
 #' `prediction_error` contains a list indicating the c-index and Brier score at time `x_hor` and their standard errors if parameter `b` is used.
 #' For more information on how the prediction error is calculated
-#' please see `?get_model_assessment` which is the function used to do this within `fit_LME_landmark_model`.
+#' please see `?get_model_assessment` which is the function used to do this within `fit_LME_landmark`.
 #'
 #' `model_LME_standardise_time` contains a list of two objects `mean_response_time` and `sd_response_time` if the parameter `standardise_time=TRUE` is used. This
 #' is the mean and standard deviation use to normalise times when fitting the LME model.
@@ -305,18 +306,18 @@ fit_LME_longitudinal_model <- function(data_long,
 #' `model_survival` contains the outputs from the function used to fit the survival submodel, including the estimated parameters of the model.
 #' For a model using cross-validation, `model_survival` contains a list of outputs with each
 #' element in the list corresponding to a different cross-validation fold. For more information on how the survival model is fitted
-#' please see `?fit_survival_model` which is the function used to do this within `fit_LME_landmark_model`.
+#' please see `?fit_survival_model` which is the function used to do this within `fit_LME_landmark`.
 #'
 #' `prediction_error` contains a list indicating the c-index and Brier score at time `x_hor` and their standard errors if parameter `b` is used.
 #' @details
-#' This function selects the individuals in the risk set at the landmark time \code{x_L}. Specifically, the individuals in the risk set are those that have entered the study before the landmark age
+#' Firstly this function selects the individuals in the risk set at the landmark time \code{x_L}. Specifically, the individuals in the risk set are those that have entered the study before the landmark age
 #' (\code{start_study_time} is less than \code{x_L}) and exited the study on or after the landmark age (\code{end_study_time} is the same as or more than \code{x_L})). If the option to use cross validation
 #' is selected, this function then assigns the individuals in the risk set to cross-validation folds and fits the landmark model using training and test datasets. If cross-validation is not selected then the landmark model is
 #' fit to the entire group of individuals in the risk set. The performance of the model is then assessed on the set of predictions from the entire set of individuals in the risk set
 #' by calculating Brier score and C-index.
 #'
-#' There are two parts to fitting the landmark model: the longitudinal submodel and the survival submodel.
-#' This function id used to fit the LME model as the longitudinal submodel. This model will be described in more detail.
+#' There are two parts to fitting the landmark model: using the longitudinal data and using the survival data.
+#' This function is used to fit the LME model to the longitudinal data. This model will be described in more detail.
 #'
 #' For an individual \eqn{i}, the LME model can be written as
 #'
@@ -343,7 +344,7 @@ fit_LME_longitudinal_model <- function(data_long,
 #' value of the other random effects variables, leading to more accurate predictions and allowing there to be missing data in the
 #' random effects variables.
 #'
-#' The function \code{fit_LME_landmark_model} uses this covariance structure for the random effects when fitting the LME model.
+#' The function \code{fit_LME_landmark} uses this covariance structure for the random effects when fitting the LME model.
 #' To fit the LME model the function \code{lme} from the package \code{nlme} is used.
 #' The fixed effects are calculated as the LOCF for the variables \code{fixed_effects} at the landmark age \code{x_L} and the random effects
 #' are those stated in \code{random_effects} and at times \code{random_effects_time}. This model is used to predict the
@@ -379,7 +380,7 @@ fit_LME_longitudinal_model <- function(data_long,
 #' data_repeat_outcomes <-
 #'   return_ids_with_LOCF(
 #'     data_long = data_repeat_outcomes,
-#'     patient_id = "id",
+#'     individual_id = "id",
 #'     covariates =
 #'       c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
 #'     covariates_time =
@@ -387,7 +388,7 @@ fit_LME_longitudinal_model <- function(data_long,
 #'     x_L = c(60,61)
 #'   )
 #' data_model_landmark_LME <-
-#'   fit_LME_landmark_model(
+#'   fit_LME_landmark(
 #'     data_long = data_repeat_outcomes,
 #'     x_L = c(60, 61),
 #'     x_hor = c(65, 66),
@@ -398,7 +399,7 @@ fit_LME_longitudinal_model <- function(data_long,
 #'     fixed_effects_time = "response_time_sbp_stnd",
 #'     random_effects = c("sbp_stnd", "tchdl_stnd"),
 #'     random_effects_time = c("response_time_sbp_stnd", "response_time_tchdl_stnd"),
-#'     patient_id = "id",
+#'     individual_id = "id",
 #'     standardise_time = TRUE,
 #'     lme_control = nlme::lmeControl(maxIter = 100, msMaxIter = 100),
 #'     event_time = "event_time",
@@ -410,7 +411,7 @@ fit_LME_longitudinal_model <- function(data_long,
 #' @importFrom prodlim Hist
 #' @export
 
-fit_LME_landmark_model<-function(data_long,
+fit_LME_landmark<-function(data_long,
                                  x_L,
                                  x_hor,
                                  fixed_effects,
@@ -419,7 +420,7 @@ fit_LME_landmark_model<-function(data_long,
                                  random_effects_time,
                                  random_slope = TRUE,
                                  standardise_time=FALSE,
-                                 patient_id,
+                                 individual_id,
                                  start_study_time,
                                  end_study_time,
                                  k,
@@ -446,9 +447,9 @@ fit_LME_landmark_model<-function(data_long,
   if (cross_validation_df_add==TRUE) {
     if(class(cross_validation_df)=="list") {
       if(!all(x_L %in% names(cross_validation_df))){stop("The names of elements in cross_validation_df list should be the landmark times in x_L")}
-      if(any(Reduce("c",lapply(cross_validation_df,function(x){any(duplicated(dplyr::distinct(x[,c(patient_id,"cross_validation_number")])[,patient_id]))})))){
+      if(any(Reduce("c",lapply(cross_validation_df,function(x){any(duplicated(dplyr::distinct(x[,c(individual_id,"cross_validation_number")])[,individual_id]))})))){
         stop("Cross validation folds should be the same for the same individual")}}else if(class(cross_validation_df)=="data.frame"){
-          if(any(duplicated(dplyr::distinct(cross_validation_df[,c(patient_id,"cross_validation_number")])[,patient_id]))){
+          if(any(duplicated(dplyr::distinct(cross_validation_df[,c(individual_id,"cross_validation_number")])[,individual_id]))){
             stop("Cross validation folds should be the same for the same individual")
           }
         }else{stop("cross_validation_df should be either a data frame or a list")}
@@ -512,7 +513,7 @@ fit_LME_landmark_model<-function(data_long,
         fixed_effects_time,
         random_effects,
         random_effects_time,
-        patient_id,
+        individual_id,
         start_study_time,
         end_study_time,
         event_time,
@@ -522,10 +523,10 @@ fit_LME_landmark_model<-function(data_long,
           stop(col, " is not a column name in data_long")
         }
       }
-      data_long_x_l[[patient_id]]<-as.factor(data_long_x_l[[patient_id]])
+      data_long_x_l[[individual_id]]<-as.factor(data_long_x_l[[individual_id]])
 
       if(dim(return_ids_with_LOCF(data_long=data_long_x_l,
-                                  patient_id=patient_id,
+                                  individual_id=individual_id,
                                   x_L=x_l,
                                   covariates=fixed_effects,
                                   covariates_time=fixed_effects_time))[1]!=dim(data_long_x_l)[1]){
@@ -538,13 +539,13 @@ fit_LME_landmark_model<-function(data_long,
       data_long_x_l[[event_time]][data_long_x_l[[event_time]]>=x_h]<-x_h
 
       if(cross_validation_df_add==TRUE){data_long_x_l<-
-        dplyr::left_join(data_long_x_l,cross_validation_df[[as.character(x_l)]][,c(patient_id,"cross_validation_number")],by=patient_id)}
+        dplyr::left_join(data_long_x_l,cross_validation_df[[as.character(x_l)]][,c(individual_id,"cross_validation_number")],by=individual_id)}
       return(data_long_x_l)
     })
   names(data_long_x_L)<-x_L
   if(k_add==TRUE){
-    data_long_x_L_cv<-add_cv_number(data_long=Reduce("rbind",data_long_x_L), patient_id=patient_id, k=k)
-    data_long_x_L<-lapply(data_long_x_L,function(x){dplyr::left_join(x,dplyr::distinct(data_long_x_L_cv[,c(patient_id,"cross_validation_number")]),by=patient_id)})
+    data_long_x_L_cv<-add_cv_number(data_long=Reduce("rbind",data_long_x_L), individual_id=individual_id, k=k)
+    data_long_x_L<-lapply(data_long_x_L,function(x){dplyr::left_join(x,dplyr::distinct(data_long_x_L_cv[,c(individual_id,"cross_validation_number")]),by=individual_id)})
   }
 
   out<-lapply(1:length(x_L),function(i){
@@ -553,7 +554,7 @@ fit_LME_landmark_model<-function(data_long,
 
     data_long<-data_long_x_L[[as.character(x_l)]]
     print(paste0("Fitting longitudinal submodel, landmark age ", x_l))
-    data_model_longitudinal<-fit_LME_longitudinal_model(data_long=data_long,
+    data_model_longitudinal<-fit_LME_longitudinal(data_long=data_long,
                                                         x_L=x_l,
                                                         fixed_effects=fixed_effects,
                                                         random_effects=random_effects,
@@ -562,17 +563,17 @@ fit_LME_landmark_model<-function(data_long,
                                                         random_slope = random_slope,
                                                         standardise_time=standardise_time,
                                                         cv_name=cv_name,
-                                                        patient_id=patient_id,
+                                                        individual_id=individual_id,
                                                         lme_control = lme_control)
     print(paste0("Complete, landmark age ",x_l))
 
-    data_events<-dplyr::distinct(data_long[,c(patient_id, event_status,event_time)])
-    data_longitudinal<-dplyr::left_join(data_model_longitudinal$data_longitudinal,data_events,by=patient_id)
+    data_events<-dplyr::distinct(data_long[,c(individual_id, event_status,event_time)])
+    data_longitudinal<-dplyr::left_join(data_model_longitudinal$data_longitudinal,data_events,by=individual_id)
 
     print(paste0("Fitting survival submodel, landmark age ",x_l))
 
     data_model_survival<-fit_survival_model(data=data_longitudinal,
-                                            patient_id=patient_id,
+                                            individual_id=individual_id,
                                             cv_name=cv_name,
                                             covariates=c(fixed_effects,random_effects),
                                             event_time=event_time,
@@ -582,7 +583,7 @@ fit_LME_landmark_model<-function(data_long,
     print(paste0("Complete, landmark age ",x_l))
 
     prediction_error<-get_model_assessment(data=data_model_survival$data_survival,
-                                           patient_id=patient_id,
+                                           individual_id=individual_id,
                                            event_prediction="event_prediction",
                                            event_status=event_status,
                                            event_time=event_time,
