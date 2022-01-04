@@ -5,10 +5,10 @@
 #' @param data Data frame containing covariates and time-to-event data, one row for each individual.
 #' @template x_hor
 #' @template covariates
-#' @param cv_name Character string specifying the column name in `data` that indicates cross-validation fold
-#' @template event_time
-#' @template event_status
-#' @template patient_id
+#' @param cv_name Character string specifying the column name in `data` that indicates cross-validation fold. If no cross-validation is needed, set this parameter to `NA`.
+#' @param event_time Character string specifying the column name in `data` which contains the event time
+#' @param event_status	Character string specifying the column name in `data` which contains the event status (where 0=censoring, 1=event of interest, if there are competing events these are labelled 2 or above). Events at time x_hor should be labelled censored.
+#' @param individual_id Character string specifying the column name in `data` which contains the individual identifiers
 #' @template survival_submodel
 #' @return List containing `data_survival` and `model_survival`
 #'
@@ -23,7 +23,7 @@
 #' @export
 
 fit_survival_model <- function(data,
-                               patient_id,
+                               individual_id,
                                cv_name=NA,
                                covariates,
                                event_time,
@@ -41,7 +41,7 @@ fit_survival_model <- function(data,
   for (col in c(covariates,
                 event_time,
                 event_status,
-                patient_id)) {
+                individual_id)) {
     if (!(col %in% names(data))) {
       stop(col, " is not a column name in data")
     }
@@ -77,7 +77,7 @@ fit_survival_model <- function(data,
     }
   }
 
-  data[[patient_id]] <- as.factor(data[[patient_id]])
+  data[[individual_id]] <- as.factor(data[[individual_id]])
 
   if(is.na(cv_name)){data[["cross_validation_number"]]<-1;cv_name<-"cross_validation_number"}
 
@@ -160,7 +160,7 @@ fit_survival_model <- function(data,
       model_survival<-model_survival[[1]]
     }
 
-  data_survival<-data_survival[order(match(data_survival[[patient_id]],data[[patient_id]])),]
+  data_survival<-data_survival[order(match(data_survival[[individual_id]],data[[individual_id]])),]
   rownames(data_survival)<-NULL
   list(data_survival = data_survival, model_survival = model_survival)
 }

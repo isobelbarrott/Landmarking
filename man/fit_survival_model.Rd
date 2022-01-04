@@ -6,7 +6,7 @@
 \usage{
 fit_survival_model(
   data,
-  patient_id,
+  individual_id,
   cv_name = NA,
   covariates,
   event_time,
@@ -18,19 +18,16 @@ fit_survival_model(
 \arguments{
 \item{data}{Data frame containing covariates and time-to-event data, one row for each individual.}
 
-\item{patient_id}{Character string specifying the column name in \code{data_long}/\code{data} which contains the individual identifiers}
+\item{individual_id}{Character string specifying the column name in \code{data} which contains the individual identifiers}
 
-\item{cv_name}{Character string specifying the column name in \code{data} that indicates cross-validation fold}
+\item{cv_name}{Character string specifying the column name in \code{data} that indicates cross-validation fold. If no cross-validation is needed, set this parameter to \code{NA}.}
 
 \item{covariates}{Vector of character strings specifying the column names in \code{data}
 which correspond to the covariates}
 
-\item{event_time}{Character string specifying the column name in \code{data}
-which contains the event time}
+\item{event_time}{Character string specifying the column name in \code{data} which contains the event time}
 
-\item{event_status}{Character string specifying the column name in \code{data}
-which contains the event status (where 0=censoring, 1=event of interest, if there are competing events these are labelled
-2 or above). Events at time x_hor should be labelled censored.}
+\item{event_status}{Character string specifying the column name in \code{data} which contains the event status (where 0=censoring, 1=event of interest, if there are competing events these are labelled 2 or above). Events at time x_hor should be labelled censored.}
 
 \item{survival_submodel}{Character string specifying which survival submodel to
 use. Three options: the standard Cox model i.e. no competing risks (\code{"standard_cox"}),

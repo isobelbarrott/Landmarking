@@ -9,7 +9,7 @@ A dataset with 3000 rows and 3 columns:
 
 \describe{
 \item{id}{Patient ID}
-\item{event_status}{Event status, 0 indicates censoring, 1 indicates CVD event, 2 indicates death from other causes}
+\item{event_status}{Event status, 0 indicates censoring, 1 indicates CVD event, and 2 indicates death from other causes}
 \item{event_time}{Event time}
 }
 }
@@ -17,7 +17,11 @@ A dataset with 3000 rows and 3 columns:
 data_outcomes
 }
 \description{
-A simulated dataset formed using a cause specific model, whose parameters were based on CVD events of patients
-at primary care practices in New Zealand. The dataset contains time-to-event data from 3000 patients.
+This dataset contains time-to-event data simulated from the landmark model.
+Specifically, the LME model was fitted to dataset \code{data_repeat} and values of \code{sbp_stnd}
+and \code{tchdl_stnd} were estimated at landmark age 60. These values (along with the other measurements)
+were used to simulate time-to-event data from a
+cause specific model with parameters based on CVD events of patients
+at primary care practices in New Zealand.
 }
 \keyword{datasets}

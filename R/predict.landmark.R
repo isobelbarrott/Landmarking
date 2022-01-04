@@ -1,17 +1,17 @@
 #' Predict the risk of an event for a new individual using the landmark model
 #'
-#' This function predicts the risk of an event for new data using the landmark model fitted by `fit_LME_landmark_model` or `fit_LOCF_landmark_model`. The event is that which has
-#' `event_status` equal to 1.
+#' This function predicts the risk of an event for new data using the landmark model fitted by `fit_LME_landmark` or `fit_LOCF_landmark`.
+#' The 'event' is defined as event for which `event_status` is 1.
 #'
-#' @param object Object inheriting the class `landmark`, this should be the output from either `fit_LME_landmark_model` or `fit_LOCF_landmark_model`. It should contain a list
+#' @param object Object inheriting the class `landmark`, this should be the output from either `fit_LME_landmark` or `fit_LOCF_landmark`. It should contain a list
 #' of landmark models corresponding to different landmark times `x_L`.
 #' @param x_L 	Numeric specifying the landmark time. This indicates which landmark model in `object` to use.
-#' @param x_hor Numeric specifying the horizon time, The function assesses the risk of event before this time.
+#' @param x_hor Numeric specifying the horizon time. The function assesses the risk of event before this time.
 #' @param newdata Data frame containing new data to return the risk prediction of the event of interest. The data should be in in long format
 #' and the columns must contain the covariates and time variables that are used to fit the model.
 #' For the LME model this the variables `fixed_effects`, `random_effects`, `fixed_effects_time`, and
 #' `random_effects_time`. For the LOCF model this is `covariates` and `covariates_time`.
-#' @param cv_fold If cross validation is used to fit `fit_LME_landmark_model` or `fit_LOCF_landmark_model`, then the cross validation fold to use when making risk predictions needs to be specified.
+#' @param cv_fold If cross validation is used to fit `fit_LME_landmark` or `fit_LOCF_landmark`, then the cross validation fold to use when making risk predictions needs to be specified.
 #' @param \dots Arguments passed on to `riskRegression::predictRisk`
 #' @return Data frame `newdata` updated to contained a new column `event_prediction`
 #' @examples
@@ -20,7 +20,7 @@
 #' data_repeat_outcomes <-
 #'   return_ids_with_LOCF(
 #'     data_long = data_repeat_outcomes,
-#'     patient_id = "id",
+#'     individual_id = "id",
 #'     covariates =
 #'       c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
 #'     covariates_time =
@@ -28,7 +28,7 @@
 #'     x_L = c(60,61)
 #'   )
 #' data_model_landmark_LOCF <-
-#'   fit_LOCF_landmark_model(
+#'   fit_LOCF_landmark(
 #'     data_long = data_repeat_outcomes,
 #'     x_L = c(60, 61),
 #'     x_hor = c(65, 66),
@@ -39,7 +39,7 @@
 #'     k = 10,
 #'     start_study_time = "start_time",
 #'     end_study_time = "event_time",
-#'     patient_id = "id",
+#'     individual_id = "id",
 #'     event_time = "event_time",
 #'     event_status = "event_status",
 #'     survival_submodel = "cause_specific"
@@ -71,7 +71,7 @@ predict.landmark<-function(object,x_L,x_hor,newdata,cv_fold=NA,...){
   if (model_longitudinal=="LOCF"){
     covariates<-call$covariates
     covariates_time<-call$covariates_time
-    patient_id<-call$patient_id
+    individual_id<-call$individual_id
     for (covariate in covariates){
       if(is.factor(object[[as.character(x_L)]]$data[[covariate]])){
         newdata[[covariate]]<-factor(newdata[[covariate]],levels=levels(object[[as.character(x_L)]]$data[[covariate]]))
@@ -79,11 +79,11 @@ predict.landmark<-function(object,x_L,x_hor,newdata,cv_fold=NA,...){
       }
 
 
-    data_model_longitudinal<-fit_LOCF_longitudinal_model(data_long=newdata,
+    data_model_longitudinal<-fit_LOCF_longitudinal(data_long=newdata,
                                                          x_L=x_L,
                                                          covariates=covariates,
                                                          covariates_time=covariates_time,
-                                                         patient_id=patient_id)
+                                                         individual_id=individual_id)
     data_longitudinal<-data_model_longitudinal$data_longitudinal
   }
 
@@ -92,7 +92,7 @@ predict.landmark<-function(object,x_L,x_hor,newdata,cv_fold=NA,...){
     fixed_effects<-call$fixed_effects
     fixed_effects_time<-call$fixed_effects_time
     random_effects_time<-call$random_effects_time
-    patient_id<-call$patient_id
+    individual_id<-call$individual_id
 
     for (fixed_effect in fixed_effects){
       if(is.factor(object[[as.character(x_L)]]$data[[fixed_effect]])){
@@ -108,17 +108,17 @@ predict.landmark<-function(object,x_L,x_hor,newdata,cv_fold=NA,...){
       model_LME_standardise_time<-object[[as.character(x_L)]]$model_LME_standardise_time
     }
 
-    data_model_longitudinal<-fit_LOCF_longitudinal_model(data_long=newdata,
+    data_model_longitudinal<-fit_LOCF_longitudinal(data_long=newdata,
                                                          x_L=x_L,
                                                          covariates=fixed_effects,
                                                          covariates_time=fixed_effects_time,
-                                                         patient_id=patient_id)
+                                                         individual_id=individual_id)
     data_LOCF<-data_model_longitudinal$data_longitudinal
 
     response_type <- Reduce(c,lapply(random_effects,function(i){rep(i,dim(data_LOCF)[1])}))
     response <- as.numeric(rep(NA,length(response_type)))
     response_time<-as.numeric(rep(x_L,length(response_type)))
-    data_fixed_effects<-do.call("rbind",replicate(n=length(random_effects),data_LOCF[,c(patient_id,fixed_effects)],simplify=FALSE))
+    data_fixed_effects<-do.call("rbind",replicate(n=length(random_effects),data_LOCF[,c(individual_id,fixed_effects)],simplify=FALSE))
     data_LOCF<-data.frame(data_fixed_effects,response_type,response,response_time,predict=1)
 
     #Create validation and development dataset
@@ -138,10 +138,10 @@ predict.landmark<-function(object,x_L,x_hor,newdata,cv_fold=NA,...){
     data_fixed_effects<-
       do.call("rbind", replicate(
         n = length(random_effects),
-        newdata[, c(patient_id, fixed_effects)],
+        newdata[, c(individual_id, fixed_effects)],
         simplify = FALSE
       ))
-    data_fixed_effects[[patient_id]]<-as.factor(data_fixed_effects[[patient_id]])
+    data_fixed_effects[[individual_id]]<-as.factor(data_fixed_effects[[individual_id]])
     data_LME <-
       data.frame(data_fixed_effects, response_type, response, response_time)
 
@@ -159,7 +159,7 @@ predict.landmark<-function(object,x_L,x_hor,newdata,cv_fold=NA,...){
 
       data_longitudinal <-
         mixoutsamp(model = model_LME,
-                   newdata = data_longitudinal)$preddata[response_predictions, ][, c(patient_id,
+                   newdata = data_longitudinal)$preddata[response_predictions, ][, c(individual_id,
                                                                                       fixed_effects,
                                                                                       "response_type",
                                                                                       "fitted")]
@@ -167,7 +167,7 @@ predict.landmark<-function(object,x_L,x_hor,newdata,cv_fold=NA,...){
         stats::reshape(
           data_longitudinal,
           timevar = "response_type",
-          idvar = c(patient_id, fixed_effects),
+          idvar = c(individual_id, fixed_effects),
           direction = "wide"
         )
 

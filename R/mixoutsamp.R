@@ -1,13 +1,18 @@
 #' Calculate point estimates from a linear mixed effects (LME) model for new data
 #'
-#' This function allows the user to make out-of-sample point estimate predictions using a LME model.
+#' This function allows the user to make out-of-sample predictions from an LME model.
 #'
 #' @param model Object of class `lme` containing the fitted LME model
-#' @param newdata Data frame containing data for which to make predictions
-#' @return List containing `preddata` and `random`. Data frame `preddata` is a version of `newdata` updated to contain columns conrresponding to the fixed effects values (`fixed`),
+#' @param newdata Data frame containing data for which to make predictions.
+#' The response variable should be set to NA for the rows of the data the user wishes to make predictions for.
+#' The columns in the data should have the same names as those used to fit the model.
+#' The variables should also be of the same type as in the data used to fit the mixed model (numeric, factor etc).
+#' @return List containing `preddata` and `random`. Data frame `preddata` is a version of `newdata` updated to contain columns corresponding to the fixed effects values (`fixed`),
 #' random effects values (`random`), and fitted values (`fitted`).
 #' Data frame `random` contains the values of random effects components for each individual.
-#' @author Ruth Keogh
+#' @author This code was originally written by Ruth Keogh (London School of Hygiene and Tropical Medicine) which can be viewed at
+#' github.com/ruthkeogh/landmark_CF. There have been further contributions from Jessica Barrett (MRC Biostatistics Unit, University of Cambridge),
+#' David Stevens (University of Liverpool), and Mike Sweeting (University of Leicester).
 #' @export
 
 mixoutsamp<-function(model,newdata){

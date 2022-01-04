@@ -4,12 +4,18 @@
 \alias{return_ids_with_LOCF}
 \title{Select individuals in a dataset with a last observation carried forward (LOCF) at a landmark time}
 \usage{
-return_ids_with_LOCF(data_long, patient_id, x_L, covariates, covariates_time)
+return_ids_with_LOCF(
+  data_long,
+  individual_id,
+  x_L,
+  covariates,
+  covariates_time
+)
 }
 \arguments{
 \item{data_long}{Data frame with repeated measurements data in long format}
 
-\item{patient_id}{Character string specifying the column name in \code{data_long}/\code{data} which contains the individual identifiers}
+\item{individual_id}{Character string specifying the column name in \code{data_long} which contains the individual identifiers}
 
 \item{x_L}{Numeric specifying the landmark time(s)}
 
@@ -22,7 +28,9 @@ the same length as \code{covariates}. In the latter case the order of elements m
 order of elements in \code{covariates}.}
 }
 \value{
-Data frame \code{data_long} updated to contain only rows of individuals with a LOCF at age \code{x_L}, other rows are removed
+List of data frames which correspond to each landmark time \code{x_L}.
+Each data frame is an updated version of \code{data_long} which contains only rows
+of individuals with a LOCF at age \code{x_L}, other rows are removed.
 }
 \description{
 To fit the LOCF model, all individuals must have at least one
@@ -31,7 +39,7 @@ This function selects these individuals and removes the other rows.
 }
 \details{
 Individuals have a LOCF if there is a non-\code{NA} entry for each of the covariates in
-\code{covariates} up until (and including) time \code{x_L}.
+\code{covariates} up until (not including) time \code{x_L}.
 }
 \examples{
 library(Landmarking)
@@ -39,7 +47,7 @@ data(data_repeat_outcomes)
 data_repeat_outcomes <-
   return_ids_with_LOCF(
     data_long = data_repeat_outcomes,
-    patient_id = "id",
+    individual_id = "id",
     covariates =
       c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
     covariates_time =

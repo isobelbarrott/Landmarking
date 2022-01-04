@@ -4,14 +4,16 @@
 \alias{add_cv_number}
 \title{Assign a k-fold cross-validation number}
 \usage{
-add_cv_number(data_long, patient_id, k)
+add_cv_number(data_long, individual_id, k, seed = 1)
 }
 \arguments{
-\item{data_long}{Data frame; there may be more than one row per individual}
+\item{data_long}{Data frame in long format i.e. there may be more than one row per individual}
 
-\item{patient_id}{Character string specifying the column name in \code{data_long}/\code{data} which contains the individual identifiers}
+\item{individual_id}{Character string specifying the column name in \code{data_long} which contains the individual identifiers}
 
 \item{k}{Integer specifying the number of folds for cross-validation}
+
+\item{seed}{The value of the seed (default is 1)}
 }
 \value{
 Data frame \code{data_long} updated to contain a new column \code{cross_validation_number}
@@ -20,10 +22,14 @@ indicating the fold to which the individual has been assigned.
 \description{
 Randomly assigns a k-fold cross-validation number to each individual in a dataset.
 }
+\details{
+This function randomly divides the \code{n} individual IDs
+into \code{k} groups, each with \code{n/k} members (or as close to this number as possible).
+}
 \examples{
 data(data_repeat)
-data_repeat_outcomes <- add_cv_number(data_long = data_repeat,
-                                      patient_id = "id",
+data_repeat <- add_cv_number(data_long = data_repeat,
+                                      individual_id = "id",
                                       k = 10)
 }
 \author{

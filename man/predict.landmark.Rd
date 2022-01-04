@@ -7,19 +7,19 @@
 \method{predict}{landmark}(object, x_L, x_hor, newdata, cv_fold = NA, ...)
 }
 \arguments{
-\item{object}{Object inheriting the class \code{landmark}, this should be the output from either \code{fit_LME_landmark_model} or \code{fit_LOCF_landmark_model}. It should contain a list
+\item{object}{Object inheriting the class \code{landmark}, this should be the output from either \code{fit_LME_landmark} or \code{fit_LOCF_landmark}. It should contain a list
 of landmark models corresponding to different landmark times \code{x_L}.}
 
 \item{x_L}{Numeric specifying the landmark time. This indicates which landmark model in \code{object} to use.}
 
-\item{x_hor}{Numeric specifying the horizon time, The function assesses the risk of event before this time.}
+\item{x_hor}{Numeric specifying the horizon time. The function assesses the risk of event before this time.}
 
 \item{newdata}{Data frame containing new data to return the risk prediction of the event of interest. The data should be in in long format
 and the columns must contain the covariates and time variables that are used to fit the model.
 For the LME model this the variables \code{fixed_effects}, \code{random_effects}, \code{fixed_effects_time}, and
 \code{random_effects_time}. For the LOCF model this is \code{covariates} and \code{covariates_time}.}
 
-\item{cv_fold}{If cross validation is used to fit \code{fit_LME_landmark_model} or \code{fit_LOCF_landmark_model}, then the cross validation fold to use when making risk predictions needs to be specified.}
+\item{cv_fold}{If cross validation is used to fit \code{fit_LME_landmark} or \code{fit_LOCF_landmark}, then the cross validation fold to use when making risk predictions needs to be specified.}
 
 \item{\dots}{Arguments passed on to \code{riskRegression::predictRisk}}
 }
@@ -27,8 +27,8 @@ For the LME model this the variables \code{fixed_effects}, \code{random_effects}
 Data frame \code{newdata} updated to contained a new column \code{event_prediction}
 }
 \description{
-This function predicts the risk of an event for new data using the landmark model fitted by \code{fit_LME_landmark_model} or \code{fit_LOCF_landmark_model}. The event is that which has
-\code{event_status} equal to 1.
+This function predicts the risk of an event for new data using the landmark model fitted by \code{fit_LME_landmark} or \code{fit_LOCF_landmark}.
+The 'event' is defined as event for which \code{event_status} is 1.
 }
 \examples{
 library(Landmarking)
@@ -36,7 +36,7 @@ data(data_repeat_outcomes)
 data_repeat_outcomes <-
   return_ids_with_LOCF(
     data_long = data_repeat_outcomes,
-    patient_id = "id",
+    individual_id = "id",
     covariates =
       c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
     covariates_time =
@@ -44,7 +44,7 @@ data_repeat_outcomes <-
     x_L = c(60,61)
   )
 data_model_landmark_LOCF <-
-  fit_LOCF_landmark_model(
+  fit_LOCF_landmark(
     data_long = data_repeat_outcomes,
     x_L = c(60, 61),
     x_hor = c(65, 66),
@@ -55,7 +55,7 @@ data_model_landmark_LOCF <-
     k = 10,
     start_study_time = "start_time",
     end_study_time = "event_time",
-    patient_id = "id",
+    individual_id = "id",
     event_time = "event_time",
     event_status = "event_status",
     survival_submodel = "cause_specific"

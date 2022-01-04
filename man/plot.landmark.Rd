@@ -4,7 +4,7 @@
 \alias{plot.landmark}
 \title{Create a calibration plot}
 \usage{
-\method{plot}{landmark}(x, x_L, n, ...)
+\method{plot}{landmark}(x, x_L, n, x_lims, y_lims, ...)
 }
 \arguments{
 \item{x}{Object inheriting the class \code{landmark}, this should be the output from either \code{fit_LME_landmark_model} or \code{fit_LOCF_landmark_model}. It should contain a list
@@ -14,7 +14,11 @@ of landmark models corresponding to different landmark times \code{x_L}.}
 
 \item{n}{Numeric specifying the number of bins to use.}
 
-\item{\dots}{Arguments passed on to the \code{aes()} function}
+\item{x_lims}{Vector of length 2 specifying the limits of the x axes}
+
+\item{y_lims}{Vector of length 2 specifying the limits of the y axes}
+
+\item{\dots}{Arguments passed to \code{ggplot2::labs} to modify axis, legend, and plot labels}
 }
 \value{
 Calibration plot showing the value of predicted probabilities against observed frequencies, with a \code{y=x} line.
@@ -35,7 +39,7 @@ data(data_repeat_outcomes)
 data_repeat_outcomes <-
   return_ids_with_LOCF(
     data_long = data_repeat_outcomes,
-    patient_id = "id",
+    individual_id = "id",
     covariates =
       c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
     covariates_time =
@@ -43,7 +47,7 @@ data_repeat_outcomes <-
     x_L = c(60,61)
   )
 data_model_landmark_LOCF <-
-  fit_LOCF_landmark_model(
+  fit_LOCF_landmark(
     data_long = data_repeat_outcomes,
     x_L = c(60, 61),
     x_hor = c(65, 66),
@@ -54,7 +58,7 @@ data_model_landmark_LOCF <-
     k = 10,
     start_study_time = "start_time",
     end_study_time = "event_time",
-    patient_id = "id",
+    individual_id = "id",
     event_time = "event_time",
     event_status = "event_status",
     survival_submodel = "cause_specific"

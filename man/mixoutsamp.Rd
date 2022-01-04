@@ -9,16 +9,21 @@ mixoutsamp(model, newdata)
 \arguments{
 \item{model}{Object of class \code{lme} containing the fitted LME model}
 
-\item{newdata}{Data frame containing data for which to make predictions}
+\item{newdata}{Data frame containing data for which to make predictions.
+The response variable should be set to NA for the rows of the data the user wishes to make predictions for.
+The columns in the data should have the same names as those used to fit the model.
+The variables should also be of the same type as in the data used to fit the mixed model (numeric, factor etc).}
 }
 \value{
-List containing \code{preddata} and \code{random}. Data frame \code{preddata} is a version of \code{newdata} updated to contain columns conrresponding to the fixed effects values (\code{fixed}),
+List containing \code{preddata} and \code{random}. Data frame \code{preddata} is a version of \code{newdata} updated to contain columns corresponding to the fixed effects values (\code{fixed}),
 random effects values (\code{random}), and fitted values (\code{fitted}).
 Data frame \code{random} contains the values of random effects components for each individual.
 }
 \description{
-This function allows the user to make out-of-sample point estimate predictions using a LME model.
+This function allows the user to make out-of-sample predictions from an LME model.
 }
 \author{
-Ruth Keogh
+This code was originally written by Ruth Keogh (London School of Hygiene and Tropical Medicine) which can be viewed at
+github.com/ruthkeogh/landmark_CF. There have been further contributions from Jessica Barrett (MRC Biostatistics Unit, University of Cambridge),
+David Stevens (University of Liverpool), and Mike Sweeting (University of Leicester).
 }

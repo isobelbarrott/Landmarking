@@ -6,7 +6,7 @@
 \usage{
 get_model_assessment(
   data,
-  patient_id,
+  individual_id,
   event_prediction,
   event_status,
   event_time,
@@ -18,16 +18,13 @@ get_model_assessment(
 \item{data}{Data frame containing survival outcomes and the event predictions from the model,
 there should be one row for each individual}
 
-\item{patient_id}{Character string specifying the column name in \code{data_long}/\code{data} which contains the individual identifiers}
+\item{individual_id}{Character string specifying the column name in \code{data} which contains the individual identifiers}
 
 \item{event_prediction}{Character string specifying the column name in \code{data} containing the predicted probability of the event of interest}
 
-\item{event_status}{Character string specifying the column name in \code{data}
-which contains the event status (where 0=censoring, 1=event of interest, if there are competing events these are labelled
-2 or above). Events at time x_hor should be labelled censored.}
+\item{event_status}{Character string specifying the column name in \code{data} which contains the event status (where 0=censoring, 1=event of interest, if there are competing events these are labelled 2 or above). Events at time \code{x_hor} should be labelled censored.}
 
-\item{event_time}{Character string specifying the column name in \code{data}
-which contains the event time}
+\item{event_time}{Character string specifying the column name in \code{data} which contains the event time.}
 
 \item{x_hor}{Numeric specifying the horizon time(s)}
 
@@ -70,7 +67,7 @@ data(data_repeat_outcomes)
 data_repeat_outcomes <-
   return_ids_with_LOCF(
     data_long = data_repeat_outcomes,
-    patient_id = "id",
+    individual_id = "id",
     covariates =
       c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
     covariates_time =
@@ -78,7 +75,7 @@ data_repeat_outcomes <-
     x_L = c(60,61)
   )
 data_model_landmark_LOCF <-
-  fit_LOCF_landmark_model(
+  fit_LOCF_landmark(
     data_long = data_repeat_outcomes,
     x_L = c(60, 61),
     x_hor = c(65, 66),
@@ -89,13 +86,13 @@ data_model_landmark_LOCF <-
     k = 10,
     start_study_time = "start_time",
     end_study_time = "event_time",
-    patient_id = "id",
+    individual_id = "id",
     event_time = "event_time",
     event_status = "event_status",
     survival_submodel = "cause_specific"
   )
-get_model_assessment(data = data_model_landmark_LOCF,
-  patient_id = "id",
+get_model_assessment(data = data_model_landmark_LOCF[["60"]]$data,
+  individual_id = "id",
   event_prediction = "event_prediction",
   event_status = "event_status",
   event_time = "event_time",

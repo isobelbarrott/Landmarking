@@ -5,14 +5,16 @@
 #' This function selects these individuals and removes the other rows.
 #'
 #' @details Individuals have a LOCF if there is a non-`NA` entry for each of the covariates in
-#' `covariates` up until (and including) time `x_L`.
+#' `covariates` up until (not including) time `x_L`.
 #'
 #' @param data_long Data frame with repeated measurements data in long format
-#' @template patient_id
+#' @template individual_id
 #' @template x_L
 #' @template covariates
 #' @template covariates_time
-#' @return Data frame `data_long` updated to contain only rows of individuals with a LOCF at age `x_L`, other rows are removed
+#' @return List of data frames which correspond to each landmark time `x_L`.
+#' Each data frame is an updated version of `data_long` which contains only rows
+#' of individuals with a LOCF at age `x_L`, other rows are removed.
 #' @author Isobel Barrott \email{isobel.barrott@@gmail.com}
 #' @examples
 #' library(Landmarking)
@@ -20,7 +22,7 @@
 #' data_repeat_outcomes <-
 #'   return_ids_with_LOCF(
 #'     data_long = data_repeat_outcomes,
-#'     patient_id = "id",
+#'     individual_id = "id",
 #'     covariates =
 #'       c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
 #'     covariates_time =
@@ -32,13 +34,13 @@
 
 return_ids_with_LOCF <-
   function(data_long,
-           patient_id,
+           individual_id,
            x_L,
            covariates,
            covariates_time) {
 
     for (col in c(covariates,
-                  patient_id,
+                  individual_id,
                   covariates_time)) {
       if (!(col %in% names(data_long))) {
         stop(col, " is not a column name in data_long")
@@ -63,11 +65,11 @@ return_ids_with_LOCF <-
           data_var <-
             data_var[order(data_var[[time]], decreasing = TRUE),]
           data_var <-
-            data_var[!duplicated(data_var[[patient_id]]),]
-          return(data_var[[patient_id]])
+            data_var[!duplicated(data_var[[individual_id]]),]
+          return(data_var[[individual_id]])
         })
       LOCF_IDs_by_variable <- Reduce(intersect, LOCF_IDs_by_variable)
-      data_long <- data_long[data_long[[patient_id]] %in% LOCF_IDs_by_variable,]
+      data_long <- data_long[data_long[[individual_id]] %in% LOCF_IDs_by_variable,]
       data_long
     })
     if(length(x_L)==1){out_list[[1]]}else{names(out_list)<-x_L;out_list}

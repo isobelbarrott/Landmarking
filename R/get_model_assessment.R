@@ -5,10 +5,10 @@
 #'
 #' @param data Data frame containing survival outcomes and the event predictions from the model,
 #' there should be one row for each individual
-#' @template event_status
-#' @template event_time
+#' @param event_status Character string specifying the column name in `data` which contains the event status (where 0=censoring, 1=event of interest, if there are competing events these are labelled 2 or above). Events at time `x_hor` should be labelled censored.
+#' @param event_time Character string specifying the column name in `data` which contains the event time.
 #' @template x_hor
-#' @template patient_id
+#' @param individual_id  Character string specifying the column name in `data` which contains the individual identifiers
 #' @template event_prediction
 #' @template b
 #' @return List containing C-index, Brier score and their standard errors
@@ -42,7 +42,7 @@
 #' data_repeat_outcomes <-
 #'   return_ids_with_LOCF(
 #'     data_long = data_repeat_outcomes,
-#'     patient_id = "id",
+#'     individual_id = "id",
 #'     covariates =
 #'       c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
 #'     covariates_time =
@@ -50,7 +50,7 @@
 #'     x_L = c(60,61)
 #'   )
 #' data_model_landmark_LOCF <-
-#'   fit_LOCF_landmark_model(
+#'   fit_LOCF_landmark(
 #'     data_long = data_repeat_outcomes,
 #'     x_L = c(60, 61),
 #'     x_hor = c(65, 66),
@@ -61,13 +61,13 @@
 #'     k = 10,
 #'     start_study_time = "start_time",
 #'     end_study_time = "event_time",
-#'     patient_id = "id",
+#'     individual_id = "id",
 #'     event_time = "event_time",
 #'     event_status = "event_status",
 #'     survival_submodel = "cause_specific"
 #'   )
-#' get_model_assessment(data = data_model_landmark_LOCF,
-#'   patient_id = "id",
+#' get_model_assessment(data = data_model_landmark_LOCF[["60"]]$data,
+#'   individual_id = "id",
 #'   event_prediction = "event_prediction",
 #'   event_status = "event_status",
 #'   event_time = "event_time",
@@ -77,7 +77,7 @@
 
 get_model_assessment <-
   function(data,
-           patient_id,
+           individual_id,
            event_prediction,
            event_status,
            event_time,
@@ -99,7 +99,7 @@ get_model_assessment <-
       }
       standard_error<-TRUE
       }else{standard_error<-FALSE}
-    if (length(unique(data[[patient_id]]))!=dim(data)[1]) {
+    if (length(unique(data[[individual_id]]))!=dim(data)[1]) {
       stop("There should be one row for each individual in data")
     }
 

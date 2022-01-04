@@ -8,16 +8,16 @@
 A dataset with 9048 rows and 11 columns:
 \describe{
 \item{id}{Patient ID}
-\item{smoking}{Smoking status, 0 indicates the patient has 'never smoked', 1 indicates the patient has quit smoking, and 2 indicated the individual is a current smoker.}
-\item{diabetes}{Diabetes status, 0 indicates the patient does not have diabetes, 1 indicates the patient does have diabetes}
+\item{smoking}{Smoking status, 0 indicates the patient has never smoked, 1 indicates the patient has quit smoking, and 2 indicates the patient is a current smoker}
+\item{diabetes}{Diabetes status, 0 indicates the patient is not diagnosed with diabetes, and 1 indicates the patient is diagnosed with diabetes}
 \item{ethnicity}{Ethnicity, one of five ethnicities}
-\item{deprivation}{Deprivation score out of five}
+\item{deprivation}{Deprivation score, quintiles}
 \item{index}{An index indicating assessment number for a patient}
 \item{sbp_stnd}{Standardised systolic blood pressure}
 \item{tchdl_stnd}{Standardised total cholesterol to HDL ratio}
-\item{end_of_study_age}{Age that individual left the study, either the age at event (CVD or death) or age at end of study (1st Jan 2010)}
+\item{end_of_study_age}{Age that the patient left the study, either the age at event (CVD or death) or age at end of study (1st Jan 2010)}
 \item{response_time_tchdl_stnd}{Age that total cholesterol to HDL ratio was recorded}
-\item{response_time_sbp_stnd}{Age that systolic blood pressure was recorded, this is the same as the date that the fixed measures were recorded}
+\item{response_time_sbp_stnd}{Age that systolic blood pressure and all other measurements were recorded}
 }
 }
 \usage{
@@ -25,6 +25,6 @@ data_repeat
 }
 \description{
 A simulated dataset formed using an LME model, whose parameters were based on CVD risk assessments
-recorded at primary care practices in New Zealand. The dataset contains repeat measurements data from 10000 patients.
+recorded at primary care practices in New Zealand. The dataset contains repeat measurements data from 3000 patients.
 }
 \keyword{datasets}

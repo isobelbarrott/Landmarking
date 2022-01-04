@@ -7,7 +7,9 @@
 #' of landmark models corresponding to different landmark times `x_L`.
 #' @param x_L Numeric specifying the landmark time. This indicates which landmark model in `x` to use.
 #' @param n Numeric specifying the number of bins to use.
-#' @param \dots Arguments passed on to the `aes()` function
+#' @param x_lims Vector of length 2 specifying the limits of the x axes
+#' @param y_lims Vector of length 2 specifying the limits of the y axes
+#' @param \dots Arguments passed to `ggplot2::labs` to modify axis, legend, and plot labels
 #' @return Calibration plot showing the value of predicted probabilities against observed frequencies, with a `y=x` line.
 #' @details This function bins the predicted probabilities of the event of interest into `n` bins. The event of interest is the event with
 #' `event_status=1` when fitting the landmark model. For each of the `n` sets of individuals, the Aalen-Johansen estimator is fit to that set
@@ -19,7 +21,7 @@
 #' data_repeat_outcomes <-
 #'   return_ids_with_LOCF(
 #'     data_long = data_repeat_outcomes,
-#'     patient_id = "id",
+#'     individual_id = "id",
 #'     covariates =
 #'       c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
 #'     covariates_time =
@@ -27,7 +29,7 @@
 #'     x_L = c(60,61)
 #'   )
 #' data_model_landmark_LOCF <-
-#'   fit_LOCF_landmark_model(
+#'   fit_LOCF_landmark(
 #'     data_long = data_repeat_outcomes,
 #'     x_L = c(60, 61),
 #'     x_hor = c(65, 66),
@@ -38,7 +40,7 @@
 #'     k = 10,
 #'     start_study_time = "start_time",
 #'     end_study_time = "event_time",
-#'     patient_id = "id",
+#'     individual_id = "id",
 #'     event_time = "event_time",
 #'     event_status = "event_status",
 #'     survival_submodel = "cause_specific"
@@ -47,7 +49,7 @@
 #'  plot(x=data_model_landmark_LOCF,x_L=61,n=5)
 #' @export
 
-plot.landmark<-function(x,x_L,n,...){
+plot.landmark<-function(x,x_L,n,x_lims,y_lims,...){
   if(class(x)!="landmark"){
     stop("x must have class 'landmark'")}
   if(!is.numeric(x_L)){
@@ -85,10 +87,14 @@ plot.landmark<-function(x,x_L,n,...){
     predicted<-c(predicted,mean(data_i[,"event_prediction"]))
   }
   calibration_plot_df<-data.frame(actual,predicted)
-  ggplot2::ggplot(calibration_plot_df,ggplot2::aes(x=predicted,y=actual,...))+
-    ggplot2::geom_point()+ggplot2::geom_line()+ggplot2::labs(x="Predicted probability",y="Observed frequency")+
+
+  if(missing(x_lims)){x_lims<-c(0,1)}
+  if(missing(y_lims)){y_lims<-c(0,1)}
+
+  ggplot2::ggplot(calibration_plot_df,ggplot2::aes(x=predicted,y=actual))+
+    ggplot2::geom_point()+ggplot2::geom_line()+ggplot2::labs(x="Predicted probability",y="Observed frequency",...)+
     ggplot2::geom_abline(intercept=0, slope=1,linetype="dashed")+
-    ggplot2::scale_x_continuous(limits=c(min(calibration_plot_df),max(calibration_plot_df)))+
-    ggplot2::scale_y_continuous(limits=c(min(calibration_plot_df),max(calibration_plot_df)))
+    ggplot2::scale_x_continuous(limits=c(x_lims[1],x_lims[2]))+
+    ggplot2::scale_y_continuous(limits=c(y_lims[1],y_lims[2]))
 }
 
