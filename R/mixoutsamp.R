@@ -37,6 +37,7 @@ mixoutsamp<-function(model,newdata){
   ytype.name=as.character(stats::formula(model$modelStruct$varStruct)[[2]][[3]])
   }else{ytype.name=NULL}
 
+
   re.names=attr(model$modelStruct$reStr[[1]],"Dimnames")[[1]]
 
   #type of within-person correlation structure
@@ -223,7 +224,7 @@ if(corr.struct.type=="corExp"){
 
   preddata=cbind(newdata,xbstar,reffects,fitted)
   names(preddata)=c(names(newdata),"fixed","random","fitted")
-  random=data.frame(cbind(unique(pred.ids),reffects.individual))
+  random=data.frame(unique(pred.ids),reffects.individual)
   names(random)=c(id.name,  paste0("reff",re.names))
 
   list(preddata=preddata,random=random)
