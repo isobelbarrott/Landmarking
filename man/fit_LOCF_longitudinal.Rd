@@ -43,6 +43,9 @@ contains the LOCF value of \code{covariates} at the landmark time \code{x_L} usi
 \description{
 This function is a helper function for \code{fit_LOCF_landmark}.
 }
+\details{
+This function extracts the LOCF value for each of the \code{covariates} in \code{data_long} up to (but not including) time \code{x_L}.
+}
 \author{
 Isobel Barrott \email{isobel.barrott@gmail.com}
 }
