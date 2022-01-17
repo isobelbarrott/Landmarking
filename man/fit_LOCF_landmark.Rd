@@ -90,25 +90,27 @@ This function performs the two-stage landmarking analysis. In the first stage, t
 second stage the survival submodel is fitted.
 }
 \details{
-Firstly, this function selects the individuals in the risk set at the landmark time \code{x_L}. Specifically, the individuals in the risk set are those that have entered the study before the landmark age
-(\code{start_study_time} is less than \code{x_L}) and exited the study on or after the landmark age (\code{end_study_time} is the same as or more than \code{x_L})). If the option to use cross validation
-is selected, this function then assigns the individuals in the risk set to cross-validation folds and fits the landmark model using training and test datasets. If cross-validation is not selected then the landmark model is
-fit to the entire group of individuals in the risk set. The performance of the model is then assessed on the set of predictions from the entire set of individuals in the risk set
-by calculating Brier score and C-index.
+Firstly, this function selects the individuals in the risk set at the landmark time \code{x_L}.
+Specifically, the individuals in the risk set are those that have entered the study before the landmark age
+(\code{start_study_time} is less than \code{x_L}) and exited the study on or after the landmark age (\code{end_study_time}
+is the same as or more than \code{x_L})).
 
-There are two parts to fitting the landmark model: using the longitudinal data and using the survival data.
+Secondly, if the option to use cross validation
+is selected (using either parameter \code{k} or \code{cross_validation_df}), then an extra column \code{cross_validation_number} is added with the
+cross-validation folds. If parameter \code{k} is used, then the function \code{add_cv_number}
+randomly assigns these folds. For more details on this function see \code{?add_cv_number}.
+If the parameter \code{cross_validation_df} is used, then the folds in this data frame are added.
+If cross-validation is not selected then the landmark model is
+fit to the entire group of individuals in the risk set (this is both the training and test data set).
 
-For the longitudinal data, this function uses the most recent values of the covariates at the landmark
-age \code{x_L}.
+Thirdly, the landmark model is then fit to each of the training data sets using the function
+\code{fit_LOCF_landmark}. There are two parts to fitting the landmark model: using the longitudinal data and using the survival data.
+Using the longitudinal data is the first stage and is performed using \code{fit_LOCF_longitudinal}. See \code{?fit_LOCF_longitudinal} more for information about this function.
+Using the survival data is the second stage and is performed using \code{fit_survival_model}. See \code{?fit_survival_model} more for information about this function.
 
-For the survival submodel, there are three choices of model:
-\itemize{
-\item the standard Cox model, this is a wrapper function for \code{coxph} from the package \code{survival}
-\item the cause-specific model, this is a wrapper function for \code{CSC} from package \code{riskRegression}
-\item the Fine Gray model, this is a wrapper function for \code{FGR} from package \code{riskRegression}
-}
-
-The latter two models estimate the probability of the event of interest in the presence of competing events.
+Fourthly, the performance of the model is then assessed on the set of predictions
+from the entire set of individuals in the risk set by calculating Brier score and C-index.
+This is performed using \code{get_model_assessment}. See \code{?get_model_assessment} more for information about this function.
 }
 \examples{
 library(Landmarking)
