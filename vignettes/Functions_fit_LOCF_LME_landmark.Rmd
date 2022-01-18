@@ -21,3 +21,97 @@ Here is a visual illustration of the functions `fit_LOCF_landmark` (selecting op
 ```{r figurename, echo=FALSE, fig.cap="*Figure 1: *", out.width = '100%'}
 knitr::include_graphics("./images/fit_LOCF_landmark_model.pdf")
 ```
+
+### Function `add_cv_number`
+
+Randomly assigns a k-fold cross-validation number to each individual in a dataset.
+
+### Function `fit_LOCF_landmark`
+
+This function extracts the LOCF value for each of the `covariates` in `data_long` up to (but not including) time `x_L`.
+
+### Function `fit_LME_landmark`
+
+Firstly, the LME model is outlined. For an individual \eqn{i}, the LME model can be written as
+
+\deqn{Y_i = X_i \beta + Z_i U_i + \epsilon_i}
+
+where
+* \eqn{Y_i} is the vector of outcomes at different time points for the individual
+* \eqn{X_i} is the matrix of covariates for the fixed effects at these time points
+* \eqn{\beta} is the vector of coefficients for the fixed effects
+* \eqn{Z_i} is the matrix of covariates for the random effects
+* \eqn{U_i} is the matrix of coefficients for the random effects
+* \eqn{\epsilon_i} is the error term, typically from N(0, \eqn{\sigma})
+
+By using an LME model to fit repeat measures data we can allow measurements from the same individuals to be
+more similar than measurements from different individuals. This is done through the random intercept and/or
+random slope.
+
+Extending this model to the case where there are multiple random effects, denoted \eqn{k}, we have
+
+\deqn{Y_{ik} = X_{ik} \beta_k + Z_{ik} U_{ik} + \epsilon_{ik}}
+
+Using this model we can allow a covariance structure within the random effects term \eqn{U_{ik}}, for example a sample from the
+multivariate normal (MVN) distribution \eqn{MVN(0,\Sigma_u)}. This covariance structure means the value of one random effects variable informs about the value of the other random effects variables, leading to more accurate predictions and allowing there to be missing data in the
+random effects variables.
+
+The function \code{fit_LME_landmark} uses this covariance structure for the random effects when fitting the LME model.
+To fit the LME model the function \code{lme} from the package \code{nlme} is used.
+The fixed effects are calculated as the LOCF for the variables \code{fixed_effects} at the landmark age \code{x_L} and the random effects
+are those stated in \code{random_effects} and at times \code{random_effects_time}.  The random intercept is always included in the LME model.
+Additionally, the random slope can be included in the LME model using the parameter `random_slope_in_LME=TRUE`. The model is used to predict the
+values of the random effects at the landmark time \code{x_L},
+and these are used as predictors in the survival model along with the LOCF values of the fixed effects.
+Additionally, the estimated value of the random slope can
+be included as predictors in the survival model using the parameter `random_slope_as_covariate=TRUE`.
+
+It is important to distinguish between the validation set and the development set for fitting the LME model. The development set includes
+all the repeat measurements (including those after the landmark age \code{x_L}). Conversely, the validation set only includes
+the repeat measurements recorded up until and including the landmark age \code{x_L}.
+
+There is an important consideration about fitting the linear mixed effects model. As the variable \code{random_effects_time}
+gets further from 0, the random effects coefficients get closer to 0. This causes computational issues
+as the elements in the covariance matrix of the random effects, \eqn{\Sigma_u}, are constrained to
+be greater than 0. Using parameter \code{standard_time=TRUE} can prevent this issue by standardising the
+time variables to ensure that the \code{random_effects_time} values are not too close to 0.
+
+The LOCF values for the fixed effects and the prediction of the random effects at the landmark age
+are used as the covariates for the survival submodel, in addition to the estimated random slopes
+if option `random_effects_as_covariate` is selected.
+
+### Function `fit_survival_model`
+
+For the survival submodel, there are three choices of model:
+ * the standard Cox model, this is a wrapper function for \code{coxph} from the package \code{survival}
+ * the cause-specific model, this is a wrapper function for \code{CSC} from package \code{riskRegression}
+ * the Fine Gray model, this is a wrapper function for \code{FGR} from package \code{riskRegression}
+
+The latter two models estimate the probability of the event of interest in the presence of competing events.
+
+For both the c-index and Brier score calculations, inverse probability censoring weighting (IPCW) is used to create weights which account for the occurrence of censoring. The censoring model assumes for this function is the Kaplan Meier model, i.e. censoring occurs independently of covariates.
+
+
+### Function `get_model_assessment`
+
+There are two factors in assessing the performance of a prediction model; its
+discrimination and its calibration. The c-index is one method to assess
+discrimination, this refers to the ability of the model to separate individuals into
+those that will have an event and those that will not. The c-index at a horizon time `x_hor`
+looks at the pairs of individuals where one individual has the event at a time T and the other has not had the event at time T.
+It is calculated as the proportion of these pairs where their relative risk prediction agrees with the
+actual outcomes for the two individuals. This is extended to the competing risks case
+by comparing individuals where one had the event of interest at time T and the other individual either
+did not experience the event before this time T or experienced a competing event.
+
+The Brier score is one method to assess calibration, this refers to the agreement between the risk prediction and
+the outcome. The Brier score is calculated as the average mean squared error of the predicted risk and the event outcome (where
+an event is 1 and not experiencing the event is 0). This is extended to the competing risks case by including the competing risk events as
+not experiencing the event.
+
+For both the c-index and Brier score calculations, inverse probability censoring weighting (IPCW) is used to create weights
+which account for the occurence of censoring. The censoring model assumes for this function is the Kaplan Meier model, i.e. censoring occurs
+independently of covariates.
+
+The c-index is calculated using the `cindex` function in package `pec`. The Brier score is calculated using
+`pec` function in package `pec`.
