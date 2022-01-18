@@ -12,7 +12,8 @@ fit_LME_landmark(
   random_effects,
   fixed_effects_time,
   random_effects_time,
-  random_slope = TRUE,
+  random_slope_in_LME = TRUE,
+  random_slope_as_covariate = TRUE,
   standardise_time = FALSE,
   individual_id,
   start_study_time,
@@ -48,7 +49,10 @@ which contain the times at which repeat measures were recorded. This should eith
 the same length as \code{random_effects}. In the latter case the order of elements must correspond to the
 order of elements in \code{random_effects}.}
 
-\item{random_slope}{Boolean indicating whether to include the estimated value of the random slope in the LME model}
+\item{random_slope_in_LME}{Boolean indicating whether to include a random slope in the LME model}
+
+\item{random_slope_as_covariate}{Boolean indicating whether to include the random slope estimate from the LME model
+as a covariate in the survival submodel.}
 
 \item{standardise_time}{Boolean indicating whether to standardise the time variable by subtracting the mean
 and dividing by the standard deviation (see Details section for more information)}
@@ -116,74 +120,30 @@ please see \code{?fit_survival_model} which is the function used to do this with
 \code{prediction_error} contains a list indicating the c-index and Brier score at time \code{x_hor} and their standard errors if parameter \code{b} is used.
 }
 \description{
-This function performs the two-stage landmarking analysis. In the first stage the longitudinal submodel is fitted using the LME model and in the
-second stage the survival submodel is fitted.
+This function performs the two-stage landmarking analysis.
 }
 \details{
-Firstly this function selects the individuals in the risk set at the landmark time \code{x_L}. Specifically, the individuals in the risk set are those that have entered the study before the landmark age
-(\code{start_study_time} is less than \code{x_L}) and exited the study on or after the landmark age (\code{end_study_time} is the same as or more than \code{x_L})). If the option to use cross validation
-is selected, this function then assigns the individuals in the risk set to cross-validation folds and fits the landmark model using training and test datasets. If cross-validation is not selected then the landmark model is
-fit to the entire group of individuals in the risk set. The performance of the model is then assessed on the set of predictions from the entire set of individuals in the risk set
-by calculating Brier score and C-index.
+#' Firstly, this function selects the individuals in the risk set at the landmark time \code{x_L}.
+Specifically, the individuals in the risk set are those that have entered the study before (and including) the landmark age
+(\code{start_study_time} is less than or equal to \code{x_L}) and exited the study after the landmark age (\code{end_study_time}
+is more than \code{x_L})).
 
-There are two parts to fitting the landmark model: using the longitudinal data and using the survival data.
-This function is used to fit the LME model to the longitudinal data. This model will be described in more detail.
+Secondly, if the option to use cross validation
+is selected (using either parameter \code{k} or \code{cross_validation_df}), then an extra column \code{cross_validation_number} is added with the
+cross-validation folds. If parameter \code{k} is used, then the function \code{add_cv_number}
+randomly assigns these folds. For more details on this function see \code{?add_cv_number}.
+If the parameter \code{cross_validation_df} is used, then the folds in this data frame are added.
+If cross-validation is not selected then the landmark model is
+fit to the entire group of individuals in the risk set (this is both the training and test data set).
 
-For an individual \eqn{i}, the LME model can be written as
+Thirdly, the landmark model is then fit to each of the training data sets using the function
+\code{fit_LME_landmark}. There are two parts to fitting the landmark model: using the longitudinal data and using the survival data.
+Using the longitudinal data is the first stage and is performed using \code{fit_LME_longitudinal}. See \code{?fit_LME_longitudinal} more for information about this function.
+Using the survival data is the second stage and is performed using \code{fit_survival_model}. See \code{?fit_survival_model} more for information about this function.
 
-\deqn{Y_i = X_i \beta + Z_i U_i + \epsilon_i}
-
-where
-\itemize{
-\item \eqn{Y_i} is the vector of outcomes at different time points for the individual
-\item \eqn{X_i} is the matrix of covariates for the fixed effects at these time points
-\item \eqn{\beta} is the vector of coefficients for the fixed effects
-\item \eqn{Z_i} is the matrix of covariates for the random effects
-\item \eqn{U_i} is the matrix of coefficients for the random effects
-\item \eqn{\epsilon_i} is the error term, typically from N(0, \eqn{\sigma})
-}
-
-By using an LME model to fit repeat measures data we can allow measurements from the same individuals to be
-more similar than measurements from different individuals. This is done through the random intercept and/or
-random slope.
-
-Extending this model to the case where there are multiple random effects, denoted \eqn{k}, we have
-
-\deqn{Y_{ik} = X_{ik} \beta_k + Z_{ik} U_{ik} + \epsilon_{ik}}
-
-Using this model we can allow a covariance structure within the random effects term \eqn{U_{ik}}, for example a sample from the
-multivariate normal (MVN) distribution \eqn{MVN(0,\Sigma_u)}. This covariance structure means the value of one random effects variable informs about the
-value of the other random effects variables, leading to more accurate predictions and allowing there to be missing data in the
-random effects variables.
-
-The function \code{fit_LME_landmark} uses this covariance structure for the random effects when fitting the LME model.
-To fit the LME model the function \code{lme} from the package \code{nlme} is used.
-The fixed effects are calculated as the LOCF for the variables \code{fixed_effects} at the landmark age \code{x_L} and the random effects
-are those stated in \code{random_effects} and at times \code{random_effects_time}. This model is used to predict the
-values of the random effects at the landmark time \code{x_L}.
-
-It is important to distinguish between the validation set and the development set for fitting the LME model. The development set includes
-all the repeat measurements (including those after the landmark age \code{x_L}). Conversely, the validation set only includes
-the repeat measurements recorded up until and including the landmark age \code{x_L}.
-
-There is an important consideration about fitting the linear mixed effects model. As the variable \code{random_effects_time}
-gets further from 0, the random effects coefficients get closer to 0. This causes computational issues
-as the elements in the covariance matrix of the random effects, \eqn{\Sigma_u}, are constrained to
-be greater than 0. Using parameter \code{standard_time=TRUE} can prevent this issue by standardising the
-time variables to ensure that the \code{random_effects_time} values are not too close to 0.
-
-The predictions of the random effects at the landmark age, in addition to the LOCF values for the fixed effects,
-are used as the covariates for the survival submodel.
-The values of these covariates can be viewed in the data frame \code{data} that are returned by this function.
-
-For the survival submodel, there are three choices of model:
-\itemize{
-\item the standard Cox model, this is a wrapper function for \code{coxph} from the package \code{survival}
-\item the cause-specific model, this is a wrapper function for \code{CSC} from package \code{riskRegression}
-\item the Fine Gray model, this is a wrapper function for \code{FGR} from package \code{riskRegression}
-}
-
-The latter two models estimate the probability of the event of interest in the presence of competing events.
+Fourthly, the performance of the model is then assessed on the set of predictions
+from the entire set of individuals in the risk set by calculating Brier score and C-index.
+This is performed using \code{get_model_assessment}. See \code{?get_model_assessment} more for information about this function.
 }
 \examples{
 \dontrun{
