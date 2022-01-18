@@ -7,7 +7,7 @@ return_LOCF_by_variable <- function(data_long,
   var <- covariates[i]
   time <- covariates_time[i]
   data_var <-
-    data_long[data_long[[time]] < x_L,][, c(individual_id, var, time)]
+    data_long[data_long[[time]] <= x_L,][, c(individual_id, var, time)]
   data_var <-
     data_var[!is.na(data_var[[var]]),]#removes NA values
   data_var <-
