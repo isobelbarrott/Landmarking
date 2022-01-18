@@ -12,7 +12,8 @@ fit_LME_longitudinal(
   fixed_effects_time,
   random_effects_time,
   standardise_time = FALSE,
-  random_slope = TRUE,
+  random_slope_in_LME = TRUE,
+  random_slope_as_covariate = FALSE,
   cv_name = NA,
   individual_id,
   lme_control = nlme::lmeControl()
@@ -40,7 +41,10 @@ order of elements in \code{random_effects}.}
 \item{standardise_time}{Boolean indicating whether to standardise the time variable by subtracting the mean
 and dividing by the standard deviation (see Details section for more information)}
 
-\item{random_slope}{Boolean indicating whether to include a random slope in the LME model}
+\item{random_slope_in_LME}{Boolean indicating whether to include a random slope in the LME model}
+
+\item{random_slope_as_covariate}{Boolean indicating whether to include the random slope estimate from the LME model
+as a covariate in the survival submodel.}
 
 \item{cv_name}{Character string specifying the column name in \code{data_long} that indicates cross-validation fold}
 
@@ -67,4 +71,56 @@ is the mean and standard deviation use to normalise times when fitting the LME m
 }
 \description{
 This function is a helper function for \code{fit_LME_landmark}.
+}
+\details{
+Firstly, the LME model is outlined. For an individual \eqn{i}, the LME model can be written as
+
+\deqn{Y_i = X_i \beta + Z_i U_i + \epsilon_i}
+
+where
+\itemize{
+\item \eqn{Y_i} is the vector of outcomes at different time points for the individual
+\item \eqn{X_i} is the matrix of covariates for the fixed effects at these time points
+\item \eqn{\beta} is the vector of coefficients for the fixed effects
+\item \eqn{Z_i} is the matrix of covariates for the random effects
+\item \eqn{U_i} is the matrix of coefficients for the random effects
+\item \eqn{\epsilon_i} is the error term, typically from N(0, \eqn{\sigma})
+}
+
+By using an LME model to fit repeat measures data we can allow measurements from the same individuals to be
+more similar than measurements from different individuals. This is done through the random intercept and/or
+random slope.
+
+Extending this model to the case where there are multiple random effects, denoted \eqn{k}, we have
+
+\deqn{Y_{ik} = X_{ik} \beta_k + Z_{ik} U_{ik} + \epsilon_{ik}}
+
+Using this model we can allow a covariance structure within the random effects term \eqn{U_{ik}}, for example a sample from the
+multivariate normal (MVN) distribution \eqn{MVN(0,\Sigma_u)}. This covariance structure means the value of one random effects variable informs about the
+value of the other random effects variables, leading to more accurate predictions and allowing there to be missing data in the
+random effects variables.
+
+The function \code{fit_LME_landmark} uses this covariance structure for the random effects when fitting the LME model.
+To fit the LME model the function \code{lme} from the package \code{nlme} is used.
+The fixed effects are calculated as the LOCF for the variables \code{fixed_effects} at the landmark age \code{x_L} and the random effects
+are those stated in \code{random_effects} and at times \code{random_effects_time}.  The random intercept is always included in the LME model.
+Additionally, the random slope can be included in the LME model using the parameter \code{random_slope_in_LME=TRUE}. The model is used to predict the
+values of the random effects at the landmark time \code{x_L},
+and these are used as predictors in the survival model along with the LOCF values of the fixed effects.
+Additionally, the estimated value of the random slope can
+be included as predictors in the survival model using the parameter \code{random_slope_as_covariate=TRUE}.
+
+It is important to distinguish between the validation set and the development set for fitting the LME model. The development set includes
+all the repeat measurements (including those after the landmark age \code{x_L}). Conversely, the validation set only includes
+the repeat measurements recorded up until and including the landmark age \code{x_L}.
+
+There is an important consideration about fitting the linear mixed effects model. As the variable \code{random_effects_time}
+gets further from 0, the random effects coefficients get closer to 0. This causes computational issues
+as the elements in the covariance matrix of the random effects, \eqn{\Sigma_u}, are constrained to
+be greater than 0. Using parameter \code{standard_time=TRUE} can prevent this issue by standardising the
+time variables to ensure that the \code{random_effects_time} values are not too close to 0.
+
+The LOCF values for the fixed effects and the prediction of the random effects at the landmark age
+are used as the covariates for the survival submodel, in addition to the estimated random slopes
+if option \code{random_effects_as_covariate} is selected.
 }
