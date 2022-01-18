@@ -1,6 +1,6 @@
 #' Fit a survival sub-model
 #'
-#' This function is a helper function for `fit_LOCF_landmark_model`.
+#' This function is a helper function for `fit_LOCF_landmark_model` and `fit_LME_landmark_model`.
 #'
 #' @param data Data frame containing covariates and time-to-event data, one row for each individual.
 #' @template x_hor
