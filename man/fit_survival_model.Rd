@@ -46,7 +46,19 @@ For a model using cross-validation, \code{model_survival} contains a list of out
 element in the list corresponding to a different cross-validation fold.
 }
 \description{
-This function is a helper function for \code{fit_LOCF_landmark_model}.
+This function is a helper function for \code{fit_LOCF_landmark_model} and \code{fit_LME_landmark_model}.
+}
+\details{
+For the survival submodel, there are three choices of model:
+\itemize{
+\item the standard Cox model, this is a wrapper function for \code{coxph} from the package \code{survival}
+\item the cause-specific model, this is a wrapper function for \code{CSC} from package \code{riskRegression}
+\item the Fine Gray model, this is a wrapper function for \code{FGR} from package \code{riskRegression}
+}
+
+The latter two models estimate the probability of the event of interest in the presence of competing events.
+
+For both the c-index and Brier score calculations, inverse probability censoring weighting (IPCW) is used to create weights which account for the occurrence of censoring. The censoring model assumes for this function is the Kaplan Meier model, i.e. censoring occurs independently of covariates.
 }
 \author{
 Isobel Barrott \email{isobel.barrott@gmail.com}
