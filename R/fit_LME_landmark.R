@@ -12,7 +12,9 @@
 #' @template random_effects
 #' @template fixed_effects_time
 #' @template random_effects_time
-#' @param random_slope Boolean indicating whether to include a random slope in the LME model
+#' @param random_slope_in_LME Boolean indicating whether to include a random slope in the LME model
+#' @param random_slope_as_covariate Boolean indicating whether to include the random slope estimate from the LME model
+#' as a covariate in the survival submodel.
 #' @param lme_control Object created using `nlme::lmeControl()`, which will be passed to the `control` argument of the `lme` function
 #' @return List containing `data_longitudinal`, `model_longitudinal`, `model_LME`, and `model_LME_standardise_time`.
 #'
@@ -30,6 +32,55 @@
 #' `model_LME_standardise_time` contains a list of two objects `mean_response_time` and `sd_response_time` if the parameter `standardise_time=TRUE` is used. This
 #' is the mean and standard deviation use to normalise times when fitting the LME model.
 #'
+#' @details
+#' Firstly, the LME model is outlined. For an individual \eqn{i}, the LME model can be written as
+#'
+#' \deqn{Y_i = X_i \beta + Z_i U_i + \epsilon_i}
+#'
+#' where
+#' * \eqn{Y_i} is the vector of outcomes at different time points for the individual
+#' * \eqn{X_i} is the matrix of covariates for the fixed effects at these time points
+#' * \eqn{\beta} is the vector of coefficients for the fixed effects
+#' * \eqn{Z_i} is the matrix of covariates for the random effects
+#' * \eqn{U_i} is the matrix of coefficients for the random effects
+#' * \eqn{\epsilon_i} is the error term, typically from N(0, \eqn{\sigma})
+#'
+#' By using an LME model to fit repeat measures data we can allow measurements from the same individuals to be
+#' more similar than measurements from different individuals. This is done through the random intercept and/or
+#' random slope.
+#'
+#' Extending this model to the case where there are multiple random effects, denoted \eqn{k}, we have
+#'
+#' \deqn{Y_{ik} = X_{ik} \beta_k + Z_{ik} U_{ik} + \epsilon_{ik}}
+#'
+#' Using this model we can allow a covariance structure within the random effects term \eqn{U_{ik}}, for example a sample from the
+#' multivariate normal (MVN) distribution \eqn{MVN(0,\Sigma_u)}. This covariance structure means the value of one random effects variable informs about the
+#' value of the other random effects variables, leading to more accurate predictions and allowing there to be missing data in the
+#' random effects variables.
+#'
+#' The function \code{fit_LME_landmark} uses this covariance structure for the random effects when fitting the LME model.
+#' To fit the LME model the function \code{lme} from the package \code{nlme} is used.
+#' The fixed effects are calculated as the LOCF for the variables \code{fixed_effects} at the landmark age \code{x_L} and the random effects
+#' are those stated in \code{random_effects} and at times \code{random_effects_time}.  The random intercept is always included in the LME model.
+#' Additionally, the random slope can be included in the LME model using the parameter `random_slope_in_LME=TRUE`. The model is used to predict the
+#' values of the random effects at the landmark time \code{x_L},
+#' and these are used as predictors in the survival model along with the LOCF values of the fixed effects.
+#' Additionally, the estimated value of the random slope can
+#' be included as predictors in the survival model using the parameter `random_slope_as_covariate=TRUE`.
+#'
+#' It is important to distinguish between the validation set and the development set for fitting the LME model. The development set includes
+#' all the repeat measurements (including those after the landmark age \code{x_L}). Conversely, the validation set only includes
+#' the repeat measurements recorded up until and including the landmark age \code{x_L}.
+#'
+#' There is an important consideration about fitting the linear mixed effects model. As the variable \code{random_effects_time}
+#' gets further from 0, the random effects coefficients get closer to 0. This causes computational issues
+#' as the elements in the covariance matrix of the random effects, \eqn{\Sigma_u}, are constrained to
+#' be greater than 0. Using parameter \code{standard_time=TRUE} can prevent this issue by standardising the
+#' time variables to ensure that the \code{random_effects_time} values are not too close to 0.
+#'
+#' The LOCF values for the fixed effects and the prediction of the random effects at the landmark age
+#' are used as the covariates for the survival submodel, in addition to the estimated random slopes
+#' if option `random_effects_as_covariate` is selected.
 #'
 #' @export
 fit_LME_longitudinal <- function(data_long,
@@ -39,7 +90,8 @@ fit_LME_longitudinal <- function(data_long,
                                        fixed_effects_time,
                                        random_effects_time,
                                        standardise_time=FALSE,
-                                       random_slope = TRUE,
+                                       random_slope_in_LME = TRUE,
+                                       random_slope_as_covariate=FALSE,
                                        cv_name=NA,
                                        individual_id,
                                        lme_control = nlme::lmeControl()) {
@@ -133,7 +185,7 @@ fit_LME_longitudinal <- function(data_long,
     as.numeric(Reduce(c, lapply(1:length(random_effects), function(i) {
       data_LME[, random_effects_time[i]]
     })))
-    data_fixed_effects<-
+  data_fixed_effects<-
       do.call("rbind", replicate(
         n = length(random_effects),
         data_LME[, c(individual_id, fixed_effects, cv_name)],
@@ -154,18 +206,20 @@ fit_LME_longitudinal <- function(data_long,
   x_L<-(x_L-mean_response_time)/sd_response_time
   standardise_time<-list(mean_response_time=mean_response_time,sd_response_time=sd_response_time)
 
-  data_LME_model_val <- data_LME[data_LME$response_time < x_L,]
+  data_LME_model_val <- data_LME[data_LME$response_time <= x_L,]
   data_LME_model_dev <- data_LME[!is.na(data_LME$response),]
   #####
 
   if (length(random_effects)==1){
     formula_weights <- NULL
-    if (random_slope == FALSE) {formula_random<-as.formula(paste0(" ~ 1 |",individual_id))}else{formula_random<-as.formula(paste0(" ~ 1 + response_time |",individual_id))}
+    if (random_slope_in_LME == FALSE) {
+      formula_random<-as.formula(paste0(" ~ 1 |",individual_id))}else{
+        formula_random<-as.formula(paste0(" ~ 1 + response_time |",individual_id))}
     formula_fixed<-as.formula(paste0(c(paste0("response~ 1 "), c("response_time", fixed_effects)), collapse = "+"))
   }
   if (length(random_effects)>1){
     formula_weights <- nlme::varIdent(form = ~ 1 | "response_type")
-    if (random_slope == FALSE) {formula_random<-as.formula(paste0(" ~ -1 + response_type | ",individual_id))}else{
+    if (random_slope_in_LME == FALSE) {formula_random<-as.formula(paste0(" ~ -1 + response_type | ",individual_id))}else{
      formula_random<-as.formula(paste0(" ~-1 + response_type + response_type:response_time | ",individual_id))}
     formula_fixed<-as.formula(paste0(c(
     paste0(c(paste0("response~-1+ response_type"), c("response_time", fixed_effects)), collapse = "+"),
@@ -175,8 +229,6 @@ fit_LME_longitudinal <- function(data_long,
   ), collapse = "+"))
   }
 
-
-  #cl<-parallel::makeCluster(parallel::detectCores()-1,type="SOCK")
   cv_numbers <- unique(data_LME_model_dev[[cv_name]])
 
   model_LME <- lapply(cv_numbers, function(cv_number) {
@@ -205,15 +257,20 @@ fit_LME_longitudinal <- function(data_long,
 
   data_LME <-
     lapply(cv_numbers, function(cv_number) {
+      print(cv_number)
       data_LME_model_val_cv <-
         data_LME_model_val[which(data_LME_model_val[[cv_name]] == cv_number), ]
       data_LME_model_val_cv<-droplevels(data_LME_model_val_cv)
       model_LME_cv <- model_LME[[as.character(cv_number)]]
       response_predictions <-
         which(data_LME_model_val_cv$predict == 1)
-      data_LME_model_val_cv <-
+
+      mixoutsamp_LME_model_val_cv <-
         mixoutsamp(model = model_LME_cv,
-                   newdata = data_LME_model_val_cv)$preddata[response_predictions, ][, c(individual_id,
+                   newdata = data_LME_model_val_cv)
+
+
+      data_LME_model_val_cv <-mixoutsamp_LME_model_val_cv$preddata[response_predictions, ][, c(individual_id,
                                                                                          fixed_effects,
                                                                                          cv_name,
                                                                                          "response_type",
@@ -229,6 +286,14 @@ fit_LME_longitudinal <- function(data_long,
         names(data_LME_model_val_cv)[grep(paste0("fitted.",name), names(data_LME_model_val_cv))] <-
           name
       }
+      if(random_slope_as_covariate==TRUE){
+        data_LME_model_val_cv<-dplyr::left_join(data_LME_model_val_cv,
+                                                mixoutsamp_LME_model_val_cv$random[,c(individual_id,paste0("reffresponse_type",random_effects,":response_time"))],by=individual_id)
+        for (name in paste0(random_effects)){
+          names(data_LME_model_val_cv)[grep(paste0("reffresponse_type",name,":response_time"),names(data_LME_model_val_cv))]<-paste0(name,"_slope")
+        }
+      }
+
       data_LME_model_val_cv[[as.character(cv_name)]]<-cv_number
       data_LME_model_val_cv
   })
@@ -253,8 +318,7 @@ fit_LME_longitudinal <- function(data_long,
 
 #' Fit a landmarking model using a linear mixed effects (LME) model for the longitudinal submodel
 #'
-#' This function performs the two-stage landmarking analysis. In the first stage the longitudinal submodel is fitted using the LME model and in the
-#' second stage the survival submodel is fitted.
+#' This function performs the two-stage landmarking analysis.
 #'
 #' @param data_long Data frame or list of data frames each corresponding to a landmark age `x_L` (each element of the list must be named the value of `x_L` it corresponds to)
 #' Each data frame contains repeat measurements data and time-to-event data in long format.
@@ -273,8 +337,9 @@ fit_LME_longitudinal <- function(data_long,
 #' @template random_effects
 #' @template fixed_effects_time
 #' @template random_effects_time
-#' @param random_slope Boolean indicating whether to include a random slope in the LME model
-#' @param random_slope Boolean indicating whether to include the estimated value of the random slope in the LME model
+#' @param random_slope_in_LME Boolean indicating whether to include a random slope in the LME model
+#' @param random_slope_as_covariate Boolean indicating whether to include the random slope estimate from the LME model
+#' as a covariate in the survival submodel.
 #' @param lme_control Object created using `nlme::lmeControl()`, which will be passed to the `control` argument of the `lme`
 #' function
 #' @template b
@@ -310,68 +375,27 @@ fit_LME_longitudinal <- function(data_long,
 #'
 #' `prediction_error` contains a list indicating the c-index and Brier score at time `x_hor` and their standard errors if parameter `b` is used.
 #' @details
-#' Firstly this function selects the individuals in the risk set at the landmark time \code{x_L}. Specifically, the individuals in the risk set are those that have entered the study before the landmark age
-#' (\code{start_study_time} is less than \code{x_L}) and exited the study on or after the landmark age (\code{end_study_time} is the same as or more than \code{x_L})). If the option to use cross validation
-#' is selected, this function then assigns the individuals in the risk set to cross-validation folds and fits the landmark model using training and test datasets. If cross-validation is not selected then the landmark model is
-#' fit to the entire group of individuals in the risk set. The performance of the model is then assessed on the set of predictions from the entire set of individuals in the risk set
-#' by calculating Brier score and C-index.
+#' #' Firstly, this function selects the individuals in the risk set at the landmark time \code{x_L}.
+#' Specifically, the individuals in the risk set are those that have entered the study before (and including) the landmark age
+#' (\code{start_study_time} is less than or equal to \code{x_L}) and exited the study after the landmark age (\code{end_study_time}
+#' is more than \code{x_L})).
 #'
-#' There are two parts to fitting the landmark model: using the longitudinal data and using the survival data.
-#' This function is used to fit the LME model to the longitudinal data. This model will be described in more detail.
+#' Secondly, if the option to use cross validation
+#' is selected (using either parameter `k` or `cross_validation_df`), then an extra column `cross_validation_number` is added with the
+#' cross-validation folds. If parameter `k` is used, then the function `add_cv_number`
+#' randomly assigns these folds. For more details on this function see `?add_cv_number`.
+#' If the parameter `cross_validation_df` is used, then the folds in this data frame are added.
+#' If cross-validation is not selected then the landmark model is
+#' fit to the entire group of individuals in the risk set (this is both the training and test data set).
 #'
-#' For an individual \eqn{i}, the LME model can be written as
+#' Thirdly, the landmark model is then fit to each of the training data sets using the function
+#' `fit_LME_landmark`. There are two parts to fitting the landmark model: using the longitudinal data and using the survival data.
+#' Using the longitudinal data is the first stage and is performed using `fit_LME_longitudinal`. See `?fit_LME_longitudinal` more for information about this function.
+#' Using the survival data is the second stage and is performed using `fit_survival_model`. See `?fit_survival_model` more for information about this function.
 #'
-#' \deqn{Y_i = X_i \beta + Z_i U_i + \epsilon_i}
-#'
-#' where
-#' * \eqn{Y_i} is the vector of outcomes at different time points for the individual
-#' * \eqn{X_i} is the matrix of covariates for the fixed effects at these time points
-#' * \eqn{\beta} is the vector of coefficients for the fixed effects
-#' * \eqn{Z_i} is the matrix of covariates for the random effects
-#' * \eqn{U_i} is the matrix of coefficients for the random effects
-#' * \eqn{\epsilon_i} is the error term, typically from N(0, \eqn{\sigma})
-#'
-#' By using an LME model to fit repeat measures data we can allow measurements from the same individuals to be
-#' more similar than measurements from different individuals. This is done through the random intercept and/or
-#' random slope.
-#'
-#' Extending this model to the case where there are multiple random effects, denoted \eqn{k}, we have
-#'
-#' \deqn{Y_{ik} = X_{ik} \beta_k + Z_{ik} U_{ik} + \epsilon_{ik}}
-#'
-#' Using this model we can allow a covariance structure within the random effects term \eqn{U_{ik}}, for example a sample from the
-#' multivariate normal (MVN) distribution \eqn{MVN(0,\Sigma_u)}. This covariance structure means the value of one random effects variable informs about the
-#' value of the other random effects variables, leading to more accurate predictions and allowing there to be missing data in the
-#' random effects variables.
-#'
-#' The function \code{fit_LME_landmark} uses this covariance structure for the random effects when fitting the LME model.
-#' To fit the LME model the function \code{lme} from the package \code{nlme} is used.
-#' The fixed effects are calculated as the LOCF for the variables \code{fixed_effects} at the landmark age \code{x_L} and the random effects
-#' are those stated in \code{random_effects} and at times \code{random_effects_time}. This model is used to predict the
-#' values of the random effects at the landmark time \code{x_L}.
-#'
-#' It is important to distinguish between the validation set and the development set for fitting the LME model. The development set includes
-#' all the repeat measurements (including those after the landmark age \code{x_L}). Conversely, the validation set only includes
-#' the repeat measurements recorded up until and including the landmark age \code{x_L}.
-#'
-#'
-#' There is an important consideration about fitting the linear mixed effects model. As the variable \code{random_effects_time}
-#' gets further from 0, the random effects coefficients get closer to 0. This causes computational issues
-#' as the elements in the covariance matrix of the random effects, \eqn{\Sigma_u}, are constrained to
-#' be greater than 0. Using parameter \code{standard_time=TRUE} can prevent this issue by standardising the
-#' time variables to ensure that the \code{random_effects_time} values are not too close to 0.
-#'
-#' The predictions of the random effects at the landmark age, in addition to the LOCF values for the fixed effects,
-#' are used as the covariates for the survival submodel.
-#' The values of these covariates can be viewed in the data frame `data` that are returned by this function.
-#'
-#' For the survival submodel, there are three choices of model:
-#' * the standard Cox model, this is a wrapper function for \code{coxph} from the package \code{survival}
-#' * the cause-specific model, this is a wrapper function for \code{CSC} from package \code{riskRegression}
-#' * the Fine Gray model, this is a wrapper function for \code{FGR} from package \code{riskRegression}
-#'
-#' The latter two models estimate the probability of the event of interest in the presence of competing events.
-#'
+#' Fourthly, the performance of the model is then assessed on the set of predictions
+#' from the entire set of individuals in the risk set by calculating Brier score and C-index.
+#' This is performed using `get_model_assessment`. See `?get_model_assessment` more for information about this function.
 #'
 #' @author Isobel Barrott \email{isobel.barrott@@gmail.com}
 #' @examples \dontrun{
@@ -418,7 +442,8 @@ fit_LME_landmark<-function(data_long,
                                  random_effects,
                                  fixed_effects_time,
                                  random_effects_time,
-                                 random_slope = TRUE,
+                                 random_slope_in_LME = TRUE,
+                                 random_slope_as_covariate = TRUE,
                                  standardise_time=FALSE,
                                  individual_id,
                                  start_study_time,
@@ -534,9 +559,9 @@ fit_LME_landmark<-function(data_long,
              Use function return_ids_with_LOCF to remove these individuals from the dataset")
       }
 
-      data_long_x_l<-data_long_x_l[data_long_x_l[[start_study_time]]<x_l & data_long_x_l[[end_study_time]]>=x_l,]
-      data_long_x_l[[event_status]][data_long_x_l[[event_time]]>=x_h]<-0
-      data_long_x_l[[event_time]][data_long_x_l[[event_time]]>=x_h]<-x_h
+      data_long_x_l<-data_long_x_l[data_long_x_l[[start_study_time]]<=x_l & data_long_x_l[[end_study_time]]>x_l,]
+      data_long_x_l[[event_status]][data_long_x_l[[event_time]]>x_h]<-0
+      data_long_x_l[[event_time]][data_long_x_l[[event_time]]>x_h]<-x_h
 
       if(cross_validation_df_add==TRUE){data_long_x_l<-
         dplyr::left_join(data_long_x_l,cross_validation_df[[as.character(x_l)]][,c(individual_id,"cross_validation_number")],by=individual_id)}
@@ -560,7 +585,8 @@ fit_LME_landmark<-function(data_long,
                                                         random_effects=random_effects,
                                                         fixed_effects_time=fixed_effects_time,
                                                         random_effects_time=random_effects_time,
-                                                        random_slope = random_slope,
+                                                        random_slope_in_LME = random_slope_in_LME,
+                                                        random_slope_as_covariate=random_slope_as_covariate,
                                                         standardise_time=standardise_time,
                                                         cv_name=cv_name,
                                                         individual_id=individual_id,
@@ -572,6 +598,7 @@ fit_LME_landmark<-function(data_long,
 
     print(paste0("Fitting survival submodel, landmark age ",x_l))
 
+    if (random_slope_as_covariate){random_effects<-c(random_effects,paste0(random_effects,"_slope"))}
     data_model_survival<-fit_survival_model(data=data_longitudinal,
                                             individual_id=individual_id,
                                             cv_name=cv_name,
