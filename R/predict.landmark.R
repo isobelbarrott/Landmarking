@@ -93,6 +93,7 @@ predict.landmark<-function(object,x_L,x_hor,newdata,cv_fold=NA,...){
     fixed_effects_time<-call$fixed_effects_time
     random_effects_time<-call$random_effects_time
     individual_id<-call$individual_id
+    random_slope_as_covariate<-ifelse(is.null(call$random_slope_as_covariate),TRUE,call$random_slope_as_covariate)
 
     for (fixed_effect in fixed_effects){
       if(is.factor(object[[as.character(x_L)]]$data[[fixed_effect]])){
@@ -155,25 +156,32 @@ predict.landmark<-function(object,x_L,x_hor,newdata,cv_fold=NA,...){
     response_predictions <-
       which(data_longitudinal$predict == 1)
 
-
-
-      data_longitudinal <-
+    mixoutsamp_longitudinal <-
         mixoutsamp(model = model_LME,
-                   newdata = data_longitudinal)$preddata[response_predictions, ][, c(individual_id,
-                                                                                      fixed_effects,
-                                                                                      "response_type",
-                                                                                      "fitted")]
-      data_longitudinal <-
-        stats::reshape(
-          data_longitudinal,
-          timevar = "response_type",
-          idvar = c(individual_id, fixed_effects),
-          direction = "wide"
-        )
+                   newdata = data_longitudinal)
 
+
+    data_longitudinal <-mixoutsamp_longitudinal$preddata[response_predictions, ][, c(individual_id,
+                                                                                             fixed_effects,
+                                                                                             "response_type",
+                                                                                             "fitted")]
+    data_longitudinal <-
+      stats::reshape(
+        data_longitudinal,
+        timevar = "response_type",
+        idvar = c(individual_id, fixed_effects),
+        direction = "wide"
+      )
     for (name in random_effects) {
       names(data_longitudinal)[grep(paste0("fitted.",name), names(data_longitudinal))] <-
         name
+    }
+    if(random_slope_as_covariate==TRUE){
+      data_longitudinal<-dplyr::left_join(data_longitudinal,
+                                                     mixoutsamp_longitudinal$random[,c(individual_id,paste0("reffresponse_type",random_effects,":response_time"))],by=individual_id)
+      for (name in paste0(random_effects)){
+        names(data_longitudinal)[grep(paste0("reffresponse_type",name,":response_time"),names(data_longitudinal))]<-paste0(name,"_slope")
+      }
     }
   }
 
@@ -183,7 +191,7 @@ predict.landmark<-function(object,x_L,x_hor,newdata,cv_fold=NA,...){
       model_survival<-object[[as.character(x_L)]]$model_survival
     }
   if(!(class(model_survival) %in% c("CauseSpecificCox","FGR","coxph"))){stop("Class of survival model should be 'CauseSpecificCox','FGR', or 'coxph'")}
-  if (class(model_survival) %in% c("CauseSpecificCox","FGR")) {
+  if (class(model_survival) %in% c("CauseSpecificCox","FGR")){
     data_longitudinal$event_prediction <- as.numeric(
       riskRegression::predictRisk(
         model_survival,
@@ -198,6 +206,6 @@ predict.landmark<-function(object,x_L,x_hor,newdata,cv_fold=NA,...){
       riskRegression::predictRisk(model_survival, times = x_hor, newdata = data_longitudinal,...)
     )
   }
-  data_longitudinal
+  return(data_longitudinal)
 }
 
