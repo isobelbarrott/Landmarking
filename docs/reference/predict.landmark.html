@@ -40,8 +40,8 @@
 
 
 <meta property="og:title" content="Predict the risk of an event for a new individual using the landmark model — predict.landmark" />
-<meta property="og:description" content="This function predicts the risk of an event for new data using the landmark model fitted by fit_LME_landmark_model or fit_LOCF_landmark_model. The event is that which has
-event_status equal to 1." />
+<meta property="og:description" content="This function predicts the risk of an event for new data using the landmark model fitted by fit_LME_landmark or fit_LOCF_landmark.
+The 'event' is defined as event for which event_status is 1." />
 
 
 
@@ -81,7 +81,7 @@ event_status equal to 1." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">Landmarking</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
       </span>
     </div>
 
@@ -136,8 +136,8 @@ event_status equal to 1." />
     </div>
 
     <div class="ref-description">
-    <p>This function predicts the risk of an event for new data using the landmark model fitted by <code>fit_LME_landmark_model</code> or <code>fit_LOCF_landmark_model</code>. The event is that which has
-<code>event_status</code> equal to 1.</p>
+    <p>This function predicts the risk of an event for new data using the landmark model fitted by <code>fit_LME_landmark</code> or <code>fit_LOCF_landmark</code>.
+The 'event' is defined as event for which <code>event_status</code> is 1.</p>
     </div>
 
     <div class="ref-usage sourceCode"><pre class='sourceCode r'><code><span class='co'># S3 method for landmark</span>
@@ -148,7 +148,7 @@ event_status equal to 1." />
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>object</th>
-      <td><p>Object inheriting the class <code>landmark</code>, this should be the output from either <code>fit_LME_landmark_model</code> or <code>fit_LOCF_landmark_model</code>. It should contain a list
+      <td><p>Object inheriting the class <code>landmark</code>, this should be the output from either <code>fit_LME_landmark</code> or <code>fit_LOCF_landmark</code>. It should contain a list
 of landmark models corresponding to different landmark times <code>x_L</code>.</p></td>
     </tr>
     <tr>
@@ -157,19 +157,22 @@ of landmark models corresponding to different landmark times <code>x_L</code>.</
     </tr>
     <tr>
       <th>x_hor</th>
-      <td><p>Numeric specifying the horizon time, The function assesses the risk of event before this time.</p></td>
+      <td><p>Numeric specifying the horizon time. The function assesses the risk of event before this time.</p></td>
     </tr>
     <tr>
       <th>newdata</th>
       <td><p>Data frame containing new data to return the risk prediction of the event of interest. The data should be in in long format
 and the columns must contain the covariates and time variables that are used to fit the model.
 For the LME model this the variables <code>fixed_effects</code>, <code>random_effects</code>, <code>fixed_effects_time</code>, and
-<code>random_effects_time</code>. For the LOCF model this is <code>covariates</code> and <code>covariates_time</code>.
-Unfortunately there seems to be a bug in other packages meaning that for categorical covariates, all the possible categories need to be contained in <code>newdata</code>.</p></td>
+<code>random_effects_time</code>. For the LOCF model this is <code>covariates</code> and <code>covariates_time</code>.</p></td>
     </tr>
     <tr>
       <th>cv_fold</th>
-      <td><p>If cross validation is used to fit <code>fit_LME_landmark_model</code> or <code>fit_LOCF_landmark_model</code>, then the cross validation fold to use when making risk predictions needs to be specified.</p></td>
+      <td><p>If cross validation is used to fit <code>fit_LME_landmark</code> or <code>fit_LOCF_landmark</code>, then the cross validation fold to use when making risk predictions needs to be specified.</p></td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td><p>Arguments passed on to <code><a href='https://rdrr.io/pkg/riskRegression/man/predictRisk.html'>riskRegression::predictRisk</a></code></p></td>
     </tr>
     </table>
 
@@ -177,6 +180,61 @@ Unfortunately there seems to be a bug in other packages meaning that for categor
 
     <p>Data frame <code>newdata</code> updated to contained a new column <code>event_prediction</code></p>
 
+    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
+    <div class="ref-examples sourceCode"><pre class='sourceCode r'><code><span class='r-in'><span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://github.com/isobelbarrott/Landmarking'>Landmarking</a></span><span class='op'>)</span></span>
+<span class='r-in'><span class='fu'><a href='https://rdrr.io/r/utils/data.html'>data</a></span><span class='op'>(</span><span class='va'>data_repeat_outcomes</span><span class='op'>)</span></span>
+<span class='r-in'><span class='va'>data_repeat_outcomes</span> <span class='op'>&lt;-</span></span>
+<span class='r-in'>  <span class='fu'><a href='return_ids_with_LOCF.html'>return_ids_with_LOCF</a></span><span class='op'>(</span></span>
+<span class='r-in'>    data_long <span class='op'>=</span> <span class='va'>data_repeat_outcomes</span>,</span>
+<span class='r-in'>    individual_id <span class='op'>=</span> <span class='st'>"id"</span>,</span>
+<span class='r-in'>    covariates <span class='op'>=</span></span>
+<span class='r-in'>      <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"ethnicity"</span>, <span class='st'>"smoking"</span>, <span class='st'>"diabetes"</span>, <span class='st'>"sbp_stnd"</span>, <span class='st'>"tchdl_stnd"</span><span class='op'>)</span>,</span>
+<span class='r-in'>    covariates_time <span class='op'>=</span></span>
+<span class='r-in'>      <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/rep.html'>rep</a></span><span class='op'>(</span><span class='st'>"response_time_sbp_stnd"</span>, <span class='fl'>4</span><span class='op'>)</span>, <span class='st'>"response_time_tchdl_stnd"</span><span class='op'>)</span>,</span>
+<span class='r-in'>    x_L <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>60</span>,<span class='fl'>61</span><span class='op'>)</span></span>
+<span class='r-in'>  <span class='op'>)</span></span>
+<span class='r-in'><span class='va'>data_model_landmark_LOCF</span> <span class='op'>&lt;-</span></span>
+<span class='r-in'>  <span class='fu'><a href='fit_LOCF_landmark.html'>fit_LOCF_landmark</a></span><span class='op'>(</span></span>
+<span class='r-in'>    data_long <span class='op'>=</span> <span class='va'>data_repeat_outcomes</span>,</span>
+<span class='r-in'>    x_L <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>60</span>, <span class='fl'>61</span><span class='op'>)</span>,</span>
+<span class='r-in'>    x_hor <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>65</span>, <span class='fl'>66</span><span class='op'>)</span>,</span>
+<span class='r-in'>    covariates <span class='op'>=</span></span>
+<span class='r-in'>      <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"ethnicity"</span>, <span class='st'>"smoking"</span>, <span class='st'>"diabetes"</span>, <span class='st'>"sbp_stnd"</span>, <span class='st'>"tchdl_stnd"</span><span class='op'>)</span>,</span>
+<span class='r-in'>    covariates_time <span class='op'>=</span></span>
+<span class='r-in'>      <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/rep.html'>rep</a></span><span class='op'>(</span><span class='st'>"response_time_sbp_stnd"</span>, <span class='fl'>4</span><span class='op'>)</span>, <span class='st'>"response_time_tchdl_stnd"</span><span class='op'>)</span>,</span>
+<span class='r-in'>    k <span class='op'>=</span> <span class='fl'>10</span>,</span>
+<span class='r-in'>    individual_id <span class='op'>=</span> <span class='st'>"id"</span>,</span>
+<span class='r-in'>    event_time <span class='op'>=</span> <span class='st'>"event_time"</span>,</span>
+<span class='r-in'>    event_status <span class='op'>=</span> <span class='st'>"event_status"</span>,</span>
+<span class='r-in'>    survival_submodel <span class='op'>=</span> <span class='st'>"cause_specific"</span></span>
+<span class='r-in'>  <span class='op'>)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] "Fitting longitudinal submodel, landmark age 60"</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] "Complete, landmark age 60"</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] "Fitting survival submodel, landmark age 60"</span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>Loglik converged before variable  2 ; coefficient may be infinite. </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] "Complete, landmark age 60"</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] "Fitting longitudinal submodel, landmark age 61"</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] "Complete, landmark age 61"</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] "Fitting survival submodel, landmark age 61"</span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>Loglik converged before variable  2 ; coefficient may be infinite. </span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> [1] "Complete, landmark age 61"</span>
+<span class='r-in'> <span class='va'>newdata</span> <span class='op'>&lt;-</span></span>
+<span class='r-in'>   <span class='fu'><a href='https://rdrr.io/r/base/cbind.html'>rbind</a></span><span class='op'>(</span></span>
+<span class='r-in'>     <span class='fu'><a href='https://rdrr.io/r/base/data.frame.html'>data.frame</a></span><span class='op'>(</span></span>
+<span class='r-in'>       id <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>3001</span>, <span class='fl'>3001</span>, <span class='fl'>3001</span><span class='op'>)</span>,</span>
+<span class='r-in'>       response_time_sbp_stnd <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>57</span>, <span class='fl'>58</span>, <span class='fl'>59</span><span class='op'>)</span>,</span>
+<span class='r-in'>       smoking <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0</span>, <span class='fl'>0</span>, <span class='fl'>0</span><span class='op'>)</span>,</span>
+<span class='r-in'>       diabetes <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0</span>, <span class='fl'>0</span>, <span class='fl'>0</span><span class='op'>)</span>,</span>
+<span class='r-in'>       ethnicity <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"Indian"</span>, <span class='st'>"Indian"</span>, <span class='st'>"Indian"</span><span class='op'>)</span>,</span>
+<span class='r-in'>       sbp_stnd <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>0.45</span>, <span class='fl'>0.87</span>, <span class='fl'>0.85</span><span class='op'>)</span>,</span>
+<span class='r-in'>       tchdl_stnd <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='op'>-</span><span class='fl'>0.7</span>, <span class='fl'>0.24</span>, <span class='fl'>0.3</span><span class='op'>)</span>,</span>
+<span class='r-in'>       response_time_tchdl_stnd <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>57</span>, <span class='fl'>58</span>, <span class='fl'>59</span><span class='op'>)</span></span>
+<span class='r-in'>     <span class='op'>)</span></span>
+<span class='r-in'>   <span class='op'>)</span></span>
+<span class='r-in'> <span class='fu'><a href='https://rdrr.io/r/stats/predict.html'>predict</a></span><span class='op'>(</span>object<span class='op'>=</span><span class='va'>data_model_landmark_LOCF</span>,x_L<span class='op'>=</span><span class='fl'>60</span>,x_hor<span class='op'>=</span><span class='fl'>62</span>,newdata<span class='op'>=</span><span class='va'>newdata</span>,cv_fold<span class='op'>=</span><span class='fl'>1</span><span class='op'>)</span></span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span>      id smoking diabetes ethnicity sbp_stnd tchdl_stnd event_prediction</span>
+<span class='r-out co'><span class='r-pr'>#&gt;</span> 1: 3001       0        0    Indian     0.85        0.3       0.02029704</span>
+</code></pre></div>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
