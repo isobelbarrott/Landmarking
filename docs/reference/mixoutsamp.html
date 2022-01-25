@@ -40,7 +40,7 @@
 
 
 <meta property="og:title" content="Calculate point estimates from a linear mixed effects (LME) model for new data — mixoutsamp" />
-<meta property="og:description" content="This function allows the user to make out-of-sample point estimate predictions using a LME model." />
+<meta property="og:description" content="This function allows the user to make out-of-sample predictions from an LME model." />
 
 
 
@@ -80,7 +80,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">Landmarking</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
       </span>
     </div>
 
@@ -103,7 +103,10 @@
       <a href="../articles/Landmarking.html">Introduction to Landmark Models</a>
     </li>
     <li>
-      <a href="../articles/how_to_use.html">How to use the R package ‘Landmarking’</a>
+      <a href="../articles/how_to_use.html">How to use the R package 'Landmarking'</a>
+    </li>
+    <li>
+      <a href="../articles/Functions_fit_LOCF_LME_landmark.html">The functions 'fit_LOCF_landmark' and 'fit_LME_landmark'</a>
     </li>
   </ul>
 </li>
@@ -135,7 +138,7 @@
     </div>
 
     <div class="ref-description">
-    <p>This function allows the user to make out-of-sample point estimate predictions using a LME model.</p>
+    <p>This function allows the user to make out-of-sample predictions from an LME model.</p>
     </div>
 
     <div class="ref-usage sourceCode"><pre class='sourceCode r'><code><span class='fu'>mixoutsamp</span><span class='op'>(</span><span class='va'>model</span>, <span class='va'>newdata</span><span class='op'>)</span></code></pre></div>
@@ -149,18 +152,23 @@
     </tr>
     <tr>
       <th>newdata</th>
-      <td><p>Data frame containing data for which to make predictions</p></td>
+      <td><p>Data frame containing data for which to make predictions.
+The response variable should be set to NA for the rows of the data the user wishes to make predictions for.
+The columns in the data should have the same names as those used to fit the model.
+The variables should also be of the same type as in the data used to fit the mixed model (numeric, factor etc).</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>List containing <code>preddata</code> and <code>random</code>. Data frame <code>preddata</code> is a version of <code>newdata</code> updated to contain columns conrresponding to the fixed effects values (<code>fixed</code>),
+    <p>List containing <code>preddata</code> and <code>random</code>. Data frame <code>preddata</code> is a version of <code>newdata</code> updated to contain columns corresponding to the fixed effects values (<code>fixed</code>),
 random effects values (<code>random</code>), and fitted values (<code>fitted</code>).
 Data frame <code>random</code> contains the values of random effects components for each individual.</p>
     <h2 class="hasAnchor" id="author"><a class="anchor" href="#author"></a>Author</h2>
 
-    <p>Ruth Keogh</p>
+    <p>This code was originally written by Ruth Keogh (London School of Hygiene and Tropical Medicine) which can be viewed at
+github.com/ruthkeogh/landmark_CF. There have been further contributions from Jessica Barrett (MRC Biostatistics Unit, University of Cambridge),
+David Stevens (University of Liverpool), and Mike Sweeting (University of Leicester).</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
