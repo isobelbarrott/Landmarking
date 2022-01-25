@@ -331,8 +331,6 @@ fit_LME_longitudinal <- function(data_long,
 #' @template k
 #' @template cross_validation_df
 #' @template individual_id
-#' @template start_study_time
-#' @template end_study_time
 #' @template fixed_effects
 #' @template random_effects
 #' @template fixed_effects_time
@@ -446,8 +444,6 @@ fit_LME_landmark<-function(data_long,
                                  random_slope_as_covariate = TRUE,
                                  standardise_time=FALSE,
                                  individual_id,
-                                 start_study_time,
-                                 end_study_time,
                                  k,
                                  cross_validation_df,
                                  lme_control = nlme::lmeControl(),
@@ -559,7 +555,7 @@ fit_LME_landmark<-function(data_long,
              Use function return_ids_with_LOCF to remove these individuals from the dataset")
       }
 
-      data_long_x_l<-data_long_x_l[data_long_x_l[[start_study_time]]<=x_l & data_long_x_l[[end_study_time]]>x_l,]
+      data_long_x_l<-data_long_x_l[data_long_x_l[[event_time]]>x_l,]
       data_long_x_l[[event_status]][data_long_x_l[[event_time]]>x_h]<-0
       data_long_x_l[[event_time]][data_long_x_l[[event_time]]>x_h]<-x_h
 
