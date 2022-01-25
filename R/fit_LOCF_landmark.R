@@ -108,8 +108,6 @@ fit_LOCF_longitudinal <- function(data_long,
 #' @template x_hor
 #' @template event_status
 #' @template event_time
-#' @template start_study_time
-#' @template end_study_time
 #' @param k Integer specifying the number of folds for cross-validation. An alternative to setting parameter `cross_validation_df` for performing cross-validation;
 #' if both are missing no cross-validation is used.
 #' @template cross_validation_df
@@ -202,8 +200,6 @@ fit_LOCF_landmark<-function(data_long,
                                   x_hor,
                                   covariates,
                                   covariates_time,
-                                  start_study_time,
-                                  end_study_time,
                                   k,
                                   cross_validation_df,
                                   individual_id,
@@ -219,7 +215,7 @@ fit_LOCF_landmark<-function(data_long,
 
   if (missing(k)){k_add<-FALSE}else{k_add<-TRUE}
   if (missing(cross_validation_df)){cross_validation_df_add<-FALSE}else{cross_validation_df_add<-TRUE}
-  if (k_add==TRUE) {
+  if (k_add==TRUE){
     if (!(is.numeric(k))) {
       stop("k should be numeric")
     }
@@ -305,8 +301,7 @@ fit_LOCF_landmark<-function(data_long,
              Use function return_ids_with_LOCF to remove these individuals from the dataset")
       }
 
-
-    data_long_x_l<-data_long_x_l[data_long_x_l[[start_study_time]]<=x_l & data_long_x_l[[end_study_time]]>x_l,]
+    data_long_x_l<-data_long_x_l[data_long_x_l[[event_time]]>x_l,]
     data_long_x_l[[event_status]][data_long_x_l[[event_time]]>x_h]<-0
     data_long_x_l[[event_time]][data_long_x_l[[event_time]]>x_h]<-x_h
 
