@@ -79,7 +79,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">Landmarking</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
       </span>
     </div>
 
@@ -102,7 +102,10 @@
       <a href="../articles/Landmarking.html">Introduction to Landmark Models</a>
     </li>
     <li>
-      <a href="../articles/how_to_use.html">How to use the R package ‘Landmarking’</a>
+      <a href="../articles/how_to_use.html">How to use the R package 'Landmarking'</a>
+    </li>
+    <li>
+      <a href="../articles/Functions_fit_LOCF_LME_landmark.html">The functions 'fit_LOCF_landmark' and 'fit_LME_landmark'</a>
     </li>
   </ul>
 </li>
@@ -154,21 +157,15 @@
       <tr>
         
         <td>
-          <p><code><a href="fit_LOCF_landmark_model.html">fit_LOCF_landmark_model()</a></code> </p>
+          <p><code><a href="fit_LOCF_landmark.html">fit_LOCF_landmark()</a></code> </p>
         </td>
-        <td><p>Fit a landmarking model using a last observation carried forward (LOCF) model for the longitudinal submodel</p></td>
+        <td><p>Fit a landmark model using a last observation carried forward (LOCF) method for the longitudinal data</p></td>
       </tr><tr>
         
         <td>
-          <p><code><a href="fit_LME_landmark_model.html">fit_LME_landmark_model()</a></code> </p>
+          <p><code><a href="fit_LME_landmark.html">fit_LME_landmark()</a></code> </p>
         </td>
         <td><p>Fit a landmarking model using a linear mixed effects (LME) model for the longitudinal submodel</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="predict.landmark.html">predict(<i>&lt;landmark&gt;</i>)</a></code> </p>
-        </td>
-        <td><p>Predict the risk of an event for a new individual using the landmark model</p></td>
       </tr><tr>
         
         <td>
@@ -178,21 +175,51 @@
       </tr><tr>
         
         <td>
+          <p><code><a href="return_ids_with_LOCF.html">return_ids_with_LOCF()</a></code> </p>
+        </td>
+        <td><p>Select individuals in a dataset with a last observation carried forward (LOCF) at a landmark time</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="fit_LOCF_longitudinal.html">fit_LOCF_longitudinal()</a></code> </p>
+        </td>
+        <td><p>Find the last observation carried forward (LOCF) values for covariates in a dataset</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="fit_LME_longitudinal.html">fit_LME_longitudinal()</a></code> </p>
+        </td>
+        <td><p>Fit a landmarking model using a linear mixed effects (LME) model for the longitudinal submodel</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="fit_survival_model.html">fit_survival_model()</a></code> </p>
+        </td>
+        <td><p>Fit a survival sub-model</p></td>
+      </tr><tr>
+        
+        <td>
           <p><code><a href="get_model_assessment.html">get_model_assessment()</a></code> </p>
         </td>
         <td><p>Compute C-index and Brier score</p></td>
       </tr><tr>
         
         <td>
-          <p><code><a href="mixoutsamp.html">mixoutsamp()</a></code> </p>
+          <p><code><a href="predict.landmark.html">predict(<i>&lt;landmark&gt;</i>)</a></code> </p>
         </td>
-        <td><p>Calculate point estimates from a linear mixed effects (LME) model for new data</p></td>
+        <td><p>Predict the risk of an event for a new individual using the landmark model</p></td>
       </tr><tr>
         
         <td>
-          <p><code><a href="return_ids_with_LOCF.html">return_ids_with_LOCF()</a></code> </p>
+          <p><code><a href="plot.landmark.html">plot(<i>&lt;landmark&gt;</i>)</a></code> </p>
         </td>
-        <td><p>Select individuals in a dataset with a last observation carried forward (LOCF) at a landmark time</p></td>
+        <td><p>Create a calibration plot</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="mixoutsamp.html">mixoutsamp()</a></code> </p>
+        </td>
+        <td><p>Calculate point estimates from a linear mixed effects (LME) model for new data</p></td>
       </tr>
     </tbody><tbody>
       <tr>
@@ -209,18 +236,6 @@
       <tr>
         
         <td>
-          <p><code><a href="data_landmark_cv.html">data_landmark_cv</a></code> </p>
-        </td>
-        <td><p>Simulated data for use in a landmarking analysis</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="data_landmark_LOCF.html">data_landmark_LOCF</a></code> </p>
-        </td>
-        <td><p>Simulated data for use in a landmarking analysis</p></td>
-      </tr><tr>
-        
-        <td>
           <p><code><a href="data_outcomes.html">data_outcomes</a></code> </p>
         </td>
         <td><p>Simulated time-to-event data</p></td>
@@ -235,7 +250,8 @@
         <td>
           <p><code><a href="data_repeat_outcomes.html">data_repeat_outcomes</a></code> </p>
         </td>
-        <td><p>Simulated data for use in a landmarking analysis</p></td>
+        <td><p>This dataset contains repeat measurements data and time-to-event data
+from 3000 patients. See vignette "How to use the R package 'Landmarking'" to see how this dataset was formed.</p></td>
       </tr>
     </tbody>
     </table>
