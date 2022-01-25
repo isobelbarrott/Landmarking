@@ -374,9 +374,10 @@ fit_LME_longitudinal <- function(data_long,
 #' `prediction_error` contains a list indicating the c-index and Brier score at time `x_hor` and their standard errors if parameter `b` is used.
 #' @details
 #' #' Firstly, this function selects the individuals in the risk set at the landmark time \code{x_L}.
-#' Specifically, the individuals in the risk set are those that have entered the study before (and including) the landmark age
-#' (\code{start_study_time} is less than or equal to \code{x_L}) and exited the study after the landmark age (\code{end_study_time}
-#' is more than \code{x_L})).
+#' Specifically, the individuals in the risk set are those that have entered the study before the landmark age
+#' (there is at least one observation for each of the \code{covariates} on or before \code{x_L}) and
+#' exited the study on after the landmark age (\code{event_time}
+#' is after than \code{x_L})).
 #'
 #' Secondly, if the option to use cross validation
 #' is selected (using either parameter `k` or `cross_validation_df`), then an extra column `cross_validation_number` is added with the
@@ -415,8 +416,6 @@ fit_LME_longitudinal <- function(data_long,
 #'     x_L = c(60, 61),
 #'     x_hor = c(65, 66),
 #'     k = 10,
-#'     start_study_time = "start_time",
-#'     end_study_time = "event_time",
 #'     fixed_effects = c("ethnicity", "smoking", "diabetes"),
 #'     fixed_effects_time = "response_time_sbp_stnd",
 #'     random_effects = c("sbp_stnd", "tchdl_stnd"),
@@ -535,8 +534,6 @@ fit_LME_landmark<-function(data_long,
         random_effects,
         random_effects_time,
         individual_id,
-        start_study_time,
-        end_study_time,
         event_time,
         event_status
       )) {

@@ -138,8 +138,9 @@ fit_LOCF_longitudinal <- function(data_long,
 #' @details
 #' Firstly, this function selects the individuals in the risk set at the landmark time \code{x_L}.
 #' Specifically, the individuals in the risk set are those that have entered the study before the landmark age
-#' (\code{start_study_time} is less than \code{x_L}) and exited the study on or after the landmark age (\code{end_study_time}
-#' is the same as or more than \code{x_L})).
+#' (there is at least one observation for each of the \code{covariates} on or before \code{x_L}) and
+#' exited the study on after the landmark age (\code{event_time}
+#' is after than \code{x_L})).
 #'
 #' Secondly, if the option to use cross validation
 #' is selected (using either parameter `k` or `cross_validation_df`), then an extra column `cross_validation_number` is added with the
@@ -182,8 +183,6 @@ fit_LOCF_longitudinal <- function(data_long,
 #'      covariates_time =
 #'        c(rep("response_time_sbp_stnd", 4), "response_time_tchdl_stnd"),
 #'      k = 10,
-#'      start_study_time = "start_time",
-#'      end_study_time = "event_time",
 #'      individual_id = "id",
 #'      event_time = "event_time",
 #'      event_status = "event_status",
@@ -281,8 +280,6 @@ fit_LOCF_landmark<-function(data_long,
       covariates,
       covariates_time,
       individual_id,
-      start_study_time,
-      end_study_time,
       event_time,
       event_status
     )) {
