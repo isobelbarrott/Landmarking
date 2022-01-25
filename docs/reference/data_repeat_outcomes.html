@@ -6,7 +6,8 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Simulated data for use in a landmarking analysis — data_repeat_outcomes • Landmarking</title>
+<title>This dataset contains repeat measurements data and time-to-event data
+from 3000 patients. See vignette "How to use the R package 'Landmarking'" to see how this dataset was formed. — data_repeat_outcomes • Landmarking</title>
 
 
 <!-- jquery -->
@@ -39,9 +40,10 @@
 
 
 
-<meta property="og:title" content="Simulated data for use in a landmarking analysis — data_repeat_outcomes" />
-<meta property="og:description" content="A combination of the data_repeat and data_outcomes data, modified to perform a landmark analysis. See the vignette associated with the Landmarking
-package (browseVignettes(&quot;Landmarking&quot;)) for more information about how this dataset was formed." />
+<meta property="og:title" content="This dataset contains repeat measurements data and time-to-event data
+from 3000 patients. See vignette "How to use the R package 'Landmarking'" to see how this dataset was formed. — data_repeat_outcomes" />
+<meta property="og:description" content="This dataset contains repeat measurements data and time-to-event data
+from 3000 patients. See vignette &quot;How to use the R package 'Landmarking'&quot; to see how this dataset was formed." />
 
 
 
@@ -81,7 +83,7 @@ package (browseVignettes(&quot;Landmarking&quot;)) for more information about ho
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">Landmarking</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
       </span>
     </div>
 
@@ -130,14 +132,15 @@ package (browseVignettes(&quot;Landmarking&quot;)) for more information about ho
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Simulated data for use in a landmarking analysis</h1>
+    <h1>This dataset contains repeat measurements data and time-to-event data
+from 3000 patients. See vignette "How to use the R package 'Landmarking'" to see how this dataset was formed.</h1>
     <small class="dont-index">Source: <a href='https://github.com/isobelbarrott/Landmarking/blob/master/R/data.R'><code>R/data.R</code></a></small>
     <div class="hidden name"><code>data_repeat_outcomes.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>A combination of the <code>data_repeat</code> and <code>data_outcomes</code> data, modified to perform a landmark analysis. See the vignette associated with the <code>Landmarking</code>
-package (<code>browseVignettes("Landmarking")</code>) for more information about how this dataset was formed.</p>
+    <p>This dataset contains repeat measurements data and time-to-event data
+from 3000 patients. See vignette "How to use the R package 'Landmarking'" to see how this dataset was formed.</p>
     </div>
 
     <div class="ref-usage sourceCode"><pre class='sourceCode r'><code><span class='va'>data_repeat_outcomes</span></code></pre></div>
@@ -145,7 +148,24 @@ package (<code>browseVignettes("Landmarking")</code>) for more information about
 
     <h2 class="hasAnchor" id="format"><a class="anchor" href="#format"></a>Format</h2>
 
-    <p>A dataset with 22888 rows and 17 columns.</p>
+    <p>A dataset with 9048 rows and 14 columns:</p><dl>
+<dt>id</dt><dd><p>Patient ID</p></dd>
+<dt>smoking</dt><dd><p>Smoking status, 0 indicates the patient has never smoked, 1 indicates the patient has quit smoking, and 2 indicates the patient is a current smoker</p></dd>
+<dt>diabetes</dt><dd><p>Diabetes status, 0 indicates the patient is not diagnosed with diabetes, and 1 indicates the patient is diagnosed with diabetes</p></dd>
+<dt>ethnicity</dt><dd><p>Ethnicity, one of five ethnicities</p></dd>
+<dt>deprivation</dt><dd><p>Deprivation score, quintiles</p></dd>
+<dt>index</dt><dd><p>An index indicating assessment number for a patient</p></dd>
+<dt>sbp_stnd</dt><dd><p>Standardised systolic blood pressure</p></dd>
+<dt>tchdl_stnd</dt><dd><p>Standardised total cholesterol to HDL ratio</p></dd>
+<dt>end_of_study_age</dt><dd><p>Age that individual left the study, either the age at event (CVD or death) or age at end of study (1st Jan 2010)</p></dd>
+<dt>response_time_tchdl_stnd</dt><dd><p>Age that total cholesterol to HDL ratio was recorded</p></dd>
+<dt>response_time_sbp_stnd</dt><dd><p>Age that systolic blood pressure was recorded, this is the same as the date that the fixed measures were recorded</p></dd>
+<dt>start_time</dt><dd><p>Age the individual entered follow-up</p></dd>
+<dt>event_status</dt><dd><p>Event status, 0 indicates censoring, 1 indicates CVD event, and 2 indicates death from other causes</p></dd>
+<dt>event_time</dt><dd><p>Event time</p></dd>
+
+</dl>
+
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

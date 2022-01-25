@@ -10,8 +10,6 @@ fit_LOCF_landmark(
   x_hor,
   covariates,
   covariates_time,
-  start_study_time,
-  end_study_time,
   k,
   cross_validation_df,
   individual_id,
@@ -36,10 +34,6 @@ which correspond to the covariates}
 which contain the times at which \code{covariates} were recorded. This should either be length 1 or
 the same length as \code{covariates}. In the latter case the order of elements must correspond to the
 order of elements in \code{covariates}.}
-
-\item{start_study_time}{Character string specifying the column name in \code{data} which indicates the time that an individual enters the study}
-
-\item{end_study_time}{Character string specifying the column name in \code{data} which indicates the time that an individual leaves the study}
 
 \item{k}{Integer specifying the number of folds for cross-validation. An alternative to setting parameter \code{cross_validation_df} for performing cross-validation;
 if both are missing no cross-validation is used.}
@@ -92,8 +86,9 @@ second stage the survival submodel is fitted.
 \details{
 Firstly, this function selects the individuals in the risk set at the landmark time \code{x_L}.
 Specifically, the individuals in the risk set are those that have entered the study before the landmark age
-(\code{start_study_time} is less than \code{x_L}) and exited the study on or after the landmark age (\code{end_study_time}
-is the same as or more than \code{x_L})).
+(there is at least one observation for each of the \code{covariates} on or before \code{x_L}) and
+exited the study on after the landmark age (\code{event_time}
+is after than \code{x_L})).
 
 Secondly, if the option to use cross validation
 is selected (using either parameter \code{k} or \code{cross_validation_df}), then an extra column \code{cross_validation_number} is added with the
@@ -135,8 +130,6 @@ data_model_landmark_LOCF <-
      covariates_time =
        c(rep("response_time_sbp_stnd", 4), "response_time_tchdl_stnd"),
      k = 10,
-     start_study_time = "start_time",
-     end_study_time = "event_time",
      individual_id = "id",
      event_time = "event_time",
      event_status = "event_status",

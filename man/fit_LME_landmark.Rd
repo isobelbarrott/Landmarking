@@ -16,8 +16,6 @@ fit_LME_landmark(
   random_slope_as_covariate = TRUE,
   standardise_time = FALSE,
   individual_id,
-  start_study_time,
-  end_study_time,
   k,
   cross_validation_df,
   lme_control = nlme::lmeControl(),
@@ -58,10 +56,6 @@ as a covariate in the survival submodel.}
 and dividing by the standard deviation (see Details section for more information)}
 
 \item{individual_id}{Character string specifying the column name in \code{data_long} which contains the individual identifiers}
-
-\item{start_study_time}{Character string specifying the column name in \code{data} which indicates the time that an individual enters the study}
-
-\item{end_study_time}{Character string specifying the column name in \code{data} which indicates the time that an individual leaves the study}
 
 \item{k}{Integer specifying the number of folds for cross-validation}
 
@@ -124,9 +118,10 @@ This function performs the two-stage landmarking analysis.
 }
 \details{
 #' Firstly, this function selects the individuals in the risk set at the landmark time \code{x_L}.
-Specifically, the individuals in the risk set are those that have entered the study before (and including) the landmark age
-(\code{start_study_time} is less than or equal to \code{x_L}) and exited the study after the landmark age (\code{end_study_time}
-is more than \code{x_L})).
+Specifically, the individuals in the risk set are those that have entered the study before the landmark age
+(there is at least one observation for each of the \code{covariates} on or before \code{x_L}) and
+exited the study on after the landmark age (\code{event_time}
+is after than \code{x_L})).
 
 Secondly, if the option to use cross validation
 is selected (using either parameter \code{k} or \code{cross_validation_df}), then an extra column \code{cross_validation_number} is added with the
@@ -165,8 +160,6 @@ data_model_landmark_LME <-
     x_L = c(60, 61),
     x_hor = c(65, 66),
     k = 10,
-    start_study_time = "start_time",
-    end_study_time = "event_time",
     fixed_effects = c("ethnicity", "smoking", "diabetes"),
     fixed_effects_time = "response_time_sbp_stnd",
     random_effects = c("sbp_stnd", "tchdl_stnd"),
