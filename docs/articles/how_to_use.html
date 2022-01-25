@@ -33,7 +33,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">Landmarking</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
       </span>
     </div>
 
@@ -56,7 +56,10 @@
       <a href="../articles/Landmarking.html">Introduction to Landmark Models</a>
     </li>
     <li>
-      <a href="../articles/how_to_use.html">How to use the R package ‘Landmarking’</a>
+      <a href="../articles/how_to_use.html">How to use the R package 'Landmarking'</a>
+    </li>
+    <li>
+      <a href="../articles/Functions_fit_LOCF_LME_landmark.html">The functions 'fit_LOCF_landmark' and 'fit_LME_landmark'</a>
     </li>
   </ul>
 </li>
@@ -79,7 +82,7 @@
 
       
 
-      </header><script src="how_to_use_files/header-attrs-2.10/header-attrs.js"></script><div class="row">
+      </header><script src="how_to_use_files/header-attrs-2.11/header-attrs.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>How to use the R package ‘Landmarking’</h1>
@@ -105,7 +108,7 @@
 <p>First of all, let’s take a look at the datasets we are going to analyse.</p>
 <p>There are two datasets:</p>
 <ul>
-<li><p><code>data_repeats</code> contains repeat measurements data from CVD risk assessments in long format. Each row corresponds to a different assessment and an individual may have multiple assessments. The dataset contains information about an individual’s ethnicity, smoking status, diabetes, and standardised systolic blood pressure (SBP). These were recorded on the date specified in <code>response_date_sbp_stnd</code>. The standardised total cholesterol to high density lipoprotein (HDL) ratio was also recorded as part of the assessment but was recorded on the date specified in <code>response_date_tchdl_stnd</code>, which is up to a month after the other variables were measured.</p></li>
+<li><p><code>data_repeats</code> contains repeat measurements data from CVD risk assessments in long format. Each row corresponds to a different assessment and an individual may have multiple assessments. The dataset contains information about an individual’s ethnicity, smoking status, diabetes, and standardised systolic blood pressure (SBP). These were recorded at the patient age specified in <code>response_time_sbp_stnd</code>. The standardised total cholesterol to high density lipoprotein (HDL) ratio was also recorded as part of the assessment but was recorded at the patient age specified in <code>response_time_tchdl_stnd</code>, which is up to a month after the other variables were measured.</p></li>
 <li><p><code>data_outcomes</code> contains CVD event data, indicating the time and status of event that each individual experiences. There are three types of events: censoring (this is due to loss to follow-up or the end of the study, indicated by status <code>0</code>), CVD event (indicated by status <code>1</code>), or death from other causes (indicated by status <code>2</code>). It is important when using this package that 0 is used to indicate censoring, 1 to indicate the event of interest, and values 2 or above indicate different competing risks.</p></li>
 </ul>
 <p>Both datasets contain column <code>id</code> which specifies the patient identifier which is unique to a patient.</p>
@@ -114,20 +117,13 @@
 <span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">data_repeat</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">data_repeat</span><span class="op">)</span>
-<span class="co">#&gt;   id smoking diabetes ethnicity deprivation        dob index</span>
-<span class="co">#&gt; 1  1       0        0  European           2 1942-10-07     1</span>
-<span class="co">#&gt; 2  1       0        0  European           2 1942-10-07     2</span>
-<span class="co">#&gt; 3  1       0        0  European           2 1942-10-07     3</span>
-<span class="co">#&gt; 4  1       0        0  European           2 1942-10-07     4</span>
-<span class="co">#&gt; 5  2       0        0  European           1 1942-05-10     1</span>
-<span class="co">#&gt; 6  3       1        0  European           5 1944-06-10     1</span>
-<span class="co">#&gt;   response_date_sbp_stnd    sbp_stnd response_date_tchdl_stnd tchdl_stnd</span>
-<span class="co">#&gt; 1             2000-09-30 -1.32031272               2000-10-19 -0.6701369</span>
-<span class="co">#&gt; 2             2000-04-12 -0.79339073               2000-04-26 -1.1694297</span>
-<span class="co">#&gt; 3             2001-11-01 -1.49207104               2001-11-29 -0.6655325</span>
-<span class="co">#&gt; 4             2003-12-13 -0.04093651               2003-12-18 -0.6756338</span>
-<span class="co">#&gt; 5             2007-11-14 -0.70343579               2007-11-28 -1.0776750</span>
-<span class="co">#&gt; 6             2007-06-13  0.86883763               2007-06-28 -0.7842055</span>
+<span class="co">#&gt;   id smoking diabetes ethnicity deprivation index    sbp_stnd tchdl_stnd</span>
+<span class="co">#&gt; 1  1       0        0  European           2     1 -1.32031272 -0.6701369</span>
+<span class="co">#&gt; 2  1       0        0  European           2     2 -0.79339073 -1.1694297</span>
+<span class="co">#&gt; 3  1       0        0  European           2     3 -1.49207104 -0.6655325</span>
+<span class="co">#&gt; 4  1       0        0  European           2     4 -0.04093651 -0.6756338</span>
+<span class="co">#&gt; 5  2       0        0  European           1     1 -0.70343579 -1.0776750</span>
+<span class="co">#&gt; 6  3       1        0  European           5     1  0.86883763 -0.7842055</span>
 <span class="co">#&gt;   end_of_study_age response_time_tchdl_stnd response_time_sbp_stnd</span>
 <span class="co">#&gt; 1         71.23340                 58.03422               57.98220</span>
 <span class="co">#&gt; 2         71.23340                 57.55236               57.51403</span>
@@ -161,56 +157,31 @@
 <div id="set-up" class="section level2">
 <h2 class="hasAnchor">
 <a href="#set-up" class="anchor" aria-hidden="true"></a>Set-up</h2>
-<p>To use the Landmarking package, the datasets need to be in a certain format. Firstly, instead of the date of the CVD assessment being recorded, the age of the patient should be recorded. These can be calculated as follows.</p>
+<p>The package Landmarking requires that both time-to-event data and repeat measurement data are joined into one data frame.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">data_repeat</span><span class="op">$</span><span class="va">response_time_tchdl_stnd</span> <span class="op">&lt;-</span>
-  <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="op">(</span>
-    <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="va">data_repeat</span><span class="op">$</span><span class="va">response_date_tchdl_stnd</span>, format <span class="op">=</span> <span class="st">"yyyy-mm-dd"</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="va">data_repeat</span><span class="op">$</span><span class="va">dob</span>, format <span class="op">=</span>
-                                                                                     <span class="st">"yyyy-mm-dd"</span><span class="op">)</span>
-  <span class="op">)</span> <span class="op">/</span> <span class="fl">365.25</span><span class="op">)</span>
-<span class="va">data_repeat</span><span class="op">$</span><span class="va">response_time_sbp_stnd</span> <span class="op">&lt;-</span>
-  <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="op">(</span>
-    <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="va">data_repeat</span><span class="op">$</span><span class="va">response_date_sbp_stnd</span>, format <span class="op">=</span> <span class="st">"yyyy-mm-dd"</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="va">data_repeat</span><span class="op">$</span><span class="va">dob</span>, format <span class="op">=</span>
-                                                                                   <span class="st">"yyyy-mm-dd"</span><span class="op">)</span>
-  <span class="op">)</span> <span class="op">/</span> <span class="fl">365.25</span><span class="op">)</span></code></pre></div>
-<p>We also need to define a time of entry into the study and time of exit from the study for each patient. This is necessary in order to work out which individuals are in the risk set at the landmark time. For this study the time of entry into the study is the date of first assessment for an individual. This is the earliest time of <code>response_time_sbp_stnd</code> and can be calculated as:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">start_time</span><span class="op">&lt;-</span><span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/aggregate.html" class="external-link">aggregate</a></span><span class="op">(</span><span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/formula.html" class="external-link">as.formula</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"response_time_sbp_stnd"</span>,<span class="st">"~"</span>,<span class="st">"id"</span><span class="op">)</span><span class="op">)</span>,<span class="va">data_repeat</span>,<span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">{</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">}</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">start_time</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">&lt;-</span><span class="st">"start_time"</span>
-<span class="va">data_repeat</span><span class="op">&lt;-</span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="va">data_repeat</span>,<span class="va">start_time</span>,by<span class="op">=</span><span class="st">"id"</span><span class="op">)</span></code></pre></div>
-<p>The patient exits the study either by having an event or being censored at the end of the study on 1st January 2010. All individuals have been censored after this date in the dataset <code>data_outcome</code>. The end of study time is therefore simply the <code>event_time</code> column.</p>
-<p>Finally, the package Landmarking requires that both datasets are joined into one.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">data_repeat_outcomes</span><span class="op">&lt;-</span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="va">data_repeat</span>,<span class="va">data_outcomes</span>,by<span class="op">=</span><span class="st">"id"</span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">data_repeat_outcomes</span><span class="op">)</span>
-<span class="co">#&gt;   id smoking diabetes ethnicity deprivation        dob index</span>
-<span class="co">#&gt; 1  1       0        0  European           2 1942-10-07     1</span>
-<span class="co">#&gt; 2  1       0        0  European           2 1942-10-07     2</span>
-<span class="co">#&gt; 3  1       0        0  European           2 1942-10-07     3</span>
-<span class="co">#&gt; 4  1       0        0  European           2 1942-10-07     4</span>
-<span class="co">#&gt; 5  2       0        0  European           1 1942-05-10     1</span>
-<span class="co">#&gt; 6  3       1        0  European           5 1944-06-10     1</span>
-<span class="co">#&gt;   response_date_sbp_stnd    sbp_stnd response_date_tchdl_stnd tchdl_stnd</span>
-<span class="co">#&gt; 1             2000-09-30 -1.32031272               2000-10-19 -0.6701369</span>
-<span class="co">#&gt; 2             2000-04-12 -0.79339073               2000-04-26 -1.1694297</span>
-<span class="co">#&gt; 3             2001-11-01 -1.49207104               2001-11-29 -0.6655325</span>
-<span class="co">#&gt; 4             2003-12-13 -0.04093651               2003-12-18 -0.6756338</span>
-<span class="co">#&gt; 5             2007-11-14 -0.70343579               2007-11-28 -1.0776750</span>
-<span class="co">#&gt; 6             2007-06-13  0.86883763               2007-06-28 -0.7842055</span>
-<span class="co">#&gt;   end_of_study_age response_time_tchdl_stnd response_time_sbp_stnd start_time</span>
-<span class="co">#&gt; 1         71.23340                 58.03422               57.98220   57.51403</span>
-<span class="co">#&gt; 2         71.23340                 57.55236               57.51403   57.51403</span>
-<span class="co">#&gt; 3         71.23340                 59.14579               59.06913   57.51403</span>
-<span class="co">#&gt; 4         71.23340                 61.19644               61.18275   57.51403</span>
-<span class="co">#&gt; 5         71.64408                 65.55236               65.51403   65.51403</span>
-<span class="co">#&gt; 6         69.55784                 63.04723               63.00616   57.12526</span>
-<span class="co">#&gt;   event_status event_time</span>
-<span class="co">#&gt; 1            0   63.12263</span>
-<span class="co">#&gt; 2            0   63.12263</span>
-<span class="co">#&gt; 3            0   63.12263</span>
-<span class="co">#&gt; 4            0   63.12263</span>
-<span class="co">#&gt; 5            0   71.64408</span>
-<span class="co">#&gt; 6            0   63.17899</span></code></pre></div>
+<span class="co">#&gt;   id smoking diabetes ethnicity deprivation index    sbp_stnd tchdl_stnd</span>
+<span class="co">#&gt; 1  1       0        0  European           2     1 -1.32031272 -0.6701369</span>
+<span class="co">#&gt; 2  1       0        0  European           2     2 -0.79339073 -1.1694297</span>
+<span class="co">#&gt; 3  1       0        0  European           2     3 -1.49207104 -0.6655325</span>
+<span class="co">#&gt; 4  1       0        0  European           2     4 -0.04093651 -0.6756338</span>
+<span class="co">#&gt; 5  2       0        0  European           1     1 -0.70343579 -1.0776750</span>
+<span class="co">#&gt; 6  3       1        0  European           5     1  0.86883763 -0.7842055</span>
+<span class="co">#&gt;   end_of_study_age response_time_tchdl_stnd response_time_sbp_stnd event_status</span>
+<span class="co">#&gt; 1         71.23340                 58.03422               57.98220            0</span>
+<span class="co">#&gt; 2         71.23340                 57.55236               57.51403            0</span>
+<span class="co">#&gt; 3         71.23340                 59.14579               59.06913            0</span>
+<span class="co">#&gt; 4         71.23340                 61.19644               61.18275            0</span>
+<span class="co">#&gt; 5         71.64408                 65.55236               65.51403            0</span>
+<span class="co">#&gt; 6         69.55784                 63.04723               63.00616            0</span>
+<span class="co">#&gt;   event_time</span>
+<span class="co">#&gt; 1   63.12263</span>
+<span class="co">#&gt; 2   63.12263</span>
+<span class="co">#&gt; 3   63.12263</span>
+<span class="co">#&gt; 4   63.12263</span>
+<span class="co">#&gt; 5   71.64408</span>
+<span class="co">#&gt; 6   63.17899</span></code></pre></div>
 <p>We are now ready to begin the analysis using the Landmarking package.</p>
 </div>
 <div id="analysis" class="section level2">
@@ -219,29 +190,27 @@
 <p>There are a couple of issues to deal with before we start, these stem from the fact that we wish to compare the LOCF and LME longitudinal model. We want to ensure that the same dataset is used for both of these models so that the comparison is fair.</p>
 <p>The first issue is that the presence of <code>NA</code> values means that some individuals in the risk set do not have LOCF values for all the covariates. This means that the LOCF longitudinal model cannot be fitted for these individuals, however the LME longitudinal model can allow missing values in the random effects covariates. As we wish that the dataset that both models are fitted are the same, we should consider removing these individuals from the dataset.</p>
 <p>Helpfully, the <code>Landmarking</code> package contains a function <code>return_ids_with_LOCF</code> to create a dataset with individuals with a LOCF for all covariates contained in the <code>covariates</code> parameter at landmark time <code>x_L</code>.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">data_repeat_outcomes</span> <span class="op">&lt;-</span>
   <span class="fu"><a href="../reference/return_ids_with_LOCF.html">return_ids_with_LOCF</a></span><span class="op">(</span>
-    data <span class="op">=</span> <span class="va">data_repeat_outcomes</span>,
-    patient_id <span class="op">=</span> <span class="st">"id"</span>,
+    data_long <span class="op">=</span> <span class="va">data_repeat_outcomes</span>,
+    individual_id <span class="op">=</span> <span class="st">"id"</span>,
     covariates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ethnicity"</span>, <span class="st">"smoking"</span>, <span class="st">"diabetes"</span>, <span class="st">"sbp_stnd"</span>, <span class="st">"tchdl_stnd"</span><span class="op">)</span>,
     covariates_time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"response_time_sbp_stnd"</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"response_time_tchdl_stnd"</span><span class="op">)</span>,
     x_L <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">60</span>, <span class="fl">61</span><span class="op">)</span>
   <span class="op">)</span></code></pre></div>
 <p>The second issue is to do with cross-validation, but we will deal with this once we have fitted the LOCF landmark model.</p>
 <p>So we can now fit the landmark model using the LOCF longitudinal submodel. To demonstrate how to use the package, we use only landmark times 60 and 61 years old however we may wish to use more landmark times in practice. For more information about this function, see the Details section of the <code>fit_LOCF_landmark_model</code> documentation.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">data_model_landmark_LOCF</span> <span class="op">&lt;-</span>
-  <span class="fu"><a href="../reference/fit_LOCF_landmark_model.html">fit_LOCF_landmark_model</a></span><span class="op">(</span>
+  <span class="fu"><a href="../reference/fit_LOCF_landmark.html">fit_LOCF_landmark</a></span><span class="op">(</span>
     data_long <span class="op">=</span> <span class="va">data_repeat_outcomes</span>,
     x_L <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">60</span>, <span class="fl">61</span><span class="op">)</span>,
     x_hor <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">65</span>, <span class="fl">66</span><span class="op">)</span>,
     covariates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ethnicity"</span>, <span class="st">"smoking"</span>, <span class="st">"diabetes"</span>, <span class="st">"sbp_stnd"</span>, <span class="st">"tchdl_stnd"</span><span class="op">)</span>,
     covariates_time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"response_time_sbp_stnd"</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"response_time_tchdl_stnd"</span><span class="op">)</span>,
     k <span class="op">=</span> <span class="fl">10</span>,
-    start_study_time <span class="op">=</span> <span class="st">"start_time"</span>,
-    end_study_time <span class="op">=</span> <span class="st">"event_time"</span>,
-    patient_id <span class="op">=</span> <span class="st">"id"</span>,
+    individual_id <span class="op">=</span> <span class="st">"id"</span>,
     event_time <span class="op">=</span> <span class="st">"event_time"</span>,
     event_status <span class="op">=</span> <span class="st">"event_status"</span>,
     survival_submodel <span class="op">=</span> <span class="st">"cause_specific"</span>
@@ -258,8 +227,8 @@
 <span class="co">#&gt; Warning in coxph.fit(X, Y, istrat, offset, init, control, weights = weights, :</span>
 <span class="co">#&gt; Loglik converged before variable 2 ; coefficient may be infinite.</span>
 <span class="co">#&gt; [1] "Complete, landmark age 61"</span></code></pre></div>
-<p>We can see that fitting this model returns the warnings such as <code>Loglik converged before variable  2 ; coefficient may be infinite.</code>. Taking a look at the model fit contained in <code>data_model_landmark_LOCF$model_survival</code>, we can see the upper confidence interval for <code>ethnicityIndian</code> is <code>inf</code> for certain folds. This is due there being few individuals that have ethnicity ‘Indian’ and few individuals that experienced death from other causes. However, as only the point estimate of the coefficient is needed to calculate the risk prediction, not having the standard error is not a problem. Indeed we have obtained the risk predictions and can take a look at their distribution.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<p>We can see that fitting this model returns the warnings such as <code>Loglik converged before variable  2 ; coefficient may be infinite.</code>. Taking a look at the model fit contained in <code>data_model_landmark_LOCF$model_survival</code>, we can see the confidence intervals for certain folds is very large. This is due there being few observations for these covariates. However, as only the point estimate of the coefficient is needed to calculate the risk prediction, inaccurate standard error values is not a problem. Indeed we have obtained the risk predictions and can take a look at their distribution.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span>
   <span class="fu"><a href="https://rdrr.io/r/stats/density.html" class="external-link">density</a></span><span class="op">(</span><span class="fl">100</span> <span class="op">*</span> <span class="va">data_model_landmark_LOCF</span><span class="op">[[</span><span class="st">"60"</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">data</span><span class="op">$</span><span class="va">event_prediction</span><span class="op">)</span>,
   xlab <span class="op">=</span> <span class="st">"Predicted risk of CVD event (%)"</span>,
@@ -267,7 +236,7 @@
 <span class="op">)</span></code></pre></div>
 <p><img src="how_to_use_files/figure-html/12-1.png" width="700"></p>
 <p>Printing the object that has been outputted returns a list of datasets corresponding to each of the landmark groups. These contain the column <code>event_prediction</code> which indicates the risk prediction of the event of interest.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">data_model_landmark_LOCF</span>
 <span class="co">#&gt; $`60`</span>
 <span class="co">#&gt;   id smoking diabetes           ethnicity   sbp_stnd tchdl_stnd</span>
@@ -300,8 +269,8 @@
 <span class="co">#&gt; 4                       9            0   62.23649       0.04195316</span>
 <span class="co">#&gt; 5                       4            0   64.71262       0.05045123</span>
 <span class="co">#&gt; 6                      10            0   65.68098       0.03561499</span></code></pre></div>
-<p>The output also contains the prediction error for the model, which is assessed using the Brier score and c-index. The standard error for these estimates can be calculated by setting parameter <code>b</code> to the desired number of bootstrap samples.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<p>The output also contains the prediction error for the model, which is assessed using the Brier score and C-index. The standard error for these estimates can be calculated by setting parameter <code>b</code> to the desired number of bootstrap samples.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">data_model_landmark_LOCF</span><span class="op">[[</span><span class="st">"60"</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">prediction_error</span>
 <span class="co">#&gt; $c_index</span>
 <span class="co">#&gt; [1] 0.600082</span>
@@ -326,32 +295,30 @@
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $brier_score_standard_error</span>
 <span class="co">#&gt; [1] NA</span></code></pre></div>
-<p>In order to assess the performance of the model, there is also the function <code>calplot</code> which creates a calibration plot which can assess the calibration of the model. The perfect prediction model will have points along the y=x line and deviations from this suggest poor calibration.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="../reference/calplot.landmark.html">calplot.landmark</a></span><span class="op">(</span><span class="va">data_model_landmark_LOCF</span>, x_L <span class="op">=</span> <span class="fl">60</span>, n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></code></pre></div>
+<p>In order to assess the performance of the model, there is also the <code>plot</code> method which creates a calibration plot which can assess the calibration of the model. The perfect prediction model will have points along the y=x line and deviations from this suggest poor calibration. However, the calibration for this model appears to be fairly good.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">data_model_landmark_LOCF</span>, x_L <span class="op">=</span> <span class="fl">60</span>, n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></code></pre></div>
 <p><img src="how_to_use_files/figure-html/20-1.png" width="700"></p>
 <p>Now we can move on to fitting the landmark model using the LME longitudinal submodel. For more information about this function, see the Details section of the <code>fit_LME_landmark_model</code> documentation. The variables standardised systolic blood pressure (SBP) and standardised total cholesterol to high density lipoprotein (HDL) ratio are continuous and repeatedly measured and so these are included as random effects in the LME model.</p>
 <p>The second issue which was mentioned previously is related to cross-validation. In particular we wish to perform k-fold cross-validation using exactly the same folds for both LOCF and LME models to ensure a fair comparison. To do this we use the parameter <code>cross_validation_df</code> which uses a list of data frames that indicate which fold each individual belongs to. We create this list using the output of <code>fit_LOCF_landmark_model</code>.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">cross_validation_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">data_model_landmark_LOCF</span>, <span class="st">"[["</span>, i <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></code></pre></div>
-<p>There are a couple of computational considerations to highlight about fitting the LME model. The parameter <code>lme_control</code> can be altered in order to change the default values of parameters (such as maximum number of iterations) for the algorithm which fits the LME model. Also setting <code>standardise_time = TRUE</code> standardises time values which helps fitting the LME model (see <code><a href="../reference/fit_LME_landmark_model.html">help("fit_LME_landmark_model")</a></code>).</p>
-<p>So we fit the LME landmark model in a similar way to the LOCF landmark model, but with a few extra parameters.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<p>There are a couple of computational considerations to highlight about fitting the LME model. The parameter <code>lme_control</code> can be altered in order to change the default values of parameters (such as maximum number of iterations) for the algorithm which fits the LME model. Also setting <code>standardise_time = TRUE</code> standardises time values which helps fitting the LME model (see <code>help("fit_LME_landmark_model")</code>).</p>
+<p>We fit the LME landmark model in a similar way to the LOCF landmark model, but with a few extra parameters. Fitting the LME model can take some time so here we only use landmark age 60 for demonstration purposes.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">data_model_landmark_LME</span> <span class="op">&lt;-</span>
-  <span class="fu"><a href="../reference/fit_LME_landmark_model.html">fit_LME_landmark_model</a></span><span class="op">(</span>
-    data_long <span class="op">=</span> <span class="va">data_repeat_outcomes</span>,
-    x_L <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">60</span>, <span class="fl">61</span><span class="op">)</span>,
-    x_hor <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">65</span>, <span class="fl">66</span><span class="op">)</span>,
+  <span class="fu"><a href="../reference/fit_LME_landmark.html">fit_LME_landmark</a></span><span class="op">(</span>
+    data_long <span class="op">=</span> <span class="va">data_repeat_outcomes</span><span class="op">[[</span><span class="st">"60"</span><span class="op">]</span><span class="op">]</span>,
+    x_L <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">60</span><span class="op">)</span>,
+    x_hor <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">65</span><span class="op">)</span>,
     cross_validation_df <span class="op">=</span>
       <span class="va">cross_validation_list</span>,
-    start_study_time <span class="op">=</span> <span class="st">"start_time"</span>,
-    end_study_time <span class="op">=</span> <span class="st">"event_time"</span>,
     fixed_effects <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ethnicity"</span>, <span class="st">"smoking"</span>, <span class="st">"diabetes"</span><span class="op">)</span>,
     fixed_effects_time <span class="op">=</span>
       <span class="st">"response_time_sbp_stnd"</span>,
     random_effects <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sbp_stnd"</span>, <span class="st">"tchdl_stnd"</span><span class="op">)</span>,
     random_effects_time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"response_time_sbp_stnd"</span>, <span class="st">"response_time_tchdl_stnd"</span><span class="op">)</span>,
-    patient_id <span class="op">=</span> <span class="st">"id"</span>,
+    individual_id <span class="op">=</span> <span class="st">"id"</span>,
     standardise_time <span class="op">=</span> <span class="cn">TRUE</span>,
     lme_control <span class="op">=</span> <span class="fu">nlme</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/nlme/man/lmeControl.html" class="external-link">lmeControl</a></span><span class="op">(</span>maxIter <span class="op">=</span>
                                      <span class="fl">100</span>, msMaxIter <span class="op">=</span> <span class="fl">100</span><span class="op">)</span>,
@@ -360,45 +327,49 @@
     survival_submodel <span class="op">=</span> <span class="st">"cause_specific"</span>
   <span class="op">)</span>
 <span class="co">#&gt; [1] "Fitting longitudinal submodel, landmark age 60"</span>
+<span class="co">#&gt; [1] 5</span>
+<span class="co">#&gt; [1] 10</span>
+<span class="co">#&gt; [1] 8</span>
+<span class="co">#&gt; [1] 9</span>
+<span class="co">#&gt; [1] 4</span>
+<span class="co">#&gt; [1] 6</span>
+<span class="co">#&gt; [1] 3</span>
+<span class="co">#&gt; [1] 7</span>
+<span class="co">#&gt; [1] 1</span>
+<span class="co">#&gt; [1] 2</span>
 <span class="co">#&gt; [1] "Complete, landmark age 60"</span>
 <span class="co">#&gt; [1] "Fitting survival submodel, landmark age 60"</span>
 <span class="co">#&gt; Warning in coxph.fit(X, Y, istrat, offset, init, control, weights = weights, :</span>
 <span class="co">#&gt; Loglik converged before variable 2 ; coefficient may be infinite.</span>
-<span class="co">#&gt; [1] "Complete, landmark age 60"</span>
-<span class="co">#&gt; [1] "Fitting longitudinal submodel, landmark age 61"</span>
-<span class="co">#&gt; [1] "Complete, landmark age 61"</span>
-<span class="co">#&gt; [1] "Fitting survival submodel, landmark age 61"</span>
-<span class="co">#&gt; Warning in coxph.fit(X, Y, istrat, offset, init, control, weights = weights, :</span>
-<span class="co">#&gt; Loglik converged before variable 2 ; coefficient may be infinite.</span>
-<span class="co">#&gt; [1] "Complete, landmark age 61"</span></code></pre></div>
+<span class="co">#&gt; [1] "Complete, landmark age 60"</span></code></pre></div>
 <p>Comparing the prediction error for the landmarking with LOCF and LME, we can see a slight improvement when the LME model is used.</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">data_model_landmark_LME</span><span class="op">[[</span><span class="st">"60"</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">prediction_error</span>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">data_model_landmark_LOCF</span><span class="op">[[</span><span class="st">"60"</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">prediction_error</span>
 <span class="co">#&gt; $c_index</span>
-<span class="co">#&gt; [1] 0.5921505</span>
+<span class="co">#&gt; [1] 0.600082</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $c_index_standard_error</span>
 <span class="co">#&gt; [1] NA</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $brier_score</span>
-<span class="co">#&gt; [1] 0.05461321</span>
+<span class="co">#&gt; [1] 0.05457067</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $brier_score_standard_error</span>
 <span class="co">#&gt; [1] NA</span>
-<span class="va">data_model_landmark_LME</span><span class="op">[[</span><span class="st">"61"</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">prediction_error</span>
+<span class="va">data_model_landmark_LME</span><span class="op">[[</span><span class="st">"60"</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">prediction_error</span>
 <span class="co">#&gt; $c_index</span>
-<span class="co">#&gt; [1] 0.5905938</span>
+<span class="co">#&gt; [1] 0.5972973</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $c_index_standard_error</span>
 <span class="co">#&gt; [1] NA</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $brier_score</span>
-<span class="co">#&gt; [1] 0.04453699</span>
+<span class="co">#&gt; [1] 0.0545461</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $brier_score_standard_error</span>
 <span class="co">#&gt; [1] NA</span></code></pre></div>
 <p>Suppose that we wish to predict the risk of the event of interest for a new patient. We need to create a data frame that contains records of all the covariates that were used to form the landmark model. As cross-validation was used, it is necessary to specify which cross-validation fold to use in the prediction. It is possible to predict the risk of the event of interest at any time before the horizon time.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">newdata</span> <span class="op">&lt;-</span>
   <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>
     id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3001</span>, <span class="fl">3001</span>, <span class="fl">3001</span><span class="op">)</span>,
@@ -417,10 +388,10 @@
   newdata <span class="op">=</span> <span class="va">newdata</span>,
   cv_fold <span class="op">=</span> <span class="fl">1</span>
 <span class="op">)</span>
-<span class="co">#&gt;      id           ethnicity smoking diabetes  sbp_stnd  tchdl_stnd</span>
-<span class="co">#&gt; 1: 3001 Chinese_other_asian       0        0 0.5553373 -0.05547993</span>
-<span class="co">#&gt;    event_prediction</span>
-<span class="co">#&gt; 1:      0.008980675</span>
+<span class="co">#&gt;      id ethnicity smoking diabetes sbp_stnd  tchdl_stnd sbp_stnd_slope</span>
+<span class="co">#&gt; 1: 3001    Indian       0        0 0.557507 -0.01647854    -0.04518955</span>
+<span class="co">#&gt;    tchdl_stnd_slope event_prediction</span>
+<span class="co">#&gt; 1:       0.05704999       0.01574949</span>
 <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span>
   object <span class="op">=</span> <span class="va">data_model_landmark_LME</span>,
   x_L <span class="op">=</span> <span class="fl">60</span>,
@@ -428,10 +399,10 @@
   newdata <span class="op">=</span> <span class="va">newdata</span>,
   cv_fold <span class="op">=</span> <span class="fl">1</span>
 <span class="op">)</span>
-<span class="co">#&gt;      id           ethnicity smoking diabetes  sbp_stnd  tchdl_stnd</span>
-<span class="co">#&gt; 1: 3001 Chinese_other_asian       0        0 0.5553373 -0.05547993</span>
-<span class="co">#&gt;    event_prediction</span>
-<span class="co">#&gt; 1:       0.01870624</span></code></pre></div>
+<span class="co">#&gt;      id ethnicity smoking diabetes sbp_stnd  tchdl_stnd sbp_stnd_slope</span>
+<span class="co">#&gt; 1: 3001    Indian       0        0 0.557507 -0.01647854    -0.04518955</span>
+<span class="co">#&gt;    tchdl_stnd_slope event_prediction</span>
+<span class="co">#&gt; 1:       0.05704999       0.03282792</span></code></pre></div>
 </div>
   </div>
 
@@ -447,7 +418,7 @@
 
       <footer><div class="copyright">
   <p></p>
-<p>Developed by Isobel Barrott, Jessica Barrett, Ruth Keogh.</p>
+<p>Developed by Isobel Barrott, Jessica Barrett.</p>
 </div>
 
 <div class="pkgdown">
