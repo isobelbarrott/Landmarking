@@ -4,6 +4,9 @@
     <loc>https://isobelbarrott.github.io/Landmarking/404.html</loc>
   </url>
   <url>
+    <loc>https://isobelbarrott.github.io/Landmarking/articles/Functions_fit_LOCF_LME_landmark.html</loc>
+  </url>
+  <url>
     <loc>https://isobelbarrott.github.io/Landmarking/articles/how_to_use.html</loc>
   </url>
   <url>
@@ -40,10 +43,25 @@
     <loc>https://isobelbarrott.github.io/Landmarking/reference/data_repeat_outcomes.html</loc>
   </url>
   <url>
+    <loc>https://isobelbarrott.github.io/Landmarking/reference/fit_LME_landmark.html</loc>
+  </url>
+  <url>
     <loc>https://isobelbarrott.github.io/Landmarking/reference/fit_LME_landmark_model.html</loc>
   </url>
   <url>
+    <loc>https://isobelbarrott.github.io/Landmarking/reference/fit_LME_longitudinal.html</loc>
+  </url>
+  <url>
+    <loc>https://isobelbarrott.github.io/Landmarking/reference/fit_LOCF_landmark.html</loc>
+  </url>
+  <url>
     <loc>https://isobelbarrott.github.io/Landmarking/reference/fit_LOCF_landmark_model.html</loc>
+  </url>
+  <url>
+    <loc>https://isobelbarrott.github.io/Landmarking/reference/fit_LOCF_longitudinal.html</loc>
+  </url>
+  <url>
+    <loc>https://isobelbarrott.github.io/Landmarking/reference/fit_survival_model.html</loc>
   </url>
   <url>
     <loc>https://isobelbarrott.github.io/Landmarking/reference/get_model_assessment.html</loc>
@@ -53,6 +71,9 @@
   </url>
   <url>
     <loc>https://isobelbarrott.github.io/Landmarking/reference/mixoutsamp.html</loc>
+  </url>
+  <url>
+    <loc>https://isobelbarrott.github.io/Landmarking/reference/plot.landmark.html</loc>
   </url>
   <url>
     <loc>https://isobelbarrott.github.io/Landmarking/reference/predict.landmark.html</loc>
