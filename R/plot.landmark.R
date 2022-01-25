@@ -38,8 +38,6 @@
 #'     covariates_time =
 #'       c(rep("response_time_sbp_stnd", 4), "response_time_tchdl_stnd"),
 #'     k = 10,
-#'     start_study_time = "start_time",
-#'     end_study_time = "event_time",
 #'     individual_id = "id",
 #'     event_time = "event_time",
 #'     event_status = "event_status",
