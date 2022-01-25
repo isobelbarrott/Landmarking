@@ -59,7 +59,7 @@ return_ids_with_LOCF <-
         lapply(1:length(c(covariates)), function(i) {
           var <- c(covariates)[i]
           time <- c(covariates_time)[i]
-          data_var <- data_long[data_long[[time]] < x_l,]
+          data_var <- data_long[data_long[[time]] <= x_l,]
           data_var <-
             data_var[!is.na(data_var[[var]]),]
           data_var <-
