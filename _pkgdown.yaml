@@ -7,18 +7,20 @@ reference:
   - title: Functions
     desc: ~
     contents:
-      - '`fit_LOCF_landmark_model`'
-      - '`fit_LME_landmark_model`'
-      - '`predict.landmark`'
+      - '`fit_LOCF_landmark`'
+      - '`fit_LME_landmark`'
       - '`add_cv_number`'
-      - '`get_model_assessment`'
-      - '`mixoutsamp`'
       - '`return_ids_with_LOCF`'
+      - '`fit_LOCF_longitudinal`'
+      - '`fit_LME_longitudinal`'
+      - '`fit_survival_model`'
+      - '`get_model_assessment`'
+      - '`predict.landmark`'
+      - '`plot.landmark`'
+      - '`mixoutsamp`'
   - title: Data
     desc: ~
     contents:
-      - '`data_landmark_cv`'
-      - '`data_landmark_LOCF`'
       - '`data_outcomes`'
       - '`data_repeat`'
       - '`data_repeat_outcomes`'
