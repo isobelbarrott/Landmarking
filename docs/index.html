@@ -40,7 +40,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">Landmarking</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
       </span>
     </div>
 
@@ -88,46 +88,47 @@
 
       </header><div class="row">
   <div class="contents col-md-9">
+
+<p>This package is designed to help the user perform dynamic prediction using a landmark model. This model applies to repeat measurements data and time-to-event data. There is the option to use the last observation carried forward (LOCF) or linear mixed effects (LME) model to fit the repeat measurements data. This package also allows the user to account for competing risks by using either the Fine Gray or Cause-specific model to fit the time-to-event data. Cross-validation with k-folds can be applied easily using this package.</p>
+<p>For more detailed examples and for an explanation of landmark models, see <a href="https://isobelbarrott.github.io/Landmarking" class="uri">https://isobelbarrott.github.io/Landmarking</a>.</p>
 <div id="installation" class="section level2">
 <h2 class="hasAnchor">
 <a href="#installation" class="anchor" aria-hidden="true"></a>Installation</h2>
 <p>You can install the development version of this package from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># install.packages("devtools")</span>
-<span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org//reference/remote-reexports.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"isobelbarrott/Landmarking"</span><span class="op">)</span></code></pre></div>
-<p>Below is an example of how to use this package with the pbc2 dataset. For more detailed examples and for an explanation of Landmark models, see <a href="https://isobelbarrott.github.io/Landmarking" class="uri">https://isobelbarrott.github.io/Landmarking</a>.</p>
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span>
+<span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/remote-reexports.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"isobelbarrott/Landmarking"</span><span class="op">)</span></code></pre></div>
+</div>
+<div id="a-simple-example" class="section level2">
+<h2 class="hasAnchor">
+<a href="#a-simple-example" class="anchor" aria-hidden="true"></a>A simple example</h2>
+<p>Below is a simple example of how to use this package with the pbc2 dataset from package JM to predict the risk of death for a new patient.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/isobelbarrott/Landmarking" class="external-link">Landmarking</a></span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">pbc2</span><span class="op">)</span>
-<span class="va">new_status</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>status<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span>,status_cr<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">2</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span>
-<span class="va">pbc2</span><span class="op">&lt;-</span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="va">pbc2</span>,<span class="va">new_status</span>,by<span class="op">=</span><span class="st">"status"</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">pbc2</span>,package<span class="op">=</span><span class="st">"JM"</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/base/levels.html" class="external-link">levels</a></span><span class="op">(</span><span class="va">pbc2</span><span class="op">$</span><span class="va">status</span><span class="op">)</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"0"</span>,<span class="st">"2"</span>,<span class="st">"1"</span><span class="op">)</span>
 <span class="va">pbc2</span><span class="op">&lt;-</span><span class="fu"><a href="reference/return_ids_with_LOCF.html">return_ids_with_LOCF</a></span><span class="op">(</span>data<span class="op">=</span><span class="va">pbc2</span>,
-                           patient_id<span class="op">=</span><span class="st">"id"</span>,
-                           x_L<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">40</span><span class="op">)</span>,
+                           individual_id<span class="op">=</span><span class="st">"id"</span>,
+                           x_L<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span>,
                            covariates<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"drug"</span>,<span class="st">"serBilir"</span>,<span class="st">"serChol"</span><span class="op">)</span>,
                            covariates_time<span class="op">=</span><span class="st">"year"</span><span class="op">)</span>
-<span class="va">data_model_landmark_LOCF</span><span class="op">&lt;-</span><span class="fu"><a href="reference/fit_LOCF_landmark_model.html">fit_LOCF_landmark_model</a></span><span class="op">(</span>data<span class="op">=</span><span class="va">pbc2</span>,
+<span class="va">pbc2</span><span class="op">$</span><span class="va">years</span><span class="op">&lt;-</span><span class="va">pbc2</span><span class="op">$</span><span class="va">years</span><span class="op">+</span><span class="va">pbc2</span><span class="op">$</span><span class="va">age</span>
+<span class="va">data_model_landmark_LOCF</span><span class="op">&lt;-</span><span class="fu"><a href="reference/fit_LOCF_landmark.html">fit_LOCF_landmark</a></span><span class="op">(</span>data<span class="op">=</span><span class="va">pbc2</span>,
                                                   x_L<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">40</span><span class="op">)</span>,
                                                   x_hor<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">45</span><span class="op">)</span>,
                                                   covariates<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"drug"</span>,<span class="st">"serBilir"</span>,<span class="st">"serChol"</span><span class="op">)</span>,
                                                   covariates_time<span class="op">=</span><span class="st">"year"</span>,
                                                   start_study_time<span class="op">=</span><span class="st">"age"</span>,
                                                   end_study_time<span class="op">=</span><span class="st">"years"</span>,
-                                                  patient_id<span class="op">=</span><span class="st">"id"</span>,
+                                                  individual_id<span class="op">=</span><span class="st">"id"</span>,
                                                   event_time<span class="op">=</span><span class="st">"years"</span>,
-                                                  event_status<span class="op">=</span><span class="st">"status_cr"</span>,
+                                                  event_status<span class="op">=</span><span class="st">"status"</span>,
                                                   survival_submodel <span class="op">=</span> <span class="st">"cause_specific"</span>,
                                                   b<span class="op">=</span><span class="fl">50</span><span class="op">)</span>
-<span class="co">#&gt; [1] "Fitting longitudinal submodel, landmark age 40"</span>
-<span class="co">#&gt; [1] "Complete, landmark age 40"</span>
-<span class="co">#&gt; [1] "Fitting survival submodel, landmark age 40"</span>
-<span class="co">#&gt; [1] "Complete, landmark age 40"</span>
-
 <span class="va">newdata</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>id<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">1</span>,<span class="fl">1</span><span class="op">)</span>,year<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">30</span>,<span class="fl">32</span>,<span class="fl">35</span><span class="op">)</span>,drug<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"placebo"</span>,<span class="st">"placebo"</span>,<span class="st">"placebo"</span><span class="op">)</span>,serBilir<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2.4</span>,<span class="fl">2.7</span>,<span class="fl">2.6</span><span class="op">)</span>,serChol<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">220</span>,<span class="fl">234</span>,<span class="fl">234</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span>object<span class="op">=</span><span class="va">data_model_landmark_LOCF</span>,x_L<span class="op">=</span><span class="fl">40</span>,x_hor<span class="op">=</span><span class="fl">45</span>,newdata<span class="op">=</span><span class="va">newdata</span><span class="op">)</span>
-<span class="co">#&gt;    id    drug serBilir serChol event_prediction</span>
-<span class="co">#&gt; 1:  1 placebo      2.6     234        0.1834694</span></code></pre></div>
+<span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span>object<span class="op">=</span><span class="va">data_model_landmark_LOCF</span>,x_L<span class="op">=</span><span class="fl">40</span>,x_hor<span class="op">=</span><span class="fl">45</span>,newdata<span class="op">=</span><span class="va">newdata</span><span class="op">)</span></code></pre></div>
 </div>
+
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
