@@ -59,17 +59,7 @@ So `r length(which(data_outcomes$event_status==1))` patients in the study (out o
 
 ## Set-up
 
-To use the Landmarking package, we need to define a time of entry into the study and time of exit from the study for each patient. This is necessary in order to work out which individuals are in the risk set at the landmark time. For this study the time of entry into the study is the date of first assessment for an individual. This is the earliest time of `response_time_sbp_stnd` and can be calculated as:
-
-```{r 7}
-start_time<-stats::aggregate(stats::as.formula(paste0("response_time_sbp_stnd","~","id")),data_repeat,function(x){min(x)})
-names(start_time)[2]<-"start_time"
-data_repeat<-dplyr::left_join(data_repeat,start_time,by="id")
-```
-
-The patient exits the study either by having an event or being censored at the end of the study on 1st January 2010. All individuals have been censored after this date in the dataset `data_outcome`. The end of study time is therefore simply the `event_time` column. 
-
-Finally, the package Landmarking requires that both time-to-event data and repeat measurement data are joined into one data frame.
+The package Landmarking requires that both time-to-event data and repeat measurement data are joined into one data frame.
 
 ```{r 8}
 data_repeat_outcomes<-dplyr::left_join(data_repeat,data_outcomes,by="id")
@@ -111,8 +101,6 @@ data_model_landmark_LOCF <-
     covariates = c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
     covariates_time = c(rep("response_time_sbp_stnd", 4), "response_time_tchdl_stnd"),
     k = 10,
-    start_study_time = "start_time",
-    end_study_time = "event_time",
     individual_id = "id",
     event_time = "event_time",
     event_status = "event_status",
@@ -170,8 +158,6 @@ data_model_landmark_LME <-
     x_hor = c(65),
     cross_validation_df =
       cross_validation_list,
-    start_study_time = "start_time",
-    end_study_time = "event_time",
     fixed_effects = c("ethnicity", "smoking", "diabetes"),
     fixed_effects_time =
       "response_time_sbp_stnd",
