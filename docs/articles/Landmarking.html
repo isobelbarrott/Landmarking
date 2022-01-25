@@ -33,7 +33,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">Landmarking</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
       </span>
     </div>
 
@@ -56,7 +56,10 @@
       <a href="../articles/Landmarking.html">Introduction to Landmark Models</a>
     </li>
     <li>
-      <a href="../articles/how_to_use.html">How to use the R package ‘Landmarking’</a>
+      <a href="../articles/how_to_use.html">How to use the R package 'Landmarking'</a>
+    </li>
+    <li>
+      <a href="../articles/Functions_fit_LOCF_LME_landmark.html">The functions 'fit_LOCF_landmark' and 'fit_LME_landmark'</a>
     </li>
   </ul>
 </li>
@@ -79,7 +82,7 @@
 
       
 
-      </header><script src="Landmarking_files/header-attrs-2.10/header-attrs.js"></script><div class="row">
+      </header><script src="Landmarking_files/header-attrs-2.11/header-attrs.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Introduction to landmark models</h1>
@@ -139,12 +142,12 @@
 <div id="competing-risks-modelling" class="section level3">
 <h3 class="hasAnchor">
 <a href="#competing-risks-modelling" class="anchor" aria-hidden="true"></a>2. Competing risks modelling</h3>
-<p>The Landmarking R package has the ability to fit competing risks models for the survival submodel. There are two types of competing risks model that can be fit using this package, the Fine Gray model and the cause-specific model, using the parameter <em>survival_submodel</em> in the function <em>fit_LOCF_landmark_model</em> or <em>fit_LME_landmark_model</em>. The cause-specific model involves regression on the cause-specific hazard function. A covariate with a hazard rate greater than 1 is associated with an increased rate of the event of interest and less than 1 with a decreased rate of the event. Conversely, the Fine Gray model involves regression on the cumulative incidence function (CIF). In this case, a covariate with a hazard rate greater than 1 is associated with an increased incidence of the event of interest and less than 1 with a decreased incidence of the event. Their differences has led to the proposal that the cause-specific model is preferred when the aim is to study the aetiology of a disease, and the Fine Gray model is preferred when the aim is prediction of the risk of an event.</p>
+<p>The Landmarking R package has the ability to fit competing risks models for the survival submodel. There are two types of competing risks model that can be fit using this package, the Fine Gray model and the cause-specific model, using the parameter <em>survival_submodel</em> in the function <em>fit_LOCF_landmark</em> or <em>fit_LME_landmark</em>. The cause-specific model involves regression on the cause-specific hazard function. A covariate with a hazard rate greater than 1 is associated with an increased rate of the event of interest and less than 1 with a decreased rate of the event. Conversely, the Fine Gray model involves regression on the cumulative incidence function (CIF). In this case, a covariate with a hazard rate greater than 1 is associated with an increased incidence of the event of interest and less than 1 with a decreased incidence of the event. Their differences has led to the proposal that the cause-specific model is preferred when the aim is to study the aetiology of a disease, and the Fine Gray model is preferred when the aim is prediction of the risk of an event.</p>
 </div>
 <div id="cross-validation" class="section level3">
 <h3 class="hasAnchor">
 <a href="#cross-validation" class="anchor" aria-hidden="true"></a>3. Cross-validation</h3>
-<p>Another feature of this package is that is makes it easy to perform k-fold cross validation. The function <em>add_cv_number</em> assigns a fold to each individual in a dataset. This can be inputted as a parameters within the functions <em>fit_LOCF_landmark_model</em> or <em>fit_LME_landmark_model</em>, which ensure the same folds are used for both the longitudinal and survival submodels.</p>
+<p>Another feature of this package is that is makes it easy to perform k-fold cross validation. The function <em>add_cv_number</em> assigns a fold to each individual in a dataset. This can be inputted as a parameters within the functions <em>fit_LOCF_landmark</em> or <em>fit_LME_landmark</em>, which ensure the same folds are used for both the longitudinal and survival submodels.</p>
 </div>
 </div>
   </div>
