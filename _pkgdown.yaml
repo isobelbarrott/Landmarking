@@ -33,8 +33,10 @@ navbar:
       menu:
       -  text: Introduction to Landmark Models
          href: articles/Landmarking.html
-      -  text: How to use the R package ‘Landmarking’
-         href: articles/how_to_use.html
+      -  text: How to use the R package 'Landmarking'
+         href: articles/how_to_use.html      
+      -  text: The functions 'fit_LOCF_landmark' and 'fit_LME_landmark'
+         href: articles/Functions_fit_LOCF_LME_landmark.html
   right:
     - icon: fa-github fa-lg
       text: "github"
