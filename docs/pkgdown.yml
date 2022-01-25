@@ -2,9 +2,10 @@ pandoc: 2.11.4
 pkgdown: 1.6.1.9001
 pkgdown_sha: ce9781a15c7ea07df9fb17a11295ba4abec0b54b
 articles:
+  Functions_fit_LOCF_LME_landmark: Functions_fit_LOCF_LME_landmark.html
   how_to_use: how_to_use.html
   Landmarking: Landmarking.html
-last_built: 2021-08-17T09:28Z
+last_built: 2022-01-25T09:11Z
 urls:
   reference: https://isobelbarrott.github.io/Landmarking/reference
   article: https://isobelbarrott.github.io/Landmarking/articles
