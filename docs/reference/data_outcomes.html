@@ -40,8 +40,12 @@
 
 
 <meta property="og:title" content="Simulated time-to-event data — data_outcomes" />
-<meta property="og:description" content="A simulated dataset formed using a cause specific model, whose parameters were based on CVD events of patients
-at primary care practices in New Zealand. The dataset contains time-to-event data from 10000 patients." />
+<meta property="og:description" content="This dataset contains time-to-event data simulated from the landmark model.
+Specifically, the LME model was fitted to dataset data_repeat and values of sbp_stnd
+and tchdl_stnd were estimated at landmark age 60. These values (along with the other measurements)
+were used to simulate time-to-event data from a
+cause specific model with parameters based on CVD events of patients
+at primary care practices in New Zealand." />
 
 
 
@@ -81,7 +85,7 @@ at primary care practices in New Zealand. The dataset contains time-to-event dat
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">Landmarking</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
       </span>
     </div>
 
@@ -136,8 +140,12 @@ at primary care practices in New Zealand. The dataset contains time-to-event dat
     </div>
 
     <div class="ref-description">
-    <p>A simulated dataset formed using a cause specific model, whose parameters were based on CVD events of patients
-at primary care practices in New Zealand. The dataset contains time-to-event data from 10000 patients.</p>
+    <p>This dataset contains time-to-event data simulated from the landmark model.
+Specifically, the LME model was fitted to dataset <code>data_repeat</code> and values of <code>sbp_stnd</code>
+and <code>tchdl_stnd</code> were estimated at landmark age 60. These values (along with the other measurements)
+were used to simulate time-to-event data from a
+cause specific model with parameters based on CVD events of patients
+at primary care practices in New Zealand.</p>
     </div>
 
     <div class="ref-usage sourceCode"><pre class='sourceCode r'><code><span class='va'>data_outcomes</span></code></pre></div>
@@ -145,10 +153,10 @@ at primary care practices in New Zealand. The dataset contains time-to-event dat
 
     <h2 class="hasAnchor" id="format"><a class="anchor" href="#format"></a>Format</h2>
 
-    <p>A dataset with 10000 rows and 3 columns:</p>
+    <p>A dataset with 3000 rows and 3 columns:</p>
 <dl>
 <dt>id</dt><dd><p>Patient ID</p></dd>
-<dt>event_status</dt><dd><p>Event status, 0 indicates censoring, 1 indicates CVD event, 2 indicates death from other causes</p></dd>
+<dt>event_status</dt><dd><p>Event status, 0 indicates censoring, 1 indicates CVD event, and 2 indicates death from other causes</p></dd>
 <dt>event_time</dt><dd><p>Event time</p></dd>
 
 </dl>
