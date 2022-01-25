@@ -41,7 +41,8 @@
 
 <meta property="og:title" content="Select individuals in a dataset with a last observation carried forward (LOCF) at a landmark time — return_ids_with_LOCF" />
 <meta property="og:description" content="To fit the LOCF model, all individuals must have at least one
-non-NA entry by age x_L for all covariates. This function selects these individuals and removes the other rows." />
+non-NA entry by landmark time x_L for all covariates.
+This function selects these individuals and removes the other rows." />
 
 
 
@@ -81,7 +82,7 @@ non-NA entry by age x_L for all covariates. This function selects these individu
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">Landmarking</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
       </span>
     </div>
 
@@ -104,7 +105,10 @@ non-NA entry by age x_L for all covariates. This function selects these individu
       <a href="../articles/Landmarking.html">Introduction to Landmark Models</a>
     </li>
     <li>
-      <a href="../articles/how_to_use.html">How to use the R package ‘Landmarking’</a>
+      <a href="../articles/how_to_use.html">How to use the R package 'Landmarking'</a>
+    </li>
+    <li>
+      <a href="../articles/Functions_fit_LOCF_LME_landmark.html">The functions 'fit_LOCF_landmark' and 'fit_LME_landmark'</a>
     </li>
   </ul>
 </li>
@@ -137,25 +141,32 @@ non-NA entry by age x_L for all covariates. This function selects these individu
 
     <div class="ref-description">
     <p>To fit the LOCF model, all individuals must have at least one
-non-<code>NA</code> entry by age <code>x_L</code> for all covariates. This function selects these individuals and removes the other rows.</p>
+non-<code>NA</code> entry by landmark time <code>x_L</code> for all covariates.
+This function selects these individuals and removes the other rows.</p>
     </div>
 
-    <div class="ref-usage sourceCode"><pre class='sourceCode r'><code><span class='fu'>return_ids_with_LOCF</span><span class='op'>(</span><span class='va'>data</span>, <span class='va'>patient_id</span>, <span class='va'>x_L</span>, <span class='va'>covariates</span>, <span class='va'>covariates_time</span><span class='op'>)</span></code></pre></div>
+    <div class="ref-usage sourceCode"><pre class='sourceCode r'><code><span class='fu'>return_ids_with_LOCF</span><span class='op'>(</span>
+  <span class='va'>data_long</span>,
+  <span class='va'>individual_id</span>,
+  <span class='va'>x_L</span>,
+  <span class='va'>covariates</span>,
+  <span class='va'>covariates_time</span>
+<span class='op'>)</span></code></pre></div>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>data</th>
-      <td><p>Data frame with repeated measurements in long format; each row corresponds to an assessment entry</p></td>
+      <th>data_long</th>
+      <td><p>Data frame with repeated measurements data in long format</p></td>
     </tr>
     <tr>
-      <th>patient_id</th>
-      <td><p>Character string specifying the column name in <code>data</code> which contains the individual identifiers</p></td>
+      <th>individual_id</th>
+      <td><p>Character string specifying the column name in <code>data_long</code> which contains the individual identifiers</p></td>
     </tr>
     <tr>
       <th>x_L</th>
-      <td><p>Numeric specifying the landmark time</p></td>
+      <td><p>Numeric specifying the landmark time(s)</p></td>
     </tr>
     <tr>
       <th>covariates</th>
@@ -173,22 +184,30 @@ order of elements in <code>covariates</code>.</p></td>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>Data frame <code>data</code> updated to contain only rows of individuals with a LOCF at age <code>x_L</code>, other rows are removed</p>
+    <p>List of data frames which correspond to each landmark time <code>x_L</code>.
+Each data frame is an updated version of <code>data_long</code> which contains only rows
+of individuals with a LOCF at age <code>x_L</code>, other rows are removed.</p>
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
     <p>Individuals have a LOCF if there is a non-<code>NA</code> entry for each of the covariates in
-<code>covariates</code> up until (and including) time <code>x_L</code>.</p>
+<code>covariates</code> up until (not including) time <code>x_L</code>.</p>
     <h2 class="hasAnchor" id="author"><a class="anchor" href="#author"></a>Author</h2>
 
     <p>Isobel Barrott <a href='mailto:isobel.barrott@gmail.com'>isobel.barrott@gmail.com</a></p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <div class="ref-examples sourceCode"><pre class='sourceCode r'><code><span class='r-in'><span class='fu'><a href='https://rdrr.io/r/utils/data.html'>data</a></span><span class='op'>(</span><span class='va'>data_repeat_outcomes</span><span class='op'>)</span></span>
-<span class='r-in'><span class='va'>data_repeat_outcomes</span><span class='op'>&lt;-</span><span class='fu'>return_ids_with_LOCF</span><span class='op'>(</span>data<span class='op'>=</span><span class='va'>data_repeat_outcomes</span>,</span>
-<span class='r-in'>  patient_id<span class='op'>=</span><span class='st'>"id"</span>,</span>
-<span class='r-in'>  covariates<span class='op'>=</span><span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"ethnicity"</span>,<span class='st'>"smoking"</span>,<span class='st'>"diabetes"</span>,<span class='st'>"sbp_stnd"</span>,<span class='st'>"tchdl_stnd"</span><span class='op'>)</span>,</span>
-<span class='r-in'>  covariates_time<span class='op'>=</span><span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/rep.html'>rep</a></span><span class='op'>(</span><span class='st'>"response_time_sbp_stnd"</span>,<span class='fl'>4</span><span class='op'>)</span>,<span class='st'>"response_time_tchdl_stnd"</span><span class='op'>)</span>,</span>
-<span class='r-in'>  x_L<span class='op'>=</span><span class='fl'>60</span><span class='op'>)</span></span>
+    <div class="ref-examples sourceCode"><pre class='sourceCode r'><code><span class='r-in'><span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://github.com/isobelbarrott/Landmarking'>Landmarking</a></span><span class='op'>)</span></span>
+<span class='r-in'><span class='fu'><a href='https://rdrr.io/r/utils/data.html'>data</a></span><span class='op'>(</span><span class='va'>data_repeat_outcomes</span><span class='op'>)</span></span>
+<span class='r-in'><span class='va'>data_repeat_outcomes</span> <span class='op'>&lt;-</span></span>
+<span class='r-in'>  <span class='fu'>return_ids_with_LOCF</span><span class='op'>(</span></span>
+<span class='r-in'>    data_long <span class='op'>=</span> <span class='va'>data_repeat_outcomes</span>,</span>
+<span class='r-in'>    individual_id <span class='op'>=</span> <span class='st'>"id"</span>,</span>
+<span class='r-in'>    covariates <span class='op'>=</span></span>
+<span class='r-in'>      <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"ethnicity"</span>, <span class='st'>"smoking"</span>, <span class='st'>"diabetes"</span>, <span class='st'>"sbp_stnd"</span>, <span class='st'>"tchdl_stnd"</span><span class='op'>)</span>,</span>
+<span class='r-in'>    covariates_time <span class='op'>=</span></span>
+<span class='r-in'>      <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/rep.html'>rep</a></span><span class='op'>(</span><span class='st'>"response_time_sbp_stnd"</span>, <span class='fl'>4</span><span class='op'>)</span>, <span class='st'>"response_time_tchdl_stnd"</span><span class='op'>)</span>,</span>
+<span class='r-in'>    x_L <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>60</span>,<span class='fl'>61</span><span class='op'>)</span></span>
+<span class='r-in'>  <span class='op'>)</span></span>
 </code></pre></div>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
