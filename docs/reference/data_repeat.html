@@ -41,7 +41,7 @@
 
 <meta property="og:title" content="Simulated repeat measurement data — data_repeat" />
 <meta property="og:description" content="A simulated dataset formed using an LME model, whose parameters were based on CVD risk assessments
-recorded at primary care practices in New Zealand. The dataset contains repeat measurements data from 10000 patients." />
+recorded at primary care practices in New Zealand. The dataset contains repeat measurements data from 3000 patients." />
 
 
 
@@ -81,7 +81,7 @@ recorded at primary care practices in New Zealand. The dataset contains repeat m
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">Landmarking</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
       </span>
     </div>
 
@@ -137,7 +137,7 @@ recorded at primary care practices in New Zealand. The dataset contains repeat m
 
     <div class="ref-description">
     <p>A simulated dataset formed using an LME model, whose parameters were based on CVD risk assessments
-recorded at primary care practices in New Zealand. The dataset contains repeat measurements data from 10000 patients.</p>
+recorded at primary care practices in New Zealand. The dataset contains repeat measurements data from 3000 patients.</p>
     </div>
 
     <div class="ref-usage sourceCode"><pre class='sourceCode r'><code><span class='va'>data_repeat</span></code></pre></div>
@@ -145,17 +145,18 @@ recorded at primary care practices in New Zealand. The dataset contains repeat m
 
     <h2 class="hasAnchor" id="format"><a class="anchor" href="#format"></a>Format</h2>
 
-    <p>A dataset with 30013 rows and 13 columns:</p><dl>
+    <p>A dataset with 9048 rows and 11 columns:</p><dl>
 <dt>id</dt><dd><p>Patient ID</p></dd>
-<dt>smoking</dt><dd><p>Smoking status, 0 indicates the patient has 'never smoked', 1 indicates the patient has quit smoking, and 2 indicated the individual is a current smoker.</p></dd>
-<dt>diabetes</dt><dd><p>Diabetes status, 0 indicates the patient does not have diabetes, 1 indicates the patient does have diabetes</p></dd>
+<dt>smoking</dt><dd><p>Smoking status, 0 indicates the patient has never smoked, 1 indicates the patient has quit smoking, and 2 indicates the patient is a current smoker</p></dd>
+<dt>diabetes</dt><dd><p>Diabetes status, 0 indicates the patient is not diagnosed with diabetes, and 1 indicates the patient is diagnosed with diabetes</p></dd>
 <dt>ethnicity</dt><dd><p>Ethnicity, one of five ethnicities</p></dd>
-<dt>deprivation</dt><dd><p>Deprivation score out of five</p></dd>
+<dt>deprivation</dt><dd><p>Deprivation score, quintiles</p></dd>
 <dt>index</dt><dd><p>An index indicating assessment number for a patient</p></dd>
-<dt>response_date_sbp_stnd</dt><dd><p>Date that systolic blood pressure was recorded, this is the same as the date that the fixed measures were recorded</p></dd>
 <dt>sbp_stnd</dt><dd><p>Standardised systolic blood pressure</p></dd>
-<dt>response_date_tchdl_stnd</dt><dd><p>Date that total cholesterol to HDL ratio was recorded</p></dd>
 <dt>tchdl_stnd</dt><dd><p>Standardised total cholesterol to HDL ratio</p></dd>
+<dt>end_of_study_age</dt><dd><p>Age that the patient left the study, either the age at event (CVD or death) or age at end of study (1st Jan 2010)</p></dd>
+<dt>response_time_tchdl_stnd</dt><dd><p>Age that total cholesterol to HDL ratio was recorded</p></dd>
+<dt>response_time_sbp_stnd</dt><dd><p>Age that systolic blood pressure and all other measurements were recorded</p></dd>
 
 </dl>
 
