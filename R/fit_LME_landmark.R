@@ -84,23 +84,24 @@
 #'
 #' @export
 fit_LME_longitudinal <- function(data_long,
-                                       x_L,
-                                       fixed_effects,
-                                       random_effects,
-                                       fixed_effects_time,
-                                       random_effects_time,
-                                       standardise_time=FALSE,
-                                       random_slope_in_LME = TRUE,
-                                       random_slope_as_covariate=FALSE,
-                                       cv_name=NA,
-                                       individual_id,
-                                       lme_control = nlme::lmeControl()) {
+                                 x_L,
+                                 fixed_effects,
+                                 random_effects,
+                                 fixed_effects_time,
+                                 random_effects_time,
+                                 standardise_time = FALSE,
+                                 random_slope_in_LME = TRUE,
+                                 random_slope_as_covariate = FALSE,
+                                 cv_name = NA,
+                                 individual_id,
+                                 lme_control = nlme::lmeControl()) {
   call <- match.call()
   if (!(is.data.frame(data_long))) {
     stop("data_long should be a dataframe")
   }
-  if (!(is.numeric(x_L))){
-    stop("'x_L' should be numeric")}
+  if (!(is.numeric(x_L))) {
+    stop("'x_L' should be numeric")
+  }
 
   for (col in c(
     fixed_effects,
@@ -118,44 +119,63 @@ fit_LME_longitudinal <- function(data_long,
     if (!(cv_name %in% names(data_long))) {
       stop(cv_name, " is not a column name in data_long")
     }
-    if (any(is.na(data_long[[cv_name]]))){
-      stop("The column ",cv_name, " contains NA values")
+    if (any(is.na(data_long[[cv_name]]))) {
+      stop("The column ", cv_name, " contains NA values")
     }
   }
 
-  if(is.na(cv_name)){data_long[["cross_validation_number"]]<-1;cv_name<-"cross_validation_number"}
+  if (is.na(cv_name)) {
+    data_long[["cross_validation_number"]] <-
+      1
+    cv_name <- "cross_validation_number"
+  }
 
-  if (!(length(fixed_effects_time) %in% c(length(fixed_effects),1))){
-    stop("Length of fixed_effects_time should be equal to length of fixed_effects or 1")}
+  if (!(length(fixed_effects_time) %in% c(length(fixed_effects), 1))) {
+    stop("Length of fixed_effects_time should be equal to length of fixed_effects or 1")
+  }
 
-  if (length(fixed_effects_time)==1){fixed_effects_time<-rep(fixed_effects_time,times=length(fixed_effects))}
+  if (length(fixed_effects_time) == 1) {
+    fixed_effects_time <-
+      rep(fixed_effects_time, times = length(fixed_effects))
+  }
 
-  if (!(length(random_effects_time) %in% c(length(random_effects),1))){
-    stop("Length of random_effects_time should be equal to length of random_effects or 1")}
+  if (!(length(random_effects_time) %in% c(length(random_effects), 1))) {
+    stop("Length of random_effects_time should be equal to length of random_effects or 1")
+  }
 
-  if (length(random_effects_time)==1){random_effects_time<-rep(random_effects_time,times=length(random_effects))}
+  if (length(random_effects_time) == 1) {
+    random_effects_time <-
+      rep(random_effects_time, times = length(random_effects))
+  }
 
-  if(dim(return_ids_with_LOCF(data_long=data_long,
-                              individual_id=individual_id,
-                              x_L=x_L,
-                              covariates=fixed_effects,
-                              covariates_time=fixed_effects_time))[1]!=dim(data_long)[1]){
-    stop("data_long contains individuals that do not have a LOCF for all fixed_effects. Use function return_ids_with_LOCF to remove these individuals from the dataset data_long.")
+  if (dim(
+    return_ids_with_LOCF(
+      data_long = data_long,
+      individual_id = individual_id,
+      x_L = x_L,
+      covariates = fixed_effects,
+      covariates_time = fixed_effects_time
+    )
+  )[1] != dim(data_long)[1]) {
+    stop(
+      "data_long contains individuals that do not have a LOCF for all fixed_effects. Use function return_ids_with_LOCF to remove these individuals from the dataset data_long."
+    )
   }
 
 
-  data_long[[individual_id]] <- as.factor(data_long[[individual_id]])
+  data_long[[individual_id]] <-
+    as.factor(data_long[[individual_id]])
 
   data_LOCF <- data_long
   data_LME <- data_long
 
-  #Pick out LOCF for each exposure#
+  #Pick out LOCF for each variable
   LOCF_values_by_variable <-
     lapply(1:length(c(fixed_effects, random_effects)), function(x) {
       return_LOCF_by_variable(
         data_long = data_LOCF,
         i = x,
-        covariates=c(fixed_effects, random_effects),
+        covariates = c(fixed_effects, random_effects),
         covariates_time = c(fixed_effects_time, random_effects_time),
         individual_id = individual_id,
         x_L =
@@ -163,12 +183,12 @@ fit_LME_longitudinal <- function(data_long,
       )
     })
   data_LOCF <- Reduce(merge, LOCF_values_by_variable)
-  data_LOCF<-data_LOCF[match(unique(data_long[[individual_id]]),data_LOCF[[individual_id]]),]
+  data_LOCF <-
+    data_LOCF[match(unique(data_long[[individual_id]]), data_LOCF[[individual_id]]), ]
 
   data_LOCF <-
     dplyr::left_join(data_LOCF, unique(data_long[c(individual_id, cv_name)]), by =
-                         individual_id)
-
+                       individual_id)
 
   #Create validation and development dataset
   #####
@@ -185,82 +205,119 @@ fit_LME_longitudinal <- function(data_long,
     as.numeric(Reduce(c, lapply(1:length(random_effects), function(i) {
       data_LME[, random_effects_time[i]]
     })))
-  data_fixed_effects<-
-      do.call("rbind", replicate(
-        n = length(random_effects),
-        data_LME[, c(individual_id, fixed_effects, cv_name)],
-        simplify = FALSE
-      ))
+  data_fixed_effects <-
+    do.call("rbind", replicate(
+      n = length(random_effects),
+      data_LME[, c(individual_id, fixed_effects, cv_name)],
+      simplify = FALSE
+    ))
 
   data_LME <-
     data.frame(data_fixed_effects, response_type, response, response_time)
 
-  if(standardise_time==TRUE){
-    mean_response_time<-mean(data_LME$response_time,na.rm=TRUE)
-    sd_response_time<-stats::sd(data_LME$response_time,na.rm=TRUE)
-  }else{
-    mean_response_time<-0
-    sd_response_time<-1
+  if (standardise_time == TRUE) {
+    mean_response_time <- mean(data_LME$response_time, na.rm = TRUE)
+    sd_response_time <- stats::sd(data_LME$response_time, na.rm = TRUE)
+  } else{
+    mean_response_time <- 0
+    sd_response_time <- 1
   }
-  data_LME$response_time<-(data_LME$response_time-mean_response_time)/sd_response_time
-  x_L<-(x_L-mean_response_time)/sd_response_time
-  standardise_time<-list(mean_response_time=mean_response_time,sd_response_time=sd_response_time)
+  data_LME$response_time <-
+    (data_LME$response_time - mean_response_time) / sd_response_time
+  x_L <- (x_L - mean_response_time) / sd_response_time
+  standardise_time <-
+    list(mean_response_time = mean_response_time,
+         sd_response_time = sd_response_time)
 
-  data_LME_model_val <- data_LME[data_LME$response_time <= x_L,]
-  data_LME_model_dev <- data_LME[!is.na(data_LME$response),]
-  #####
+  data_LME_model_val <- data_LME[data_LME$response_time <= x_L, ]
+  data_LME_model_dev <- data_LME[!is.na(data_LME$response), ]
 
-  if (length(random_effects)==1){
+  if (length(random_effects) == 1) {
     formula_weights <- NULL
     if (random_slope_in_LME == FALSE) {
-      formula_random<-as.formula(paste0(" ~ 1 |",individual_id))}else{
-        formula_random<-as.formula(paste0(" ~ 1 + response_time |",individual_id))}
-    formula_fixed<-as.formula(paste0(c(paste0("response~ 1 "), c("response_time", fixed_effects)), collapse = "+"))
+      formula_random <- as.formula(paste0(" ~ 1 |", individual_id))
+    }
+    else{
+      formula_random <-
+        as.formula(paste0(" ~ 1 + response_time |", individual_id))
+    }
+    formula_fixed <-
+      as.formula(paste0(c(
+        paste0("response~ 1 "), c("response_time", fixed_effects)
+      ), collapse = "+"))
   }
-  if (length(random_effects)>1){
+  if (length(random_effects) > 1) {
     formula_weights <- nlme::varIdent(form = ~ 1 | "response_type")
-    if (random_slope_in_LME == FALSE) {formula_random<-as.formula(paste0(" ~ -1 + response_type | ",individual_id))}else{
-     formula_random<-as.formula(paste0(" ~-1 + response_type + response_type:response_time | ",individual_id))}
-    formula_fixed<-as.formula(paste0(c(
-    paste0(c(paste0("response~-1+ response_type"), c("response_time", fixed_effects)), collapse = "+"),
-    paste0(paste0(paste0(
-      c("response_time", fixed_effects), ":response_type")
-    ), collapse = "+")
-  ), collapse = "+"))
+    if (random_slope_in_LME == FALSE) {
+      formula_random <-
+        as.formula(paste0(" ~ -1 + response_type | ", individual_id))
+    }
+    else{
+      formula_random <-
+        as.formula(paste0(
+          " ~-1 + response_type + response_type:response_time | ",
+          individual_id
+        ))
+    }
+    formula_fixed <- as.formula(paste0(c(
+      paste0(c(
+        paste0("response~-1+ response_type"),
+        c("response_time", fixed_effects)
+      ), collapse = "+"),
+      paste0(paste0(paste0(
+        c("response_time", fixed_effects), ":response_type"
+      )), collapse = "+")
+    ), collapse = "+"))
   }
 
   cv_numbers <- unique(data_LME_model_dev[[cv_name]])
-
   model_LME <- lapply(cv_numbers, function(cv_number) {
-    if (length(cv_numbers)>1){
-      data_dev_cv <- data_LME_model_dev[data_LME_model_dev[[cv_name]]!= cv_number,]}
-    if (length(cv_numbers)==1){
-      data_dev_cv<-data_LME_model_dev}
-    model_LME_cv<-nlme::lme(fixed=formula_fixed,
-                            random=formula_random,
-                            data = data_dev_cv,
-                            weights = formula_weights,
-                            control = lme_control)
-    model_LME_cv$call$fixed<-formula_fixed
+    if (length(cv_numbers) > 1) {
+      data_dev_cv <-
+        data_LME_model_dev[data_LME_model_dev[[cv_name]] != cv_number, ]
+    }
+    if (length(cv_numbers) == 1) {
+      data_dev_cv <- data_LME_model_dev
+    }
+    model_LME_cv <- nlme::lme(
+      fixed = formula_fixed,
+      random = formula_random,
+      data = data_dev_cv,
+      weights = formula_weights,
+      control = lme_control
+    )
+    model_LME_cv$call$fixed <- formula_fixed
     model_LME_cv
   })
   names(model_LME) <- cv_numbers
 
-
-  response_type <- Reduce(c,lapply(random_effects,function(i){rep(i,dim(data_LOCF)[1])}))
-  response <- as.numeric(rep(NA,length(response_type)))
-  response_time<-as.numeric(rep(x_L,length(response_type)))
-  data_fixed_effects<-do.call("rbind",replicate(n=length(random_effects),data_LOCF[,c(individual_id,fixed_effects,cv_name)],simplify=FALSE))
-  data_LOCF_model_val<-data.frame(data_fixed_effects,response_type,response,response_time,predict=1)
-  data_LME_model_val$predict<-0
-  data_LME_model_val<-dplyr::bind_rows(data_LOCF_model_val,data_LME_model_val)
+  response_type <-
+    Reduce(c, lapply(random_effects, function(i) {
+      rep(i, dim(data_LOCF)[1])
+    }))
+  response <- as.numeric(rep(NA, length(response_type)))
+  response_time <- as.numeric(rep(x_L, length(response_type)))
+  data_fixed_effects <-
+    do.call("rbind", replicate(
+      n = length(random_effects),
+      data_LOCF[, c(individual_id, fixed_effects, cv_name)],
+      simplify = FALSE
+    ))
+  data_LOCF_model_val <-
+    data.frame(data_fixed_effects,
+               response_type,
+               response,
+               response_time,
+               predict = 1)
+  data_LME_model_val$predict <- 0
+  data_LME_model_val <-
+    dplyr::bind_rows(data_LOCF_model_val, data_LME_model_val)
 
   data_LME <-
     lapply(cv_numbers, function(cv_number) {
-      print(cv_number)
       data_LME_model_val_cv <-
-        data_LME_model_val[which(data_LME_model_val[[cv_name]] == cv_number), ]
-      data_LME_model_val_cv<-droplevels(data_LME_model_val_cv)
+        data_LME_model_val[which(data_LME_model_val[[cv_name]] == cv_number),]
+      data_LME_model_val_cv <- droplevels(data_LME_model_val_cv)
       model_LME_cv <- model_LME[[as.character(cv_number)]]
       response_predictions <-
         which(data_LME_model_val_cv$predict == 1)
@@ -269,50 +326,65 @@ fit_LME_longitudinal <- function(data_long,
         mixoutsamp(model = model_LME_cv,
                    newdata = data_LME_model_val_cv)
 
-
-      data_LME_model_val_cv <-mixoutsamp_LME_model_val_cv$preddata[response_predictions, ][, c(individual_id,
-                                                                                         fixed_effects,
-                                                                                         cv_name,
-                                                                                         "response_type",
-                                                                                         "fitted")]
       data_LME_model_val_cv <-
-          stats::reshape(
-            data_LME_model_val_cv,
-            timevar = "response_type",
-            idvar = c(individual_id, fixed_effects, cv_name),
-            direction = "wide"
-          )
+        mixoutsamp_LME_model_val_cv$preddata[response_predictions,][, c(individual_id,
+                                                                        fixed_effects,
+                                                                        cv_name,
+                                                                        "response_type",
+                                                                        "fitted")]
+      data_LME_model_val_cv <-
+        stats::reshape(
+          data_LME_model_val_cv,
+          timevar = "response_type",
+          idvar = c(individual_id, fixed_effects, cv_name),
+          direction = "wide"
+        )
       for (name in random_effects) {
-        names(data_LME_model_val_cv)[grep(paste0("fitted.",name), names(data_LME_model_val_cv))] <-
+        names(data_LME_model_val_cv)[grep(paste0("fitted.", name), names(data_LME_model_val_cv))] <-
           name
       }
-      if(random_slope_as_covariate==TRUE){
-        data_LME_model_val_cv<-dplyr::left_join(data_LME_model_val_cv,
-                                                mixoutsamp_LME_model_val_cv$random[,c(individual_id,paste0("reffresponse_type",random_effects,":response_time"))],by=individual_id)
-        for (name in paste0(random_effects)){
-          names(data_LME_model_val_cv)[grep(paste0("reffresponse_type",name,":response_time"),names(data_LME_model_val_cv))]<-paste0(name,"_slope")
+      if (random_slope_as_covariate == TRUE) {
+        data_LME_model_val_cv <- dplyr::left_join(data_LME_model_val_cv,
+                                                  mixoutsamp_LME_model_val_cv$random[, c(
+                                                    individual_id,
+                                                    paste0("reffresponse_type", random_effects, ":response_time")
+                                                  )],
+                                                  by = individual_id)
+        for (name in paste0(random_effects)) {
+          names(data_LME_model_val_cv)[grep(
+            paste0("reffresponse_type", name, ":response_time"),
+            names(data_LME_model_val_cv)
+          )] <- paste0(name, "_slope")
         }
       }
 
-      data_LME_model_val_cv[[as.character(cv_name)]]<-cv_number
+      data_LME_model_val_cv[[as.character(cv_name)]] <- cv_number
       data_LME_model_val_cv
-  })
+    })
   data_LME <- do.call("rbind", data_LME)
 
-  data_LME<-data_LME[match(unique(data_long[[individual_id]]),data_LME[[individual_id]]),]
-  data_LME<-data_LME[,order(match(names(data_LME),names(data_long)))]
-  rownames(data_LME)<-NULL
+  data_LME <-
+    data_LME[match(unique(data_long[[individual_id]]), data_LME[[individual_id]]), ]
+  data_LME <-
+    data_LME[, order(match(names(data_LME), names(data_long)))]
+  rownames(data_LME) <- NULL
 
-  if (length(cv_numbers)==1){model_LME<-model_LME[[1]]}
-  if(length(unique(data_long[[cv_name]]))==1){data_long[[cv_name]]<-NULL}
+  if (length(cv_numbers) == 1) {
+    model_LME <- model_LME[[1]]
+  }
+  if (length(unique(data_long[[cv_name]])) == 1) {
+    data_long[[cv_name]] <- NULL
+  }
 
-  return(list(
+  return(
+    list(
       data_longitudinal = data_LME,
       model_longitudinal = "LME",
       call = call,
       model_LME = model_LME,
-      model_LME_standardise_time=standardise_time
-    ))
+      model_LME_standardise_time = standardise_time
+    )
+  )
 }
 
 
@@ -400,16 +472,6 @@ fit_LME_longitudinal <- function(data_long,
 #' @examples \dontrun{
 #' library(Landmarking)
 #' data(data_repeat_outcomes)
-#' data_repeat_outcomes <-
-#'   return_ids_with_LOCF(
-#'     data_long = data_repeat_outcomes,
-#'     individual_id = "id",
-#'     covariates =
-#'       c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
-#'     covariates_time =
-#'       c(rep("response_time_sbp_stnd", 4), "response_time_tchdl_stnd"),
-#'     x_L = c(60,61)
-#'   )
 #' data_model_landmark_LME <-
 #'   fit_LME_landmark(
 #'     data_long = data_repeat_outcomes,
@@ -432,193 +494,295 @@ fit_LME_longitudinal <- function(data_long,
 #' @importFrom prodlim Hist
 #' @export
 
-fit_LME_landmark<-function(data_long,
-                                 x_L,
-                                 x_hor,
-                                 fixed_effects,
-                                 random_effects,
-                                 fixed_effects_time,
-                                 random_effects_time,
-                                 random_slope_in_LME = TRUE,
-                                 random_slope_as_covariate = TRUE,
-                                 standardise_time=FALSE,
-                                 individual_id,
-                                 k,
-                                 cross_validation_df,
-                                 lme_control = nlme::lmeControl(),
-                                 event_time,
-                                 event_status,
-                                 survival_submodel=c("standard_cox", "cause_specific", "fine_gray"),
-                                 b){
+
+fit_LME_landmark <- function(data_long,
+                             x_L,
+                             x_hor,
+                             fixed_effects,
+                             random_effects,
+                             fixed_effects_time,
+                             random_effects_time,
+                             random_slope_in_LME = TRUE,
+                             random_slope_as_covariate = TRUE,
+                             standardise_time = FALSE,
+                             individual_id,
+                             k,
+                             cross_validation_df,
+                             lme_control = nlme::lmeControl(),
+                             event_time,
+                             event_status,
+                             survival_submodel = c("standard_cox", "cause_specific", "fine_gray"),
+                             b) {
   call <- match.call()
 
   survival_submodel <- match.arg(survival_submodel)
 
 
   #Checks
-  if (missing(k)){k_add<-FALSE}else{k_add<-TRUE}
-  if (missing(cross_validation_df)){cross_validation_df_add<-FALSE}else{cross_validation_df_add<-TRUE}
-  if (k_add==TRUE) {
+  if (missing(k)) {
+    k_add <- FALSE
+  }
+  else{
+    k_add <- TRUE
     if (!(is.numeric(k))) {
       stop("k should be numeric")
     }
   }
 
-  if (cross_validation_df_add==TRUE) {
-    if(class(cross_validation_df)=="list") {
-      if(!all(x_L %in% names(cross_validation_df))){stop("The names of elements in cross_validation_df list should be the landmark times in x_L")}
-      if(any(Reduce("c",lapply(cross_validation_df,function(x){any(duplicated(dplyr::distinct(x[,c(individual_id,"cross_validation_number")])[,individual_id]))})))){
-        stop("Cross validation folds should be the same for the same individual")}}else if(class(cross_validation_df)=="data.frame"){
-          if(any(duplicated(dplyr::distinct(cross_validation_df[,c(individual_id,"cross_validation_number")])[,individual_id]))){
-            stop("Cross validation folds should be the same for the same individual")
-          }
-        }else{stop("cross_validation_df should be either a data frame or a list")}
+  if (missing(cross_validation_df)) {
+    cross_validation_df_add <- FALSE
+  }
+  else{
+    cross_validation_df_add <- TRUE
+    if (class(cross_validation_df) == "list") {
+      if (!all(x_L %in% names(cross_validation_df))) {
+        stop(
+          "The names of elements in cross_validation_df list should be the landmark times in x_L"
+        )
+      }
+      if (any(Reduce("c", lapply(cross_validation_df, function(x) {
+        any(duplicated(dplyr::distinct(x[, c(individual_id, "cross_validation_number")])[, individual_id]))
+      })))) {
+        stop("Cross validation folds should be the same for the same individual")
+      }
+    }
+    else if (class(cross_validation_df) == "data.frame") {
+      if (any(duplicated(dplyr::distinct(cross_validation_df[, c(individual_id, "cross_validation_number")])[, individual_id]))) {
+        stop("Cross validation folds should be the same for the same individual")
+      }
+    }
+    else{
+      stop("cross_validation_df should be either a data frame or a list")
+    }
+  }
+  if (k_add == TRUE &&
+      cross_validation_df_add == TRUE) {
+    stop("Either use parameter k or cross_validation_df but not both")
+  }
+  if (k_add == FALSE &&
+      cross_validation_df_add == FALSE) {
+    cv_name <- NA
+  } else{
+    cv_name <- "cross_validation_number"
   }
 
-  if (k_add==TRUE && cross_validation_df_add==TRUE){stop("Either use parameter k or cross_validation_df but not both")}
-  if (k_add==FALSE && cross_validation_df_add==FALSE){cv_name<-NA}else{cv_name<-"cross_validation_number"}
+  if (!(length(fixed_effects_time) %in% c(length(fixed_effects), 1))) {
+    stop("Length of fixed_effects_time should be equal to length of fixed_effects or 1")
+  }
+  if (length(fixed_effects_time) == 1) {
+    fixed_effects_time <-
+      rep(fixed_effects_time, times = length(fixed_effects))
+  }
+  if (!(length(random_effects_time) %in% c(length(random_effects), 1))) {
+    stop("Length of random_effects_time should be equal to length of random_effects or 1")
+  }
+  if (length(random_effects_time) == 1) {
+    random_effects_time <-
+      rep(random_effects_time, times = length(random_effects))
+  }
 
-  if (!(length(fixed_effects_time) %in% c(length(fixed_effects),1))){
-    stop("Length of fixed_effects_time should be equal to length of fixed_effects or 1")}
-  if (length(fixed_effects_time)==1){fixed_effects_time<-rep(fixed_effects_time,times=length(fixed_effects))}
-  if (!(length(random_effects_time) %in% c(length(random_effects),1))){
-    stop("Length of random_effects_time should be equal to length of random_effects or 1")}
-  if (length(random_effects_time)==1){random_effects_time<-rep(random_effects_time,times=length(random_effects))}
+  if (length(x_L) != length(x_hor)) {
+    stop("Length of x_L should be the same as length of x_hor")
+  }
 
-  if(length(x_L)!=length(x_hor)){stop("Length of x_L should be the same as length of x_hor")}
-
-  if (!(is.data.frame(data_long)||is.list(data_long))){stop("data_long should be a list or data.frame")}
-  if (is.data.frame(data_long)){
-    data_long<-lapply(x_L,function(x_l){data_long})
-    names(data_long)<-x_L
+  if (!(is.data.frame(data_long) ||
+        is.list(data_long))) {
+    stop("data_long should be a list or data.frame")
+  }
+  if (is.data.frame(data_long)) {
+    data_long <- lapply(x_L, function(x_l) {
+      data_long
+    })
+    names(data_long) <- x_L
   }
   if (is.list(data_long)) {
-    if(!setequal(names(data_long),x_L)){stop("Names of elements in data_long should be landmark ages x_L")}
+    if (!setequal(names(data_long), x_L)) {
+      stop("Names of elements in data_long should be landmark ages x_L")
+    }
+  }
+
+  if (missing(b)) {
+    b <- NA
   }
 
 
-  if (missing(b)){b<-NA}
+  #Fit each landmark model
+  data_long_x_L <- lapply(1:length(x_L), function(i) {
+    x_l <- x_L[i]
+    x_h <- x_hor[i]
 
-  data_long_x_L<-lapply(1:length(x_L),function(i){
-      x_l<-x_L[i]
-      x_h<-x_hor[i]
+    data_long_x_l <- data_long[[as.character(x_l)]]
 
-      data_long_x_l<-data_long[[as.character(x_l)]]
+    if (!is.null(levels(data_long_x_l[[event_status]]))) {
+      data_long_x_l[[event_status]] <-
+        as.numeric(levels(data_long_x_l[[event_status]]))[data_long_x_l[[event_status]]]
+    }
 
-      if(!is.null(levels(data_long_x_l[[event_status]]))){
-        data_long_x_l[[event_status]]<-as.numeric(levels(data_long_x_l[[event_status]]))[data_long_x_l[[event_status]]]
+    if (survival_submodel %in% c("cause_specific", "fine_gray")) {
+      if (!(setequal(data_long_x_l[[event_status]], 0:2))) {
+        stop(
+          "event_status column should contain only values 0, 1, and 2 for cause_specific or fine_gray survival submodel,
+          or values 0 and 1 for standard_cox survival submodel"
+        )
       }
-
-      if(survival_submodel %in% c("cause_specific", "fine_gray")){
-        if(!(setequal(data_long_x_l[[event_status]],0:2))){
-          stop("event_status column should contain only values 0, 1, and 2 for cause_specific or fine_gray survival submodel,
-          or values 0 and 1 for standard_cox survival submodel")
-        }
+    }
+    if (survival_submodel %in% c("standard_cox")) {
+      if (!(setequal(data_long_x_l[[event_status]], 0:1))) {
+        stop(
+          "event_status column should contain only values 0, 1, and 2 for cause_specific or fine_gray survival submodel,
+          or values 0 and 1 for standard_cox survival submodel"
+        )
       }
-      if(survival_submodel %in% c("standard_cox")){
-        if(!(setequal(data_long_x_l[[event_status]],0:1))){
-          stop("event_status column should contain only values 0, 1, and 2 for cause_specific or fine_gray survival submodel,
-          or values 0 and 1 for standard_cox survival submodel")
-        }
+    }
+
+    if (!all(is.numeric(x_l))) {
+      stop("'x_L' should be numeric")
+    }
+    if (!all(is.numeric(x_h))) {
+      stop("'x_hor' should be numeric")
+    }
+    for (col in c(
+      fixed_effects,
+      fixed_effects_time,
+      random_effects,
+      random_effects_time,
+      individual_id,
+      event_time,
+      event_status
+    )) {
+      if (!(col %in% names(data_long_x_l))) {
+        stop(col, " is not a column name in data_long")
       }
+    }
+    data_long_x_l[[individual_id]] <-
+      as.factor(data_long_x_l[[individual_id]])
 
-      if(!is.numeric(data_long_x_l[[event_status]])){stop("Column event_status should have class numeric")}
+    #Pull out individuals in the risk set
+    data_long_x_l_risk_set <-
+      return_ids_with_LOCF(
+        data_long = data_long_x_l,
+        individual_id = individual_id,
+        x_L = x_l,
+        covariates = fixed_effects,
+        covariates_time = fixed_effects_time
+      )
+    data_long_x_l_risk_set <-
+      data_long_x_l_risk_set[data_long_x_l_risk_set[[event_time]] > x_l,]
+    n <-
+      length(unique(data_long_x_l[[individual_id]])) - length(unique(data_long_x_l_risk_set[[individual_id]]))
+    if (n >= 1) {
+      warning(
+        n,
+        " individuals have been removed from the model building as they are not in the risk set at landmark age ",
+        x_l
+      )
+    }
+    data_long_x_l <- data_long_x_l_risk_set
+    #Censor at the time horizon
+    data_long_x_l[[event_status]][data_long_x_l[[event_time]] > x_h] <-
+      0
+    data_long_x_l[[event_time]][data_long_x_l[[event_time]] > x_h] <-
+      x_h
 
-      if (!all(is.numeric(x_l))){
-        stop("'x_L' should be numeric")}
-      if (!all(is.numeric(x_h))){
-        stop("'x_hor' should be numeric")}
-      for (col in c(
-        fixed_effects,
-        fixed_effects_time,
-        random_effects,
-        random_effects_time,
-        individual_id,
-        event_time,
-        event_status
-      )) {
-        if (!(col %in% names(data_long_x_l))) {
-          stop(col, " is not a column name in data_long")
-        }
-      }
-      data_long_x_l[[individual_id]]<-as.factor(data_long_x_l[[individual_id]])
-
-      if(dim(return_ids_with_LOCF(data_long=data_long_x_l,
-                                  individual_id=individual_id,
-                                  x_L=x_l,
-                                  covariates=fixed_effects,
-                                  covariates_time=fixed_effects_time))[1]!=dim(data_long_x_l)[1]){
-        stop("data_long contains individuals that do not have a LOCF for all fixed_effects.
-             Use function return_ids_with_LOCF to remove these individuals from the dataset")
-      }
-
-      data_long_x_l<-data_long_x_l[data_long_x_l[[event_time]]>x_l,]
-      data_long_x_l[[event_status]][data_long_x_l[[event_time]]>x_h]<-0
-      data_long_x_l[[event_time]][data_long_x_l[[event_time]]>x_h]<-x_h
-
-      if(cross_validation_df_add==TRUE){data_long_x_l<-
-        dplyr::left_join(data_long_x_l,cross_validation_df[[as.character(x_l)]][,c(individual_id,"cross_validation_number")],by=individual_id)}
-      return(data_long_x_l)
-    })
-  names(data_long_x_L)<-x_L
-  if(k_add==TRUE){
-    data_long_x_L_cv<-add_cv_number(data_long=Reduce("rbind",data_long_x_L), individual_id=individual_id, k=k)
-    data_long_x_L<-lapply(data_long_x_L,function(x){dplyr::left_join(x,dplyr::distinct(data_long_x_L_cv[,c(individual_id,"cross_validation_number")]),by=individual_id)})
-  }
-
-  out<-lapply(1:length(x_L),function(i){
-    x_l<-x_L[i]
-    x_h<-x_hor[i]
-
-    data_long<-data_long_x_L[[as.character(x_l)]]
-    print(paste0("Fitting longitudinal submodel, landmark age ", x_l))
-    data_model_longitudinal<-fit_LME_longitudinal(data_long=data_long,
-                                                        x_L=x_l,
-                                                        fixed_effects=fixed_effects,
-                                                        random_effects=random_effects,
-                                                        fixed_effects_time=fixed_effects_time,
-                                                        random_effects_time=random_effects_time,
-                                                        random_slope_in_LME = random_slope_in_LME,
-                                                        random_slope_as_covariate=random_slope_as_covariate,
-                                                        standardise_time=standardise_time,
-                                                        cv_name=cv_name,
-                                                        individual_id=individual_id,
-                                                        lme_control = lme_control)
-    print(paste0("Complete, landmark age ",x_l))
-
-    data_events<-dplyr::distinct(data_long[,c(individual_id, event_status,event_time)])
-    data_longitudinal<-dplyr::left_join(data_model_longitudinal$data_longitudinal,data_events,by=individual_id)
-
-    print(paste0("Fitting survival submodel, landmark age ",x_l))
-
-    if (random_slope_as_covariate){random_effects<-c(random_effects,paste0(random_effects,"_slope"))}
-    data_model_survival<-fit_survival_model(data=data_longitudinal,
-                                            individual_id=individual_id,
-                                            cv_name=cv_name,
-                                            covariates=c(fixed_effects,random_effects),
-                                            event_time=event_time,
-                                            event_status=event_status,
-                                            survival_submodel = survival_submodel,
-                                            x_hor=x_h)
-    print(paste0("Complete, landmark age ",x_l))
-
-    prediction_error<-get_model_assessment(data=data_model_survival$data_survival,
-                                           individual_id=individual_id,
-                                           event_prediction="event_prediction",
-                                           event_status=event_status,
-                                           event_time=event_time,
-                                           x_hor=x_h,
-                                           b=b)
-
-    list(data=data_model_survival$data_survival,
-         model_longitudinal=data_model_longitudinal$model_longitudinal,
-         model_LME=data_model_longitudinal$model_LME,
-         model_LME_standardise_time=data_model_longitudinal$model_LME_standardise_time,
-         model_survival=data_model_survival$model_survival,
-         prediction_error=prediction_error,
-         call=call)
+    if (cross_validation_df_add == TRUE) {
+      data_long_x_l <-
+        dplyr::left_join(data_long_x_l, cross_validation_df[[as.character(x_l)]][, c(individual_id, "cross_validation_number")], by =
+                           individual_id)
+    }
+    return(data_long_x_l)
   })
-  names(out)<-x_L
-  class(out)<-"landmark"
+  names(data_long_x_L) <- x_L
+  #Add cross-validation folds
+  if (k_add == TRUE) {
+    data_long_x_L_cv <-
+      add_cv_number(
+        data_long = Reduce("rbind", data_long_x_L),
+        individual_id = individual_id,
+        k = k
+      )
+    data_long_x_L <-
+      lapply(data_long_x_L, function(x) {
+        dplyr::left_join(x, dplyr::distinct(data_long_x_L_cv[, c(individual_id, "cross_validation_number")]), by =
+                           individual_id)
+      })
+  }
+
+  out <- lapply(1:length(x_L), function(i) {
+    x_l <- x_L[i]
+    x_h <- x_hor[i]
+
+    data_long <- data_long_x_L[[as.character(x_l)]]
+    print(paste0("Fitting longitudinal submodel, landmark age ", x_l))
+    data_model_longitudinal <-
+      fit_LME_longitudinal(
+        data_long = data_long,
+        x_L = x_l,
+        fixed_effects =
+          fixed_effects,
+        random_effects =
+          random_effects,
+        fixed_effects_time =
+          fixed_effects_time,
+        random_effects_time =
+          random_effects_time,
+        random_slope_in_LME = random_slope_in_LME,
+        random_slope_as_covariate =
+          random_slope_as_covariate,
+        standardise_time =
+          standardise_time,
+        cv_name = cv_name,
+        individual_id =
+          individual_id,
+        lme_control = lme_control
+      )
+    print(paste0("Complete, landmark age ", x_l))
+
+    data_events <-
+      dplyr::distinct(data_long[, c(individual_id, event_status, event_time)])
+    data_longitudinal <-
+      dplyr::left_join(data_model_longitudinal$data_longitudinal,
+                       data_events,
+                       by = individual_id)
+
+    print(paste0("Fitting survival submodel, landmark age ", x_l))
+
+    if (random_slope_as_covariate) {
+      random_effects <- c(random_effects, paste0(random_effects, "_slope"))
+    }
+    data_model_survival <- fit_survival_model(
+      data = data_longitudinal,
+      individual_id = individual_id,
+      cv_name = cv_name,
+      covariates = c(fixed_effects, random_effects),
+      event_time = event_time,
+      event_status = event_status,
+      survival_submodel = survival_submodel,
+      x_hor = x_h
+    )
+    print(paste0("Complete, landmark age ", x_l))
+
+    prediction_error <-
+      get_model_assessment(
+        data = data_model_survival$data_survival,
+        individual_id = individual_id,
+        event_prediction = "event_prediction",
+        event_status = event_status,
+        event_time = event_time,
+        x_hor = x_h,
+        b = b
+      )
+
+    list(
+      data = data_model_survival$data_survival,
+      model_longitudinal = data_model_longitudinal$model_longitudinal,
+      model_LME = data_model_longitudinal$model_LME,
+      model_LME_standardise_time = data_model_longitudinal$model_LME_standardise_time,
+      model_survival = data_model_survival$model_survival,
+      prediction_error = prediction_error,
+      call = call
+    )
+  })
+  names(out) <- x_L
+  class(out) <- "landmark"
   out
 }
