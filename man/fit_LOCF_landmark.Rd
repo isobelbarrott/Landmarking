@@ -11,6 +11,7 @@ fit_LOCF_landmark(
   covariates,
   covariates_time,
   k,
+  cv_name,
   cross_validation_df,
   individual_id,
   event_time,
@@ -110,16 +111,6 @@ This is performed using \code{get_model_assessment}. See \code{?get_model_assess
 \examples{
 library(Landmarking)
 data(data_repeat_outcomes)
-data_repeat_outcomes <-
-  return_ids_with_LOCF(
-    data_long = data_repeat_outcomes,
-    individual_id = "id",
-    covariates =
-      c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
-    covariates_time =
-      c(rep("response_time_sbp_stnd", 4), "response_time_tchdl_stnd"),
-    x_L = c(60,61)
-  )
 data_model_landmark_LOCF <-
    fit_LOCF_landmark(
      data_long = data_repeat_outcomes,
