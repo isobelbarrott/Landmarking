@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-This package is designed to help the user perform dynamic prediction using a landmark model. This model applies to repeat measurements data and time-to-event data. There is the option to use the last observation carried forward (LOCF) or linear mixed effects (LME) model to fit the repeat measurements data. This package also allows the user to account for competing risks by using either the Fine Gray or Cause-specific model to fit the time-to-event data. Cross-validation with k-folds can be applied easily using this package.
+This package is designed to help the user perform dynamic prediction using a landmark model. Dynamic prediction means that risk predictions of an event are updated as more longitudinal data is collected. There is the option to use the last observation carried forward (LOCF) or linear mixed effects (LME) model in the first stage of the two-stage landmark model. This package allows the user to account for competing risks by using either the Fine Gray model or cause-specific model (or the Cox model) in the second stage of the two-stage landmark model. k-fold cross-validation can be performed using this package.
 
 For more detailed examples and for an explanation of landmark models, see https://isobelbarrott.github.io/Landmarking.
 
@@ -30,28 +30,35 @@ devtools::install_github("isobelbarrott/Landmarking")
 
 Below is a simple example of how to use this package with the pbc2 dataset from package JM to predict the risk of death for a new patient. 
 
+This uses the LOCF method for the first stage of the landmark model and cause-specific model for the second stage.
+
 ```{r 2,eval = FALSE}
+#Load the library and dataset
 library(Landmarking)
 data(pbc2,package="JM")
+#Change levels to make the death the event of interest (event_status=1), transplant the competing risks (event_status=2), and censoring (event_status=0)
 levels(pbc2$status)<-c("0","2","1")
+#Calculate the age of the patient at each assessment (as opposed to time since first assessment)
+pbc2$years<-pbc2$years+pbc2$age
+#Select those individuals with LOCF values at the landmark age (this is to form the correct dataset)
 pbc2<-return_ids_with_LOCF(data=pbc2,
                            individual_id="id",
                            x_L=c(5),
                            covariates=c("drug","serBilir","serChol"),
                            covariates_time="year")
-pbc2$years<-pbc2$years+pbc2$age
+#Fit the landmark model
 data_model_landmark_LOCF<-fit_LOCF_landmark(data=pbc2,
-                                                  x_L=c(40),
-                                                  x_hor=c(45),
+                                                  x_L=40,
+                                                  x_hor=45,
                                                   covariates=c("drug","serBilir","serChol"),
                                                   covariates_time="year",
-                                                  start_study_time="age",
-                                                  end_study_time="years",
                                                   individual_id="id",
                                                   event_time="years",
                                                   event_status="status",
                                                   survival_submodel = "cause_specific",
                                                   b=50)
-newdata<-rbind(data.frame(id=c(1,1,1),year=c(30,32,35),drug=c("placebo","placebo","placebo"),serBilir=c(2.4,2.7,2.6),serChol=c(220,234,234)))
+#Define new dataset
+newdata<-rbind(data.frame(id=c(313,313,313),year=c(30,32,35),drug=c("placebo","placebo","placebo"),serBilir=c(2.4,2.7,2.6),serChol=c(220,234,234)))
+#Return event prediction and LOCF values for 
 predict(object=data_model_landmark_LOCF,x_L=40,x_hor=45,newdata=newdata)
 ```
