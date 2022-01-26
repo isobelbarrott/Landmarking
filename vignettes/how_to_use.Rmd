@@ -16,9 +16,9 @@ knitr::opts_chunk$set(cache=FALSE,collapse=TRUE, comment="#>")
 
 ## Introduction
 
-Below is a step-by-step demonstration about how to use this package. The example used looks at using risk assessments recorded at primary care practices to predict the 5-year risk of cardiovascular disease (CVD).
+Below is a step-by-step demonstration of how to use this package. This example looks at using risk assessments recorded at primary care practices to predict the 5-year risk of cardiovascular disease (CVD).
 
-We will perform the landmarking analysis using both the LOCF and LME longitudinal models and compare the results of these two models. The example involves competing risks events in the form of the risk of death from other causes; the cause-specific model will therefore be used as the survival submodel. For more information about the landmark model please see isobelbarrott.github.io/Landmarking.
+We will perform the landmarking analysis using both the LOCF and LME methods and compare the results of these two models. The example involves competing risks events in the form of the risk of death from other causes; the cause-specific model will therefore be used as the survival submodel. For more information about the landmark model please see isobelbarrott.github.io/Landmarking.
 
 ## Exploring the datasets
 
@@ -26,7 +26,7 @@ First of all, let's take a look at the datasets we are going to analyse.
 
 There are two datasets:
 
-* `data_repeats` contains repeat measurements data from CVD risk assessments in long format. Each row corresponds to a different assessment and an individual may have multiple assessments. The dataset contains information about an individual's ethnicity, smoking status, diabetes, and standardised systolic blood pressure (SBP). These were recorded at the patient age specified in `response_time_sbp_stnd`. The standardised total cholesterol to high density lipoprotein (HDL) ratio was also recorded as part of the assessment but was recorded at the patient age specified in `response_time_tchdl_stnd`, which is up to a month after the other variables were measured.
+* `data_repeats` contains longitudinal (repeat measurements) data from CVD risk assessments in long format. Each row corresponds to a different assessment and an individual may have multiple assessments. The dataset contains information about an individual's ethnicity, smoking status, diabetes, and standardised systolic blood pressure (SBP). These were recorded at the patient age specified in `response_time_sbp_stnd`. The standardised total cholesterol to high density lipoprotein (HDL) ratio was also recorded as part of the assessment but was recorded at the patient age specified in `response_time_tchdl_stnd`, which is up to a month after the other variables were measured.
 
 * `data_outcomes` contains CVD event data, indicating the time and status of event that each individual experiences. There are three types of events: censoring (this is due to loss to follow-up or the end of the study, indicated by status `0`), CVD event (indicated by status `1`), or death from other causes (indicated by status `2`). It is important when using this package that 0 is used to indicate censoring, 1 to indicate the event of interest, and values 2 or above indicate different competing risks.
 
@@ -54,7 +54,7 @@ Moreover, we can see the breakdown of events
 table(data_outcomes$event_status)
 ```
 
-So `r length(which(data_outcomes$event_status==1))` patients in the study (out of `r dim(data_outcomes)[1]` experienced a CVD event and `r length(which(data_outcomes$event_status==2))` experienced death from other causes.
+So `r length(which(data_outcomes$event_status==1))` patients in the study (out of `r dim(data_outcomes)[1]`) experienced a CVD event and `r length(which(data_outcomes$event_status==2))` experienced death from other causes.
 
 
 ## Set-up
@@ -132,7 +132,7 @@ data_model_landmark_LOCF[["60"]]$prediction_error
 data_model_landmark_LOCF[["61"]]$prediction_error
 ```
 
-In order to assess the performance of the model, there is also the `plot` method which creates a calibration plot which can assess the calibration of the model. The perfect prediction model will have points along the y=x line and deviations from this suggest poor calibration. However, the calibration for this model appears to be fairly good.
+In order to assess the performance of the model, there is also the `plot` method which creates a calibration plot which can assess the calibration of the model. The perfect prediction model will have points along the y=x line and deviations from this suggest poor calibration.
 
 ```{r 20}
 plot(x = data_model_landmark_LOCF, x_L = 60, n = 5)
@@ -146,7 +146,7 @@ The second issue which was mentioned previously is related to cross-validation. 
 cross_validation_list <- lapply(data_model_landmark_LOCF, "[[", i = 1)
 ```
 
-There are a couple of computational considerations to highlight about fitting the LME model. The parameter `lme_control` can be altered in order to change the  default values of parameters (such as maximum number of iterations) for the algorithm which fits the LME model. Also setting `standardise_time = TRUE` standardises time values which helps fitting the LME model (see `help("fit_LME_landmark_model")`).
+There are a couple of computational considerations to highlight about fitting the LME model. The parameter `lme_control` can be altered in order to change the  default values of parameters (such as maximum number of iterations) for the algorithm which fits the LME model. Also setting `standardise_time = TRUE` standardises the values of the time variable and this helps fitting the LME model (see `?fit_LME_landmark_model`).
 
 We fit the LME landmark model in a similar way to the LOCF landmark model, but with a few extra parameters. Fitting the LME model can take some time so here we only use landmark age 60 for demonstration purposes. 
 
@@ -180,7 +180,7 @@ data_model_landmark_LOCF[["60"]]$prediction_error
 data_model_landmark_LME[["60"]]$prediction_error
 ```
 
-Suppose that we wish to predict the risk of the event of interest for a new patient. We need to create a data frame that contains records of all the covariates that were used to form the landmark model. As cross-validation was used, it is necessary to specify which cross-validation fold to use in the prediction. It is possible to predict the risk of the event of interest at any time before the horizon time.
+Finally, suppose that we wish to predict the risk of the event of interest for a new patient. We need to create a data frame that contains records of all the covariates that were used to form the landmark model. As cross-validation was used, it is necessary to specify which cross-validation fold to use in the prediction. It is possible to predict the risk of the event of interest at any time before the horizon time.
 
 ```{r 18}
 newdata <-
