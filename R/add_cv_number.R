@@ -18,7 +18,9 @@
 #' into \code{k} groups, each with \code{n/k} members (or as close to this number as possible).
 #' @export
 
-add_cv_number <- function(data_long, individual_id, k, seed=1) {
+
+
+add_cv_number <- function(data_long, individual_id, k, seed = 1) {
   set.seed(seed)
   if (!(is.data.frame(data_long))) {
     stop("data_long should be a data frame")
