@@ -9,7 +9,17 @@ Authors@R: c(
     person(given = "Jessica",
            family = "Barrett",
            role = c("aut"),
-           email = "jessica.barrett@mrc-bsu.cam.ac.uk"))
+           email = "jessica.barrett@mrc-bsu.cam.ac.uk"),
+    person(given = "Ruth",
+           family = "Keogh",
+           role = c("ctb")),
+    person(given = "Michael",
+           family = "Sweeting",
+           role = c("ctb")),
+    person(given = "David",
+           family = "Stevens",
+           role = c("ctb"))
+)
 Description: The landmarking approach allows survival predictions to be
 	updated dynamically as new measurements from an individual are recorded.
 	The idea is to set pre-defined time points, known as "landmark times",
