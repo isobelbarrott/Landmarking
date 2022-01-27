@@ -11,7 +11,6 @@ fit_LOCF_landmark(
   covariates,
   covariates_time,
   k,
-  cv_name,
   cross_validation_df,
   individual_id,
   event_time,
