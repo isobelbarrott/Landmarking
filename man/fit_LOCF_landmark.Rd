@@ -27,10 +27,10 @@ Each data frame contains repeat measurements data and time-to-event data in long
 
 \item{x_hor}{Numeric specifying the horizon time(s)}
 
-\item{covariates}{Vector of character strings specifying the column names in \code{data}
+\item{covariates}{Vector of character strings specifying the column names in \code{data_long}
 which correspond to the covariates}
 
-\item{covariates_time}{Vector of character strings specifying the column names in \code{data}
+\item{covariates_time}{Vector of character strings specifying the column names in \code{data_long}
 which contain the times at which \code{covariates} were recorded. This should either be length 1 or
 the same length as \code{covariates}. In the latter case the order of elements must correspond to the
 order of elements in \code{covariates}.}
@@ -50,7 +50,7 @@ which contains the event time}
 
 \item{event_status}{Character string specifying the column name in \code{data_long}
 which contains the event status (where 0=censoring, 1=event of interest, if there are competing events these are labelled
-2 or above). Events at time \code{x_hor} should be labelled censored.}
+2 or above).}
 
 \item{survival_submodel}{Character string specifying which survival submodel to
 use. Three options: the standard Cox model i.e. no competing risks (\code{"standard_cox"}),
@@ -60,15 +60,16 @@ regression model (\code{"fine_gray"})}
 \item{b}{Integer specifying the number of bootstrap samples to take when calcluating standard error of c-index and Brier score}
 }
 \value{
-List containing one element for each value of \code{x_L}, each of these elements is a list containing elements
+List containing containing information about the landmark model at each of the landmark times.
+Each element of this list is named the corresponding landmark time, and is itself a list containing elements:
 \code{data}, \code{model_longitudinal}, \code{model_survival}, and \code{prediction_error}.
 
-\code{data} is a data frame that includes the \code{covariates} values
-calculated using the LOCF model (see Details section) and the predicted
-probability that the event of interest has occurred by time \code{x_L}, labelled as \code{"event_prediction"}.
+\code{data}  has one row for each individual in the risk set at \code{x_L} and
+contains the value of the \code{covariates} at the landmark time \code{x_L} using the LOCF approach. It also includes the predicted
+probability that the event of interest has occurred by time \code{x_hor}, labelled as \code{"event_prediction"}.
 There is one row for each individual.
 
-\code{model_longitudinal} indicates that the longitudinal submodel is LOCF.
+\code{model_longitudinal} indicates that the longitudinal approach is LOCF.
 
 \code{model_survival} contains the outputs from the function used to fit the survival submodel, including the estimated parameters of the model.
 For a model using cross-validation, \code{model_survival} contains a list of outputs with each
@@ -88,18 +89,17 @@ Firstly, this function selects the individuals in the risk set at the landmark t
 Specifically, the individuals in the risk set are those that have entered the study before the landmark age
 (there is at least one observation for each of the \code{covariates} on or before \code{x_L}) and
 exited the study on after the landmark age (\code{event_time}
-is after than \code{x_L})).
+is greater than \code{x_L}).
 
 Secondly, if the option to use cross validation
 is selected (using either parameter \code{k} or \code{cross_validation_df}), then an extra column \code{cross_validation_number} is added with the
 cross-validation folds. If parameter \code{k} is used, then the function \code{add_cv_number}
 randomly assigns these folds. For more details on this function see \code{?add_cv_number}.
-If the parameter \code{cross_validation_df} is used, then the folds in this data frame are added.
+If the parameter \code{cross_validation_df} is used, then the folds specified in this data frame are added.
 If cross-validation is not selected then the landmark model is
-fit to the entire group of individuals in the risk set (this is both the training and test data set).
+fit to the entire group of individuals in the risk set (this is both the training and test dataset).
 
-Thirdly, the landmark model is then fit to each of the training data sets using the function
-\code{fit_LOCF_landmark}. There are two parts to fitting the landmark model: using the longitudinal data and using the survival data.
+Thirdly, the landmark model is then fit to each of the training data. There are two parts to fitting the landmark model: using the longitudinal data and using the survival data.
 Using the longitudinal data is the first stage and is performed using \code{fit_LOCF_longitudinal}. See \code{?fit_LOCF_longitudinal} more for information about this function.
 Using the survival data is the second stage and is performed using \code{fit_survival_model}. See \code{?fit_survival_model} more for information about this function.
 
