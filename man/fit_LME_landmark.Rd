@@ -12,12 +12,12 @@ fit_LME_landmark(
   random_effects,
   fixed_effects_time,
   random_effects_time,
-  random_slope_in_LME = TRUE,
-  random_slope_as_covariate = TRUE,
-  standardise_time = FALSE,
   individual_id,
   k,
   cross_validation_df,
+  random_slope_in_LME = TRUE,
+  random_slope_as_covariate = TRUE,
+  standardise_time = FALSE,
   lme_control = nlme::lmeControl(),
   event_time,
   event_status,
@@ -26,43 +26,44 @@ fit_LME_landmark(
 )
 }
 \arguments{
-\item{data_long}{Data frame or list of data frames each corresponding to a landmark age \code{x_L} (each element of the list must be named the value of \code{x_L} it corresponds to)
+\item{data_long}{Data frame or list of data frames each corresponding to a landmark age \code{x_L} (each element of the list must be named the value of \code{x_L} it corresponds to).
 Each data frame contains repeat measurements data and time-to-event data in long format.}
 
 \item{x_L}{Numeric specifying the landmark time(s)}
 
 \item{x_hor}{Numeric specifying the horizon time(s)}
 
-\item{fixed_effects}{Vector of character strings specifying the column names in \code{data}
+\item{fixed_effects}{Vector of character strings specifying the column names in \code{data_long}
 which correspond to the fixed effects}
 
-\item{random_effects}{Vector of character strings specifying the column names in \code{data}
+\item{random_effects}{Vector of character strings specifying the column names in \code{data_long}
 which correspond to the random effects}
 
-\item{fixed_effects_time}{Character string specifying the column name in \code{data}
+\item{fixed_effects_time}{Character string specifying the column name in \code{data_long}
 which contains the time at which the fixed effects were recorded}
 
-\item{random_effects_time}{Vector of character strings specifying the column names in \code{data}
+\item{random_effects_time}{Vector of character strings specifying the column names in \code{data_long}
 which contain the times at which repeat measures were recorded. This should either be length 1 or
 the same length as \code{random_effects}. In the latter case the order of elements must correspond to the
 order of elements in \code{random_effects}.}
+
+\item{individual_id}{Character string specifying the column name in \code{data_long} which contains the individual identifiers}
+
+\item{k}{Integer specifying the number of folds for cross-validation.
+An alternative to setting parameter \code{cross_validation_df} for performing cross-validation; if both are missing no cross-validation is used.}
+
+\item{cross_validation_df}{List of data frames containing the cross-validation fold each individual is assigned to. Each data frame in the list should be
+named according to the landmark time \code{x_L} that they correspond. Each data frame should contain the columns \code{individual_id} and a column \code{cross_validation_number}
+which contains the cross-validation fold of the individual. An alternative to setting parameter \code{k} for performing cross-validation;
+if both are missing no cross-validation is used.}
 
 \item{random_slope_in_LME}{Boolean indicating whether to include a random slope in the LME model}
 
 \item{random_slope_as_covariate}{Boolean indicating whether to include the random slope estimate from the LME model
 as a covariate in the survival submodel.}
 
-\item{standardise_time}{Boolean indicating whether to standardise the time variable by subtracting the mean
+\item{standardise_time}{Boolean indicating whether to standardise the time variables (\code{fixed_effects_time} and \code{random_effects_time}) by subtracting the mean
 and dividing by the standard deviation (see Details section for more information)}
-
-\item{individual_id}{Character string specifying the column name in \code{data_long} which contains the individual identifiers}
-
-\item{k}{Integer specifying the number of folds for cross-validation}
-
-\item{cross_validation_df}{List of data frames containing the cross-validation fold each individual is assigned to. Each data frame in the list should be
-named according to the landmark time \code{x_L} that they correspond. Each data frame should contain the columns \code{individual_id} and a column \code{cross_validation_number}
-which contains the cross-validation fold of the individual. An alternative to setting parameter \code{k} for performing cross-validation;
-if both are missing no cross-validation is used.}
 
 \item{lme_control}{Object created using \code{nlme::lmeControl()}, which will be passed to the \code{control} argument of the \code{lme}
 function}
@@ -72,7 +73,7 @@ which contains the event time}
 
 \item{event_status}{Character string specifying the column name in \code{data_long}
 which contains the event status (where 0=censoring, 1=event of interest, if there are competing events these are labelled
-2 or above). Events at time \code{x_hor} should be labelled censored.}
+2 or above).}
 
 \item{survival_submodel}{Character string specifying which survival submodel to
 use. Three options: the standard Cox model i.e. no competing risks (\code{"standard_cox"}),
@@ -82,14 +83,17 @@ regression model (\code{"fine_gray"})}
 \item{b}{Integer specifying the number of bootstrap samples to take when calcluating standard error of c-index and Brier score}
 }
 \value{
-List containing \code{data}, \code{model_longitudinal}, \code{model_LME}, \code{model_LME_standardise_time}, \code{model_survival}, and \code{prediction_error}.
+List containing containing information about the landmark model at each of the landmark times.
+Each element of this list is named the corresponding landmark time, and is itself a list containing elements:
+\code{data}, \code{model_longitudinal}, \code{model_LME}, \code{model_LME_standardise_time}, \code{model_survival}, and \code{prediction_error}.
 
-\code{data} is a data frame that includes the LOCF values of the \code{fixed_effects} and estimates
-of the \code{random_effects} predicted from the LME model (see Details section). It also includes the predicted
-probability that the event of interest has occured by time \code{x_L}, labelled as \code{"event_prediction"}.
+\code{data} has one row for each individual in the risk set at \code{x_L} and
+contains the value of the \code{fixed_effects} using the LOCF approach and predicted values of the
+\code{random_effects} using the LME model at the landmark time \code{x_L}. It also includes the predicted
+probability that the event of interest has occurred by time \code{x_hor}, labelled as \code{"event_prediction"}.
 There is one row for each individual.
 
-\code{model_longitudinal} indicates that the longitudinal submodel is LME.
+\code{model_longitudinal} indicates that the longitudinal approach is LME.
 
 \code{model_LME} contains the output from
 the \code{lme} function from package \code{nlme}. For a model using cross-validation,
@@ -117,22 +121,21 @@ please see \code{?fit_survival_model} which is the function used to do this with
 This function performs the two-stage landmarking analysis.
 }
 \details{
-#' Firstly, this function selects the individuals in the risk set at the landmark time \code{x_L}.
+Firstly, this function selects the individuals in the risk set at the landmark time \code{x_L}.
 Specifically, the individuals in the risk set are those that have entered the study before the landmark age
-(there is at least one observation for each of the \code{covariates} on or before \code{x_L}) and
+(there is at least one observation for each of the \code{fixed_effects} and\code{random_effects} on or before \code{x_L}) and
 exited the study on after the landmark age (\code{event_time}
-is after than \code{x_L})).
+is greater than \code{x_L}).
 
 Secondly, if the option to use cross validation
 is selected (using either parameter \code{k} or \code{cross_validation_df}), then an extra column \code{cross_validation_number} is added with the
 cross-validation folds. If parameter \code{k} is used, then the function \code{add_cv_number}
 randomly assigns these folds. For more details on this function see \code{?add_cv_number}.
-If the parameter \code{cross_validation_df} is used, then the folds in this data frame are added.
+If the parameter \code{cross_validation_df} is used, then the folds specified in this data frame are added.
 If cross-validation is not selected then the landmark model is
-fit to the entire group of individuals in the risk set (this is both the training and test data set).
+fit to the entire group of individuals in the risk set (this is both the training and test dataset).
 
-Thirdly, the landmark model is then fit to each of the training data sets using the function
-\code{fit_LME_landmark}. There are two parts to fitting the landmark model: using the longitudinal data and using the survival data.
+Thirdly, the landmark model is then fit to each of the training data. There are two parts to fitting the landmark model: using the longitudinal data and using the survival data.
 Using the longitudinal data is the first stage and is performed using \code{fit_LME_longitudinal}. See \code{?fit_LME_longitudinal} more for information about this function.
 Using the survival data is the second stage and is performed using \code{fit_survival_model}. See \code{?fit_survival_model} more for information about this function.
 
