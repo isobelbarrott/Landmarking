@@ -11,7 +11,8 @@ add_cv_number(data_long, individual_id, k, seed = 1)
 
 \item{individual_id}{Character string specifying the column name in \code{data_long} which contains the individual identifiers}
 
-\item{k}{Integer specifying the number of folds for cross-validation}
+\item{k}{Integer specifying the number of folds for cross-validation.
+An alternative to setting parameter \code{cross_validation_df} for performing cross-validation; if both are missing no cross-validation is used.}
 
 \item{seed}{The value of the seed (default is 1)}
 }
