@@ -12,7 +12,7 @@
 #' @template survival_submodel
 #' @return List containing `data_survival` and `model_survival`
 #'
-#' `data_survival` contains the predicted risk of event at the horizon time `x_hor`.
+#' `data_survival` contains the predicted risk of event by the horizon time `x_hor`.
 #'
 #' `model_survival` contains the outputs from the function used to fit the survival submodel, including the estimated parameters of the model.
 #' For a model using cross-validation, `model_survival` contains a list of outputs with each
