@@ -22,7 +22,7 @@ fit_survival_model(
 
 \item{cv_name}{Character string specifying the column name in \code{data} that indicates cross-validation fold. If no cross-validation is needed, set this parameter to \code{NA}.}
 
-\item{covariates}{Vector of character strings specifying the column names in \code{data}
+\item{covariates}{Vector of character strings specifying the column names in \code{data_long}
 which correspond to the covariates}
 
 \item{event_time}{Character string specifying the column name in \code{data} which contains the event time}
@@ -39,7 +39,7 @@ regression model (\code{"fine_gray"})}
 \value{
 List containing \code{data_survival} and \code{model_survival}
 
-\code{data_survival} contains the predicted risk of event at the horizon time \code{x_hor}.
+\code{data_survival} contains the predicted risk of event by the horizon time \code{x_hor}.
 
 \code{model_survival} contains the outputs from the function used to fit the survival submodel, including the estimated parameters of the model.
 For a model using cross-validation, \code{model_survival} contains a list of outputs with each
