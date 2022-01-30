@@ -11,9 +11,9 @@
 #' @return List containing `data_longitudinal`, `model_longitudinal`, and `call`.
 #'
 #' `data_longitudinal` has one row for each individual in `data_long` and
-#' contains the LOCF value of `covariates` at the landmark time `x_L` using the LOCF model.
+#' contains the LOCF value of `covariates` at the landmark time `x_L`.
 #'
-#' `model_longitudinal` indicates that the longitudinal submodel is LOCF.
+#' `model_longitudinal` indicates that the LOCF approach is used.
 #'
 #' `call` contains the call of the function.
 #'
@@ -135,15 +135,16 @@ fit_LOCF_longitudinal <- function(data_long,
 #' @template covariates_time
 #' @template individual_id
 #' @template survival_submodel
-#' @return List containing one element for each value of `x_L`, each of these elements is a list containing elements
+#' @return List containing containing information about the landmark model at each of the landmark times.
+#' Each element of this list is named the corresponding landmark time, and is itself a list containing elements:
 #' `data`, `model_longitudinal`, `model_survival`, and `prediction_error`.
 #'
-#' `data` is a data frame that includes the `covariates` values
-#' calculated using the LOCF model (see Details section) and the predicted
-#' probability that the event of interest has occurred by time \code{x_L}, labelled as \code{"event_prediction"}.
+#' `data`  has one row for each individual in the risk set at `x_L` and
+#' contains the value of the `covariates` at the landmark time `x_L` using the LOCF approach. It also includes the predicted
+#' probability that the event of interest has occurred by time \code{x_hor}, labelled as \code{"event_prediction"}.
 #' There is one row for each individual.
 #'
-#' `model_longitudinal` indicates that the longitudinal submodel is LOCF.
+#' `model_longitudinal` indicates that the longitudinal approach is LOCF.
 #'
 #' `model_survival` contains the outputs from the function used to fit the survival submodel, including the estimated parameters of the model.
 #' For a model using cross-validation, `model_survival` contains a list of outputs with each
@@ -154,23 +155,21 @@ fit_LOCF_longitudinal <- function(data_long,
 #' For more information on how the prediction error is calculated
 #' please see `?get_model_assessment` which is the function used to do this within `fit_LOCF_landmark`.
 #'
-#' @details
-#' Firstly, this function selects the individuals in the risk set at the landmark time \code{x_L}.
+#' @details Firstly, this function selects the individuals in the risk set at the landmark time \code{x_L}.
 #' Specifically, the individuals in the risk set are those that have entered the study before the landmark age
 #' (there is at least one observation for each of the \code{covariates} on or before \code{x_L}) and
 #' exited the study on after the landmark age (\code{event_time}
-#' is after than \code{x_L})).
+#' is greater than \code{x_L}).
 #'
 #' Secondly, if the option to use cross validation
 #' is selected (using either parameter `k` or `cross_validation_df`), then an extra column `cross_validation_number` is added with the
 #' cross-validation folds. If parameter `k` is used, then the function `add_cv_number`
 #' randomly assigns these folds. For more details on this function see `?add_cv_number`.
-#' If the parameter `cross_validation_df` is used, then the folds in this data frame are added.
+#' If the parameter `cross_validation_df` is used, then the folds specified in this data frame are added.
 #' If cross-validation is not selected then the landmark model is
-#' fit to the entire group of individuals in the risk set (this is both the training and test data set).
+#' fit to the entire group of individuals in the risk set (this is both the training and test dataset).
 #'
-#' Thirdly, the landmark model is then fit to each of the training data sets using the function
-#' `fit_LOCF_landmark`. There are two parts to fitting the landmark model: using the longitudinal data and using the survival data.
+#' Thirdly, the landmark model is then fit to each of the training data. There are two parts to fitting the landmark model: using the longitudinal data and using the survival data.
 #' Using the longitudinal data is the first stage and is performed using `fit_LOCF_longitudinal`. See `?fit_LOCF_longitudinal` more for information about this function.
 #' Using the survival data is the second stage and is performed using `fit_survival_model`. See `?fit_survival_model` more for information about this function.
 #'
