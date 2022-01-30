@@ -19,10 +19,10 @@ return_ids_with_LOCF(
 
 \item{x_L}{Numeric specifying the landmark time(s)}
 
-\item{covariates}{Vector of character strings specifying the column names in \code{data}
+\item{covariates}{Vector of character strings specifying the column names in \code{data_long}
 which correspond to the covariates}
 
-\item{covariates_time}{Vector of character strings specifying the column names in \code{data}
+\item{covariates_time}{Vector of character strings specifying the column names in \code{data_long}
 which contain the times at which \code{covariates} were recorded. This should either be length 1 or
 the same length as \code{covariates}. In the latter case the order of elements must correspond to the
 order of elements in \code{covariates}.}
