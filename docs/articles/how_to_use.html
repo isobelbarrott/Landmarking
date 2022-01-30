@@ -99,8 +99,8 @@
 <div id="introduction" class="section level2">
 <h2 class="hasAnchor">
 <a href="#introduction" class="anchor" aria-hidden="true"></a>Introduction</h2>
-<p>Below is a step-by-step demonstration about how to use this package. The example used looks at using risk assessments recorded at primary care practices to predict the 5-year risk of cardiovascular disease (CVD).</p>
-<p>We will perform the landmarking analysis using both the LOCF and LME longitudinal models and compare the results of these two models. The example involves competing risks events in the form of the risk of death from other causes; the cause-specific model will therefore be used as the survival submodel. For more information about the landmark model please see isobelbarrott.github.io/Landmarking.</p>
+<p>Below is a step-by-step demonstration of how to use this package. This example looks at using risk assessments recorded at primary care practices to predict the 5-year risk of cardiovascular disease (CVD).</p>
+<p>We will perform the landmarking analysis using both the LOCF and LME methods and compare the results of these two models. The example involves competing risks events in the form of the risk of death from other causes; the cause-specific model will therefore be used as the survival submodel. For more information about the landmark model please see isobelbarrott.github.io/Landmarking.</p>
 </div>
 <div id="exploring-the-datasets" class="section level2">
 <h2 class="hasAnchor">
@@ -108,7 +108,7 @@
 <p>First of all, let’s take a look at the datasets we are going to analyse.</p>
 <p>There are two datasets:</p>
 <ul>
-<li><p><code>data_repeats</code> contains repeat measurements data from CVD risk assessments in long format. Each row corresponds to a different assessment and an individual may have multiple assessments. The dataset contains information about an individual’s ethnicity, smoking status, diabetes, and standardised systolic blood pressure (SBP). These were recorded at the patient age specified in <code>response_time_sbp_stnd</code>. The standardised total cholesterol to high density lipoprotein (HDL) ratio was also recorded as part of the assessment but was recorded at the patient age specified in <code>response_time_tchdl_stnd</code>, which is up to a month after the other variables were measured.</p></li>
+<li><p><code>data_repeats</code> contains longitudinal (repeat measurements) data from CVD risk assessments in long format. Each row corresponds to a different assessment and an individual may have multiple assessments. The dataset contains information about an individual’s ethnicity, smoking status, diabetes, and standardised systolic blood pressure (SBP). These were recorded at the patient age specified in <code>response_time_sbp_stnd</code>. The standardised total cholesterol to high density lipoprotein (HDL) ratio was also recorded as part of the assessment but was recorded at the patient age specified in <code>response_time_tchdl_stnd</code>, which is up to a month after the other variables were measured.</p></li>
 <li><p><code>data_outcomes</code> contains CVD event data, indicating the time and status of event that each individual experiences. There are three types of events: censoring (this is due to loss to follow-up or the end of the study, indicated by status <code>0</code>), CVD event (indicated by status <code>1</code>), or death from other causes (indicated by status <code>2</code>). It is important when using this package that 0 is used to indicate censoring, 1 to indicate the event of interest, and values 2 or above indicate different competing risks.</p></li>
 </ul>
 <p>Both datasets contain column <code>id</code> which specifies the patient identifier which is unique to a patient.</p>
@@ -152,7 +152,7 @@
 <span class="co">#&gt; </span>
 <span class="co">#&gt;    0    1    2 </span>
 <span class="co">#&gt; 2872   93   35</span></code></pre></div>
-<p>So 93 patients in the study (out of 3000 experienced a CVD event and 35 experienced death from other causes.</p>
+<p>So 93 patients in the study (out of 3000) experienced a CVD event and 35 experienced death from other causes.</p>
 </div>
 <div id="set-up" class="section level2">
 <h2 class="hasAnchor">
@@ -215,6 +215,8 @@
     event_status <span class="op">=</span> <span class="st">"event_status"</span>,
     survival_submodel <span class="op">=</span> <span class="st">"cause_specific"</span>
   <span class="op">)</span>
+<span class="co">#&gt; Warning in FUN(X[[i]], ...): 21 individuals have been removed from the model</span>
+<span class="co">#&gt; building as they are not in the risk set at landmark age 61</span>
 <span class="co">#&gt; [1] "Fitting longitudinal submodel, landmark age 60"</span>
 <span class="co">#&gt; [1] "Complete, landmark age 60"</span>
 <span class="co">#&gt; [1] "Fitting survival submodel, landmark age 60"</span>
@@ -295,7 +297,7 @@
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $brier_score_standard_error</span>
 <span class="co">#&gt; [1] NA</span></code></pre></div>
-<p>In order to assess the performance of the model, there is also the <code>plot</code> method which creates a calibration plot which can assess the calibration of the model. The perfect prediction model will have points along the y=x line and deviations from this suggest poor calibration. However, the calibration for this model appears to be fairly good.</p>
+<p>In order to assess the performance of the model, there is also the <code>plot</code> method which creates a calibration plot which can assess the calibration of the model. The perfect prediction model will have points along the y=x line and deviations from this suggest poor calibration.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">data_model_landmark_LOCF</span>, x_L <span class="op">=</span> <span class="fl">60</span>, n <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></code></pre></div>
 <p><img src="how_to_use_files/figure-html/20-1.png" width="700"></p>
@@ -303,7 +305,7 @@
 <p>The second issue which was mentioned previously is related to cross-validation. In particular we wish to perform k-fold cross-validation using exactly the same folds for both LOCF and LME models to ensure a fair comparison. To do this we use the parameter <code>cross_validation_df</code> which uses a list of data frames that indicate which fold each individual belongs to. We create this list using the output of <code>fit_LOCF_landmark_model</code>.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">cross_validation_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">data_model_landmark_LOCF</span>, <span class="st">"[["</span>, i <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></code></pre></div>
-<p>There are a couple of computational considerations to highlight about fitting the LME model. The parameter <code>lme_control</code> can be altered in order to change the default values of parameters (such as maximum number of iterations) for the algorithm which fits the LME model. Also setting <code>standardise_time = TRUE</code> standardises time values which helps fitting the LME model (see <code>help("fit_LME_landmark_model")</code>).</p>
+<p>There are a couple of computational considerations to highlight about fitting the LME model. The parameter <code>lme_control</code> can be altered in order to change the default values of parameters (such as maximum number of iterations) for the algorithm which fits the LME model. Also setting <code>standardise_time = TRUE</code> standardises the values of the time variable and this helps fitting the LME model (see <code>?fit_LME_landmark_model</code>).</p>
 <p>We fit the LME landmark model in a similar way to the LOCF landmark model, but with a few extra parameters. Fitting the LME model can take some time so here we only use landmark age 60 for demonstration purposes.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">data_model_landmark_LME</span> <span class="op">&lt;-</span>
@@ -327,16 +329,6 @@
     survival_submodel <span class="op">=</span> <span class="st">"cause_specific"</span>
   <span class="op">)</span>
 <span class="co">#&gt; [1] "Fitting longitudinal submodel, landmark age 60"</span>
-<span class="co">#&gt; [1] 5</span>
-<span class="co">#&gt; [1] 10</span>
-<span class="co">#&gt; [1] 8</span>
-<span class="co">#&gt; [1] 9</span>
-<span class="co">#&gt; [1] 4</span>
-<span class="co">#&gt; [1] 6</span>
-<span class="co">#&gt; [1] 3</span>
-<span class="co">#&gt; [1] 7</span>
-<span class="co">#&gt; [1] 1</span>
-<span class="co">#&gt; [1] 2</span>
 <span class="co">#&gt; [1] "Complete, landmark age 60"</span>
 <span class="co">#&gt; [1] "Fitting survival submodel, landmark age 60"</span>
 <span class="co">#&gt; Warning in coxph.fit(X, Y, istrat, offset, init, control, weights = weights, :</span>
@@ -368,7 +360,7 @@
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $brier_score_standard_error</span>
 <span class="co">#&gt; [1] NA</span></code></pre></div>
-<p>Suppose that we wish to predict the risk of the event of interest for a new patient. We need to create a data frame that contains records of all the covariates that were used to form the landmark model. As cross-validation was used, it is necessary to specify which cross-validation fold to use in the prediction. It is possible to predict the risk of the event of interest at any time before the horizon time.</p>
+<p>Finally, suppose that we wish to predict the risk of the event of interest for a new patient. We need to create a data frame that contains records of all the covariates that were used to form the landmark model. As cross-validation was used, it is necessary to specify which cross-validation fold to use in the prediction. It is possible to predict the risk of the event of interest at any time before the horizon time.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">newdata</span> <span class="op">&lt;-</span>
   <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>
