@@ -24,16 +24,16 @@ fit_LME_longitudinal(
 
 \item{x_L}{Numeric specifying the landmark time(s)}
 
-\item{fixed_effects}{Vector of character strings specifying the column names in \code{data}
+\item{fixed_effects}{Vector of character strings specifying the column names in \code{data_long}
 which correspond to the fixed effects}
 
-\item{random_effects}{Vector of character strings specifying the column names in \code{data}
+\item{random_effects}{Vector of character strings specifying the column names in \code{data_long}
 which correspond to the random effects}
 
-\item{fixed_effects_time}{Character string specifying the column name in \code{data}
+\item{fixed_effects_time}{Character string specifying the column name in \code{data_long}
 which contains the time at which the fixed effects were recorded}
 
-\item{random_effects_time}{Vector of character strings specifying the column names in \code{data}
+\item{random_effects_time}{Vector of character strings specifying the column names in \code{data_long}
 which contain the times at which repeat measures were recorded. This should either be length 1 or
 the same length as \code{random_effects}. In the latter case the order of elements must correspond to the
 order of elements in \code{random_effects}.}
@@ -53,13 +53,14 @@ as a covariate in the survival submodel.}
 \item{lme_control}{Object created using \code{nlme::lmeControl()}, which will be passed to the \code{control} argument of the \code{lme} function}
 }
 \value{
-List containing \code{data_longitudinal}, \code{model_longitudinal}, \code{model_LME}, and \code{model_LME_standardise_time}.
+List containing elements:
+\code{data_longitudinal}, \code{model_longitudinal}, \code{model_LME}, and \code{model_LME_standardise_time}.
 
-\code{data_longitudinal} has one row for each individual in \code{data_long} and
-contains the predicted value at the landmark time \code{x_L}of the \code{fixed_effects} using the LOCF model and
+\code{data_longitudinal} has one row for each individual in the risk set at \code{x_L} and
+contains the value of the covariates at the landmark time \code{x_L} of the \code{fixed_effects} using the LOCF model and
 \code{random_effects} using the LME model.
 
-\code{model_longitudinal} indicates that the longitudinal submodel is LME.
+\code{model_longitudinal} indicates that the LME approach is used.
 
 \code{model_LME} contains the output from
 the \code{lme} function from package \code{nlme}. For a model using cross-validation,
@@ -67,13 +68,13 @@ the \code{lme} function from package \code{nlme}. For a model using cross-valida
 element in the list corresponds to a different cross-validation fold.
 
 \code{model_LME_standardise_time} contains a list of two objects \code{mean_response_time} and \code{sd_response_time} if the parameter \code{standardise_time=TRUE} is used. This
-is the mean and standard deviation use to normalise times when fitting the LME model.
+is the mean and standard deviation used to normalise times when fitting the LME model.
 }
 \description{
 This function is a helper function for \code{fit_LME_landmark}.
 }
 \details{
-Firstly, the LME model is outlined. For an individual \eqn{i}, the LME model can be written as
+For an individual \eqn{i}, the LME model can be written as
 
 \deqn{Y_i = X_i \beta + Z_i U_i + \epsilon_i}
 
