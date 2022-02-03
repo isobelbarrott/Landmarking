@@ -19,7 +19,7 @@ knitr::opts_chunk$set(
 Here is a visual illustration of the functions `fit_LOCF_landmark` (selecting option `fit_LOCF_longitudinal`) and `fit_LME_landmark` (selecting option `fit_LME_longitudinal`) to show how they are made up of their helper functions. These are available with the R package Landmarking. 
 
 ```{r figurename, echo=FALSE, fig.cap="*Figure 1: *", out.width = '100%'}
-knitr::include_graphics("./images/fit_LOCF_landmark_model.pdf")
+knitr::include_graphics("./images/fit_LOCF_landmark_model.png")
 ```
 
 The description of these functions are contained in `help()`.
