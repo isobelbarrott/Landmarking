@@ -97,7 +97,7 @@ fit_LOCF_longitudinal <- function(data_long,
     })
   data_LOCF <- Reduce(merge, LOCF_values_by_variable)
   data_LOCF <-
-    data_LOCF[match(unique(data_long[[individual_id]]), data_LOCF[[individual_id]]), ]
+    data_LOCF[match(unique(data_long[[individual_id]][data_long[[individual_id]] %in% data_LOCF[[individual_id]]]), data_LOCF[[individual_id]]), ]
   if (!is.na(cv_name)) {
     data_LOCF <-
       dplyr::left_join(data_LOCF, unique(data_long[c(individual_id, cv_name)]), by =
