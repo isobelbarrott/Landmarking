@@ -204,17 +204,35 @@ and used to calculate the risk of an event at the horizon time. The predictions 
 <span class='r-in'>    event_status <span class='op'>=</span> <span class='st'>"event_status"</span>,</span>
 <span class='r-in'>    survival_submodel <span class='op'>=</span> <span class='st'>"cause_specific"</span></span>
 <span class='r-in'>  <span class='op'>)</span></span>
-<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>922 individuals have been removed from the model building as they are not in the risk set at landmark age 60</span>
-<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>670 individuals have been removed from the model building as they are not in the risk set at landmark age 61</span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>887 individuals have been removed from the model building as they are not in the risk set at landmark age 60</span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>745 individuals have been removed from the model building as they are not in the risk set at landmark age 61</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> [1] "Fitting longitudinal submodel, landmark age 60"</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> [1] "Complete, landmark age 60"</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> [1] "Fitting survival submodel, landmark age 60"</span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>Loglik converged before variable  2,4 ; coefficient may be infinite. </span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>Loglik converged before variable  2 ; coefficient may be infinite. </span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>Loglik converged before variable  1,3,4 ; coefficient may be infinite. </span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>Loglik converged before variable  2 ; coefficient may be infinite. </span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>Loglik converged before variable  2 ; coefficient may be infinite. </span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>Loglik converged before variable  2 ; coefficient may be infinite. </span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>Loglik converged before variable  2 ; coefficient may be infinite. </span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>Loglik converged before variable  2 ; coefficient may be infinite. </span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>Loglik converged before variable  2 ; coefficient may be infinite. </span>
 <span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>Loglik converged before variable  2 ; coefficient may be infinite. </span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> [1] "Complete, landmark age 60"</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> [1] "Fitting longitudinal submodel, landmark age 61"</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> [1] "Complete, landmark age 61"</span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> [1] "Fitting survival submodel, landmark age 61"</span>
-<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>Loglik converged before variable  2 ; coefficient may be infinite. </span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>Loglik converged before variable  1,3 ; coefficient may be infinite. </span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>Loglik converged before variable  1,3,4 ; coefficient may be infinite. </span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>Loglik converged before variable  1,3,4 ; coefficient may be infinite. </span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>Loglik converged before variable  1,3,4 ; coefficient may be infinite. </span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>Loglik converged before variable  1,3,4 ; coefficient may be infinite. </span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>Loglik converged before variable  1,3,4 ; coefficient may be infinite. </span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>Loglik converged before variable  1,3,4 ; coefficient may be infinite. </span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>Loglik converged before variable  1,3,4 ; coefficient may be infinite. </span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>Loglik converged before variable  1,3,4 ; coefficient may be infinite. </span>
+<span class='r-wrn co'><span class='r-pr'>#&gt;</span> <span class='warning'>Warning: </span>Loglik converged before variable  1,3,4 ; coefficient may be infinite. </span>
 <span class='r-out co'><span class='r-pr'>#&gt;</span> [1] "Complete, landmark age 61"</span>
 <span class='r-in'> <span class='fu'><a href='https://rdrr.io/r/graphics/plot.default.html'>plot</a></span><span class='op'>(</span>x<span class='op'>=</span><span class='va'>data_model_landmark_LOCF</span>,x_L<span class='op'>=</span><span class='fl'>60</span>,n<span class='op'>=</span><span class='fl'>5</span><span class='op'>)</span></span>
 <span class='r-plt'><img src='plot.landmark-1.png' alt='' width='700' height='433' /></span>

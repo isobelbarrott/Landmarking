@@ -163,12 +163,12 @@
     </tr>
     <tr>
       <th>covariates</th>
-      <td><p>Vector of character strings specifying the column names in <code>data</code>
+      <td><p>Vector of character strings specifying the column names in <code>data_long</code>
 which correspond to the covariates</p></td>
     </tr>
     <tr>
       <th>covariates_time</th>
-      <td><p>Vector of character strings specifying the column names in <code>data</code>
+      <td><p>Vector of character strings specifying the column names in <code>data_long</code>
 which contain the times at which <code>covariates</code> were recorded. This should either be length 1 or
 the same length as <code>covariates</code>. In the latter case the order of elements must correspond to the
 order of elements in <code>covariates</code>.</p></td>
@@ -187,8 +187,8 @@ order of elements in <code>covariates</code>.</p></td>
 
     <p>List containing <code>data_longitudinal</code>, <code>model_longitudinal</code>, and <code>call</code>.</p>
 <p><code>data_longitudinal</code> has one row for each individual in <code>data_long</code> and
-contains the LOCF value of <code>covariates</code> at the landmark time <code>x_L</code> using the LOCF model.</p>
-<p><code>model_longitudinal</code> indicates that the longitudinal submodel is LOCF.</p>
+contains the LOCF value of <code>covariates</code> at the landmark time <code>x_L</code>.</p>
+<p><code>model_longitudinal</code> indicates that the LOCF approach is used.</p>
 <p><code>call</code> contains the call of the function.</p>
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 

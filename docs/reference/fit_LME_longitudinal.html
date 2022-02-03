@@ -169,22 +169,22 @@
     </tr>
     <tr>
       <th>fixed_effects</th>
-      <td><p>Vector of character strings specifying the column names in <code>data</code>
+      <td><p>Vector of character strings specifying the column names in <code>data_long</code>
 which correspond to the fixed effects</p></td>
     </tr>
     <tr>
       <th>random_effects</th>
-      <td><p>Vector of character strings specifying the column names in <code>data</code>
+      <td><p>Vector of character strings specifying the column names in <code>data_long</code>
 which correspond to the random effects</p></td>
     </tr>
     <tr>
       <th>fixed_effects_time</th>
-      <td><p>Character string specifying the column name in <code>data</code>
+      <td><p>Character string specifying the column name in <code>data_long</code>
 which contains the time at which the fixed effects were recorded</p></td>
     </tr>
     <tr>
       <th>random_effects_time</th>
-      <td><p>Vector of character strings specifying the column names in <code>data</code>
+      <td><p>Vector of character strings specifying the column names in <code>data_long</code>
 which contain the times at which repeat measures were recorded. This should either be length 1 or
 the same length as <code>random_effects</code>. In the latter case the order of elements must correspond to the
 order of elements in <code>random_effects</code>.</p></td>
@@ -219,20 +219,21 @@ as a covariate in the survival submodel.</p></td>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>List containing <code>data_longitudinal</code>, <code>model_longitudinal</code>, <code>model_LME</code>, and <code>model_LME_standardise_time</code>.</p>
-<p><code>data_longitudinal</code> has one row for each individual in <code>data_long</code> and
-contains the predicted value at the landmark time <code>x_L</code>of the <code>fixed_effects</code> using the LOCF model and
+    <p>List containing elements:
+<code>data_longitudinal</code>, <code>model_longitudinal</code>, <code>model_LME</code>, and <code>model_LME_standardise_time</code>.</p>
+<p><code>data_longitudinal</code> has one row for each individual in the risk set at <code>x_L</code> and
+contains the value of the covariates at the landmark time <code>x_L</code> of the <code>fixed_effects</code> using the LOCF model and
 <code>random_effects</code> using the LME model.</p>
-<p><code>model_longitudinal</code> indicates that the longitudinal submodel is LME.</p>
+<p><code>model_longitudinal</code> indicates that the LME approach is used.</p>
 <p><code>model_LME</code> contains the output from
 the <code>lme</code> function from package <code>nlme</code>. For a model using cross-validation,
 <code>model_LME</code> contains a list of outputs with each
 element in the list corresponds to a different cross-validation fold.</p>
 <p><code>model_LME_standardise_time</code> contains a list of two objects <code>mean_response_time</code> and <code>sd_response_time</code> if the parameter <code>standardise_time=TRUE</code> is used. This
-is the mean and standard deviation use to normalise times when fitting the LME model.</p>
+is the mean and standard deviation used to normalise times when fitting the LME model.</p>
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>Firstly, the LME model is outlined. For an individual \(i\), the LME model can be written as</p>
+    <p>For an individual \(i\), the LME model can be written as</p>
 <p>$$Y_i = X_i \beta + Z_i U_i + \epsilon_i$$</p>
 <p>where</p><ul>
 <li><p>\(Y_i\) is the vector of outcomes at different time points for the individual</p></li>
