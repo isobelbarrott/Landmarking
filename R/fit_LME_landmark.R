@@ -183,8 +183,6 @@ fit_LME_longitudinal <- function(data_long,
       )
     })
   data_LOCF <- Reduce(merge, LOCF_values_by_variable)
-  data_LOCF <-
-    data_LOCF[match(unique(data_long[[individual_id]]), data_LOCF[[individual_id]]), ]
 
   data_LOCF <-
     dplyr::left_join(data_LOCF, unique(data_long[c(individual_id, cv_name)]), by =
@@ -364,7 +362,7 @@ fit_LME_longitudinal <- function(data_long,
   data_LME <- do.call("rbind", data_LME)
 
   data_LME <-
-    data_LME[match(unique(data_long[[individual_id]]), data_LME[[individual_id]]), ]
+    data_LME[match(unique(data_long[[individual_id]][data_long[[individual_id]] %in% data_LME[[individual_id]]]), data_LME[[individual_id]]), ]
   data_LME <-
     data_LME[, order(match(names(data_LME), names(data_long)))]
   rownames(data_LME) <- NULL
@@ -373,7 +371,7 @@ fit_LME_longitudinal <- function(data_long,
     model_LME <- model_LME[[1]]
   }
   if (length(unique(data_long[[cv_name]])) == 1) {
-    data_long[[cv_name]] <- NULL
+    data_LME[[cv_name]] <- NULL
   }
 
   return(
@@ -705,7 +703,8 @@ fit_LME_landmark <- function(data_long,
       lapply(data_long_x_L, function(x) {
         dplyr::left_join(x, dplyr::distinct(data_long_x_L_cv[, c(individual_id, "cross_validation_number")]), by =
                            individual_id)
-      })
+      }
+    )
   }
 
   out <- lapply(1:length(x_L), function(i) {
@@ -749,6 +748,7 @@ fit_LME_landmark <- function(data_long,
 
     if (random_slope_as_covariate) {
       random_effects <- c(random_effects, paste0(random_effects, "_slope"))
+
     }
     data_model_survival <- fit_survival_model(
       data = data_longitudinal,
