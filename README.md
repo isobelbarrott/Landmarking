@@ -36,16 +36,10 @@ cause-specific model for the second stage.
 #Load the library and dataset
 library(Landmarking)
 data(pbc2,package="JM")
-#Change levels to make the death the event of interest (event_status=1), transplant the competing risks (event_status=2), and censoring (event_status=0)
+#Change levels to make the death the event of interest (event_status=1), transplant the competing risks (event_status=2), and leave censoring (event_status=0)
 levels(pbc2$status)<-c("0","2","1")
 #Calculate the age of the patient at each assessment (as opposed to time since first assessment)
 pbc2$years<-pbc2$years+pbc2$age
-#Select those individuals with LOCF values at the landmark age (this is to form the correct dataset)
-pbc2<-return_ids_with_LOCF(data=pbc2,
-                           individual_id="id",
-                           x_L=c(5),
-                           covariates=c("drug","serBilir","serChol"),
-                           covariates_time="year")
 #Fit the landmark model
 data_model_landmark_LOCF<-fit_LOCF_landmark(data=pbc2,
                                                   x_L=40,
@@ -59,6 +53,6 @@ data_model_landmark_LOCF<-fit_LOCF_landmark(data=pbc2,
                                                   b=50)
 #Define new dataset
 newdata<-rbind(data.frame(id=c(313,313,313),year=c(30,32,35),drug=c("placebo","placebo","placebo"),serBilir=c(2.4,2.7,2.6),serChol=c(220,234,234)))
-#Return event prediction and LOCF values for 
+#Return event prediction and LOCF values
 predict(object=data_model_landmark_LOCF,x_L=40,x_hor=45,newdata=newdata)
 ```
