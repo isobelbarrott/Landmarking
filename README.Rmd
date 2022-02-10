@@ -15,7 +15,7 @@ knitr::opts_chunk$set(
 
 This package is designed to help the user perform dynamic prediction using a landmark model. Dynamic prediction means that risk predictions of an event are updated as more longitudinal data is collected. There is the option to use the last observation carried forward (LOCF) or linear mixed effects (LME) model in the first stage of the two-stage landmark model. This package allows the user to account for competing risks by using either the Fine Gray model or cause-specific model (or the Cox model) in the second stage of the two-stage landmark model. k-fold cross-validation can be performed using this package.
 
-For more detailed examples and for an explanation of landmark models, see https://isobelbarrott.github.io/Landmarking.
+For more detailed examples and for an explanation of landmark models, see https://isobelbarrott.github.io/Landmarking/.
 
 ## Installation
 

@@ -12,7 +12,7 @@ model) in the second stage of the two-stage landmark model. k-fold
 cross-validation can be performed using this package.
 
 For more detailed examples and for an explanation of landmark models,
-see <https://isobelbarrott.github.io/Landmarking>.
+see <https://isobelbarrott.github.io/Landmarking/>.
 
 ## Installation
 
