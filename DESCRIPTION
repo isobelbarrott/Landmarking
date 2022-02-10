@@ -19,9 +19,9 @@ Authors@R: c(
     person(given = "David",
            family = "Stevens",
            role = c("ctb")))
-Description: The landmarking approach allows survival predictions to be
+Description: The landmark approach allows survival predictions to be
 	updated dynamically as new measurements from an individual are recorded.
-	The idea is to set pre-defined time points, known as "landmark times",
+	The idea is to set predefined time points, known as "landmark times",
 	and form a model at each landmark time using only the individuals in the
 	risk set. This package allows the longitudinal data to be modelled
 	either using the last observation carried forward or linear mixed
@@ -52,6 +52,6 @@ VignetteBuilder: knitr
 Depends: 
     R (>= 2.10)
 Roxygen: list(markdown = TRUE)
-URL: https://github.com/isobelbarrott/Landmarking
+URL: https://github.com/isobelbarrott/Landmarking/
 BugReports: https://github.com/isobelbarrott/Landmarking/issues
 Config/testthat/edition: 3
