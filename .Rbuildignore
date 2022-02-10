@@ -1,6 +1,5 @@
 ^Landmarking\.Rproj$
 ^\.Rproj\.user$
-^~/Analyses/landmarking/man-roxygen$
 ^doc$
 ^Meta$
 ^README\.Rmd$
@@ -8,5 +7,4 @@
 ^_pkgdown.yaml
 ^docs
 ^man-roxygen
-^\.travis\.yml$
 ^\.github$
