@@ -1,5 +1,5 @@
 Package: Landmarking
-Title: Analysis using landmark models
+Title: Analysis using Landmark Models
 Version: 1.0.0
 Authors@R: c(
     person(given = "Isobel",
