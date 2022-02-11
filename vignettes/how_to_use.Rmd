@@ -22,53 +22,37 @@ We will perform the landmarking analysis using both the LOCF and LME methods and
 
 ## Exploring the datasets
 
-First of all, let's take a look at the datasets we are going to analyse.
+First of all, let's take a look at the dataset we are going to analyse. This dataset is a combination of two datasets: one of these contains the longitudinal (repeat measures) data and one of these contains the time-to-event data.
 
-There are two datasets:
+* The longitudinal (repeat measurements) data from CVD risk assessments is in long format. Each row corresponds to a different assessment and an individual may have multiple assessments. The dataset contains information about an individual's ethnicity, smoking status, diabetes, and standardised systolic blood pressure (SBP). These were recorded at the patient age specified in `response_time_sbp_stnd`. The standardised total cholesterol to high density lipoprotein (HDL) ratio was also recorded as part of the assessment but was recorded at the patient age specified in `response_time_tchdl_stnd`, which is up to a month after the other variables were measured.
 
-* `data_repeats` contains longitudinal (repeat measurements) data from CVD risk assessments in long format. Each row corresponds to a different assessment and an individual may have multiple assessments. The dataset contains information about an individual's ethnicity, smoking status, diabetes, and standardised systolic blood pressure (SBP). These were recorded at the patient age specified in `response_time_sbp_stnd`. The standardised total cholesterol to high density lipoprotein (HDL) ratio was also recorded as part of the assessment but was recorded at the patient age specified in `response_time_tchdl_stnd`, which is up to a month after the other variables were measured.
-
-* `data_outcomes` contains CVD event data, indicating the time and status of event that each individual experiences. There are three types of events: censoring (this is due to loss to follow-up or the end of the study, indicated by status `0`), CVD event (indicated by status `1`), or death from other causes (indicated by status `2`). It is important when using this package that 0 is used to indicate censoring, 1 to indicate the event of interest, and values 2 or above indicate different competing risks.
-
-Both datasets contain column `id` which specifies the patient identifier which is unique to a patient. 
+* The time-to-event data indicates the time and status of event that each individual experiences. There are three types of events: censoring (this is due to loss to follow-up or the end of the study, indicated by status `0`), CVD event (indicated by status `1`), or death from other causes (indicated by status `2`). It is important when using this package that 0 is used to indicate censoring, 1 to indicate the event of interest, and values 2 or above indicate different competing risks.
 
 ```{r 2}
 library(Landmarking)
 set.seed(1)
-data(data_repeat)
-head(data_repeat)
-data(data_outcomes)
-head(data_outcomes)
+data(data_repeat_outcomes)
+head(data_repeat_outcomes)
 ```
 
-Looking further at these datasets we see that there are `r length(unique(data_repeat$id))` patients in this study, each with an average of `r mean(table(data_repeat$id))` assessments.
+Looking further at these datasets we see that there are `r length(unique(data_repeat_outcomes$id))` patients in this study, each with an average of `r mean(table(data_repeat_outcomes$id))` assessments.
 
 ```{r 3}
-length(unique(data_repeat$id))
-mean(table(data_repeat$id))
+length(unique(data_repeat_outcomes$id))
+mean(table(data_repeat_outcomes$id))
 ```
 
 Moreover, we can see the breakdown of events
 
 ```{r 4}
-table(data_outcomes$event_status)
+table(unique(data_repeat_outcomes[,c("id","event_status")])[,"event_status"])
 ```
 
-So `r length(which(data_outcomes$event_status==1))` patients in the study (out of `r dim(data_outcomes)[1]`) experienced a CVD event and `r length(which(data_outcomes$event_status==2))` experienced death from other causes.
+So `r length(which(unique(data_repeat_outcomes[,c("id","event_status")])[,"event_status"]==1))` patients in the study (out of `r length(unique(data_repeat_outcomes$id))`) experienced a CVD event and `r length(which(unique(data_repeat_outcomes[,c("id","event_status")])[,"event_status"]==2))` experienced death from other causes.
 
-
-## Set-up
-
-The package Landmarking requires that both time-to-event data and repeat measurement data are joined into one data frame.
-
-```{r 8}
-data_repeat_outcomes<-dplyr::left_join(data_repeat,data_outcomes,by="id")
-head(data_repeat_outcomes)
-```
-
-We are now ready to begin the analysis using the Landmarking package.
 
 ## Analysis
+We are now ready to begin the analysis using the Landmarking package.
 
 There are a couple of issues to deal with before we start, these stem from the fact that we wish to compare the LOCF and LME longitudinal model. We want to ensure that the same dataset is used for both of these models so that the comparison is fair. 
 

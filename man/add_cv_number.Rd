@@ -28,8 +28,8 @@ This function randomly divides the \code{n} individual IDs
 into \code{k} groups, each with \code{n/k} members (or as close to this number as possible).
 }
 \examples{
-data(data_repeat)
-data_repeat <- add_cv_number(data_long = data_repeat,
+data(data_repeat_outcomes)
+data_repeat_outcomes <- add_cv_number(data_long = data_repeat_outcomes,
                                       individual_id = "id",
                                       k = 10)
 }

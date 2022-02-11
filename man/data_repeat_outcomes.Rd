@@ -3,8 +3,7 @@
 \docType{data}
 \name{data_repeat_outcomes}
 \alias{data_repeat_outcomes}
-\title{This dataset contains repeat measurements data and time-to-event data
-from 3000 patients. See vignette "How to use the R package 'Landmarking'" to see how this dataset was formed.}
+\title{Simulated repeat measurement and time-to-event data}
 \format{
 A dataset with 9048 rows and 14 columns:
 \describe{
@@ -28,7 +27,18 @@ A dataset with 9048 rows and 14 columns:
 data_repeat_outcomes
 }
 \description{
-This dataset contains repeat measurements data and time-to-event data
-from 3000 patients. See vignette "How to use the R package 'Landmarking'" to see how this dataset was formed.
+A simulated dataset which is a combination of longitudinal (repeat measurement) data and
+time-to-event data.This dataset contains simulated data
+from 3000 patients.
+
+The longitudinal (repeat measurement) data is formed using an LME model,
+whose parameters were based on CVD risk assessments
+recorded at primary care practices in New Zealand.
+
+A LME model was fitted to this dataset and values of \code{sbp_stnd}
+and \code{tchdl_stnd} were estimated at landmark age 60. These values (along with the other baseline covariates)
+were used to simulate time-to-event data from a
+cause specific model with parameters based on CVD events of patients
+at primary care practices in New Zealand.
 }
 \keyword{datasets}

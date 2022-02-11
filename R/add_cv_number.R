@@ -10,8 +10,8 @@
 #' indicating the fold to which the individual has been assigned.
 #' @author Isobel Barrott \email{isobel.barrott@@gmail.com}
 #' @examples
-#' data(data_repeat)
-#' data_repeat <- add_cv_number(data_long = data_repeat,
+#' data(data_repeat_outcomes)
+#' data_repeat_outcomes <- add_cv_number(data_long = data_repeat_outcomes,
 #'                                       individual_id = "id",
 #'                                       k = 10)
 #' @details This function randomly divides the \code{n} individual IDs
