@@ -26,7 +26,7 @@ Description: The landmark approach allows survival predictions to be
 	risk set. This package allows the longitudinal data to be modelled
 	either using the last observation carried forward or linear mixed
 	effects modelling. There is also the option to model competing risks,
-	either through cause-specific Cox regression or Fine-Gray regression. 
+	either through cause-specific Cox regression or Fine-Gray regression.
 License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
