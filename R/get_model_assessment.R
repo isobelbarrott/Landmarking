@@ -13,7 +13,7 @@
 #' @template b
 #' @return List containing C-index, Brier score and their standard errors
 #' @details There are two factors in assessing the performance of a prediction model; its
-#' discrimination and its calibration. The c-index is one method to assess
+#' discrimination and its calibration. The c-index is a commonly used metric which assesses
 #' discrimination, this refers to the ability of the model to separate individuals into
 #' those that will have an event and those that will not. The c-index at a horizon time `x_hor`
 #' looks at the pairs of individuals where one individual has the event at a time T and the other has not had the event at time T.
@@ -22,7 +22,7 @@
 #' by comparing individuals where one had the event of interest at time T and the other individual either
 #' did not experience the event before this time T or experienced a competing event.
 #'
-#' The Brier score is one method to assess calibration, this refers to the agreement between the risk prediction and
+#' The Brier score gives an indication of the calibration of a model (and its discrimination to an extent), this refers to the agreement between the risk prediction and
 #' the outcome. The Brier score is calculated as the average mean squared error of the predicted risk and the event outcome (where
 #' an event is 1 and not experiencing the event is 0). This is extended to the competing risks case by including the competing risk events as
 #' not experiencing the event.
