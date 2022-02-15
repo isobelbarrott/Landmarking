@@ -5,13 +5,13 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Introduction to landmark models • Landmarking</title>
+<title>Introduction to Landmark Models and the R package Landmarking • Landmarking</title>
 <!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="Introduction to landmark models">
+<script src="../pkgdown.js"></script><meta property="og:title" content="Introduction to Landmark Models and the R package Landmarking">
 <meta property="og:description" content="Landmarking">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
@@ -53,13 +53,10 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="../articles/Landmarking.html">Introduction to Landmark Models</a>
+      <a href="../articles/Landmarking.html">Introduction to Landmark Models and the R package Landmarking</a>
     </li>
     <li>
       <a href="../articles/how_to_use.html">How to use the R package 'Landmarking'</a>
-    </li>
-    <li>
-      <a href="../articles/Functions_fit_LOCF_LME_landmark.html">The functions 'fit_LOCF_landmark' and 'fit_LME_landmark'</a>
     </li>
   </ul>
 </li>
@@ -85,7 +82,7 @@
       </header><script src="Landmarking_files/header-attrs-2.11/header-attrs.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1 data-toc-skip>Introduction to landmark models</h1>
+      <h1 data-toc-skip>Introduction to Landmark Models and the R package Landmarking</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/isobelbarrott/Landmarking/blob/master/vignettes/Landmarking.Rmd" class="external-link"><code>vignettes/Landmarking.Rmd</code></a></small>
@@ -148,6 +145,25 @@
 <a href="#cross-validation" class="anchor" aria-hidden="true"></a>3. Cross-validation</h3>
 <p>Another feature of this package is that is makes it easy to perform k-fold cross validation. The function <em>add_cv_number</em> assigns a fold to each individual in a dataset. When multiple landmark ages are defined within functions <em>fit_LOCF_landmark</em> or <em>fit_LME_landmark</em>, the cross validation folds are kept consistent for individuals across the corresponding landmark models.</p>
 </div>
+</div>
+<div id="how-is-the-landmark-model-fit-within-the-r-package-landmarking" class="section level2">
+<h2 class="hasAnchor">
+<a href="#how-is-the-landmark-model-fit-within-the-r-package-landmarking" class="anchor" aria-hidden="true"></a>How is the landmark model fit within the R package Landmarking?</h2>
+<p>The functions <code>fit_LOCF_landmark</code> and <code>fit_LME_landmark</code> are used to fit the landmark model in this package. See the vignette ``How to use the R package ‘Landmarking’’’ to see a worked example which uses these functions.</p>
+<p>Here is a diagram that represents the functions <code>fit_LOCF_landmark</code> (selecting option <code>fit_LOCF_longitudinal</code>) and <code>fit_LME_landmark</code> (selecting option <code>fit_LME_longitudinal</code>) to show how they are made up of their helper functions. All these functions are available with the R package Landmarking.</p>
+<p><img src="images/fit_LOCF_landmark_model.png" width="70%"> The first step of the functions <code>fit_LOCF_landmark</code> and <code>fit_LME_landmark</code> is forming the datasets that correspond to each value of the landmark ages in <code>x_L</code>. These datasets will contain only the data of the individuals in the risk set at each landmark age <code>x_L</code>. To be in the risk set at age <code>x_L</code> the individual must have:</p>
+<ul>
+<li><p>entered the study at a time up to and including the landmark age <code>x_L</code>. This means that the individual has at least one LOCF value for all variables in <code>covariate</code> for the case of <code>fit_LOCF_landmark</code>, or at least one LOCF value for all variables in <code>fixed_effects</code> for the case of <code>fit_LME_landmark</code>. This condition is necessary for the LOCF approach, the LOCF values at the landmark age <code>x_L</code> are extracted for <code>covariates</code> and so at least one observation is needed and so at least one observation is needed of each of these. This condition is necessary for the LME approach, as the LOCF values at the landmark age <code>x_L</code> are extracted for <code>fixed_effects</code> and so at least one observation is needed of each of these. The function <code>fit_LME_landmark</code> allows for no observations in <code>random_effects</code> by the landmark age because the LME model can handle missing data in the random effects. The individuals in that satisfy this condition are selected using the function <code>return_ids_with_LOCF</code>.</p></li>
+<li><p>exited the study after and not including time <code>x_L</code>.</p></li>
+</ul>
+<p>After this dataset is formed for each of the landmark ages, the second step involves adding the cross-validation fold to the individuals in the dataset. The datasets that were just formed are re-combined in order to ensure that the cross-validation fold assignment is consistent across each of the datasets. The cross-validation folds may be defined in two ways:</p>
+<p>the user sets parameter <code>k</code> which randomly assigns cross-validation folds to each individual using the function <code>add_cv_number</code></p>
+<p>the user sets parameter <code>cross_validation_df</code> which refers to a data frame that contains the user-defined assignment of cross-validation folds.</p>
+<p>Alternatively, no cross-validation is performed.</p>
+<p>In the third and fourth steps the landmark model is fitted separately to each of the datasets that correspond to a landmark age <code>x_L</code> (with the <code>cross_validation_number</code> added). If the parameters <code>k</code> or <code>cross_validation_df</code> are used, then the landmark model is formed using the training dataset and applied to the test dataset.</p>
+<p>In the third step, function <code>fit_LOCF_longitudinal</code> or <code>fit_LME_longitudinal</code> is used. The function <code>fit_LOCF_longitudinal</code> extracts the LOCF value for each of the <code>covariates</code> in <code>data_long</code> up to (and including) time <code>x_L</code>. On the other hand, the function <code>fit_LME_longitudinal</code> fits a multivariate linear mixed effects model (with unstructured covariance) to the training dataset. The model contains a random intercept and random slope if <code>random_slope_in_LME=TRUE</code>. Once this model is fitted the estimates of the <code>random_effects</code> for the test dataset at the landmark age <code>x_L</code> are found. In particular the LOCF value for each of the covariates in <code>fixed_effects</code> is used as the covariates at the landmark age <code>x_L</code> in the prediction. The BLUP estimates (and slopes if <code>random_slope_as_covariate=TRUE</code> is used) are then calculated. For more information see <code><a href="../reference/fit_LME_longitudinal.html">help(fit_LME_longitudinal)</a></code>.</p>
+<p>These values are then used in the next step: fitting the survival model using <code>fit_survival_model</code>. There are three choices for this model (standard Cox model, Fine Gray model, and cause-specific model). For more information see <code><a href="../reference/fit_survival_model.html">help(fit_survival_model)</a></code>.</p>
+<p>In the fifth step, the performance of the model is assessed using c-index and Brier score. If the parameter <code>b</code> is defined, then the bootstrap estimates of the c-index and Brier score are calculated as well. For both the c-index and Brier score calculations, inverse probability censoring weighting (IPCW) is used to create weights which account for the occurrence of censoring. The censoring model assumes for this function is the Kaplan Meier model, i.e. censoring occurs independently of covariates.</p>
 </div>
   </div>
 

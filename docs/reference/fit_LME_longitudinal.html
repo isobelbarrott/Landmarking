@@ -100,13 +100,10 @@
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/Landmarking.html">Introduction to Landmark Models</a>
+      <a href="../articles/Landmarking.html">Introduction to Landmark Models and the R package Landmarking</a>
     </li>
     <li>
       <a href="../articles/how_to_use.html">How to use the R package 'Landmarking'</a>
-    </li>
-    <li>
-      <a href="../articles/Functions_fit_LOCF_LME_landmark.html">The functions 'fit_LOCF_landmark' and 'fit_LME_landmark'</a>
     </li>
   </ul>
 </li>
@@ -249,11 +246,11 @@ more similar than measurements from different individuals. This is done through 
 random slope.</p>
 <p>Extending this model to the case where there are multiple random effects, denoted \(k\), we have</p>
 <p>$$Y_{ik} = X_{ik} \beta_k + Z_{ik} U_{ik} + \epsilon_{ik}$$</p>
-<p>Using this model we can allow a covariance structure within the random effects term \(U_{ik}\), for example a sample from the
+<p>Using this model we can allow a certain covariance structure within the random effects term \(U_{ik}\), for example a sample from the
 multivariate normal (MVN) distribution \(MVN(0,\Sigma_u)\). This covariance structure means the value of one random effects variable informs about the
 value of the other random effects variables, leading to more accurate predictions and allowing there to be missing data in the
 random effects variables.</p>
-<p>The function <code>fit_LME_landmark</code> uses this covariance structure for the random effects when fitting the LME model.
+<p>The function <code>fit_LME_landmark</code> uses a unstructured covariance for the random effects when fitting the LME model (i.e. no constraints are imposed on the values).
 To fit the LME model the function <code>lme</code> from the package <code>nlme</code> is used.
 The fixed effects are calculated as the LOCF for the variables <code>fixed_effects</code> at the landmark age <code>x_L</code> and the random effects
 are those stated in <code>random_effects</code> and at times <code>random_effects_time</code>.  The random intercept is always included in the LME model.

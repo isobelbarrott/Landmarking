@@ -6,8 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>This dataset contains repeat measurements data and time-to-event data
-from 3000 patients. See vignette "How to use the R package 'Landmarking'" to see how this dataset was formed. — data_repeat_outcomes • Landmarking</title>
+<title>Simulated repeat measurement and time-to-event data — data_repeat_outcomes • Landmarking</title>
 
 
 <!-- jquery -->
@@ -40,10 +39,18 @@ from 3000 patients. See vignette "How to use the R package 'Landmarking'" to see
 
 
 
-<meta property="og:title" content="This dataset contains repeat measurements data and time-to-event data
-from 3000 patients. See vignette "How to use the R package 'Landmarking'" to see how this dataset was formed. — data_repeat_outcomes" />
-<meta property="og:description" content="This dataset contains repeat measurements data and time-to-event data
-from 3000 patients. See vignette &quot;How to use the R package 'Landmarking'&quot; to see how this dataset was formed." />
+<meta property="og:title" content="Simulated repeat measurement and time-to-event data — data_repeat_outcomes" />
+<meta property="og:description" content="A simulated dataset which is a combination of longitudinal (repeat measurement) data and
+time-to-event data.This dataset contains simulated data
+from 3000 patients.
+The longitudinal (repeat measurement) data is formed using an LME model,
+whose parameters were based on CVD risk assessments
+recorded at primary care practices in New Zealand.
+A LME model was fitted to this dataset and values of sbp_stnd
+and tchdl_stnd were estimated at landmark age 60. These values (along with the other baseline covariates)
+were used to simulate time-to-event data from a
+cause specific model with parameters based on CVD events of patients
+at primary care practices in New Zealand." />
 
 
 
@@ -103,13 +110,10 @@ from 3000 patients. See vignette &quot;How to use the R package 'Landmarking'&qu
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/Landmarking.html">Introduction to Landmark Models</a>
+      <a href="../articles/Landmarking.html">Introduction to Landmark Models and the R package Landmarking</a>
     </li>
     <li>
       <a href="../articles/how_to_use.html">How to use the R package 'Landmarking'</a>
-    </li>
-    <li>
-      <a href="../articles/Functions_fit_LOCF_LME_landmark.html">The functions 'fit_LOCF_landmark' and 'fit_LME_landmark'</a>
     </li>
   </ul>
 </li>
@@ -135,15 +139,23 @@ from 3000 patients. See vignette &quot;How to use the R package 'Landmarking'&qu
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>This dataset contains repeat measurements data and time-to-event data
-from 3000 patients. See vignette "How to use the R package 'Landmarking'" to see how this dataset was formed.</h1>
+    <h1>Simulated repeat measurement and time-to-event data</h1>
     <small class="dont-index">Source: <a href='https://github.com/isobelbarrott/Landmarking/blob/master/R/data.R'><code>R/data.R</code></a></small>
     <div class="hidden name"><code>data_repeat_outcomes.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>This dataset contains repeat measurements data and time-to-event data
-from 3000 patients. See vignette "How to use the R package 'Landmarking'" to see how this dataset was formed.</p>
+    <p>A simulated dataset which is a combination of longitudinal (repeat measurement) data and
+time-to-event data.This dataset contains simulated data
+from 3000 patients.</p>
+<p>The longitudinal (repeat measurement) data is formed using an LME model,
+whose parameters were based on CVD risk assessments
+recorded at primary care practices in New Zealand.</p>
+<p>A LME model was fitted to this dataset and values of <code>sbp_stnd</code>
+and <code>tchdl_stnd</code> were estimated at landmark age 60. These values (along with the other baseline covariates)
+were used to simulate time-to-event data from a
+cause specific model with parameters based on CVD events of patients
+at primary care practices in New Zealand.</p>
     </div>
 
     <div class="ref-usage sourceCode"><pre class='sourceCode r'><code><span class='va'>data_repeat_outcomes</span></code></pre></div>

@@ -101,13 +101,10 @@ to calculate their standard errors using bootstraping." />
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="../articles/Landmarking.html">Introduction to Landmark Models</a>
+      <a href="../articles/Landmarking.html">Introduction to Landmark Models and the R package Landmarking</a>
     </li>
     <li>
       <a href="../articles/how_to_use.html">How to use the R package 'Landmarking'</a>
-    </li>
-    <li>
-      <a href="../articles/Functions_fit_LOCF_LME_landmark.html">The functions 'fit_LOCF_landmark' and 'fit_LME_landmark'</a>
     </li>
   </ul>
 </li>
@@ -193,7 +190,7 @@ there should be one row for each individual</p></td>
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
     <p>There are two factors in assessing the performance of a prediction model; its
-discrimination and its calibration. The c-index is one method to assess
+discrimination and its calibration. The c-index is a commonly used metric which assesses
 discrimination, this refers to the ability of the model to separate individuals into
 those that will have an event and those that will not. The c-index at a horizon time <code>x_hor</code>
 looks at the pairs of individuals where one individual has the event at a time T and the other has not had the event at time T.
@@ -201,7 +198,7 @@ It is calculated as the proportion of these pairs where their relative risk pred
 actual outcomes for the two individuals. This is extended to the competing risks case
 by comparing individuals where one had the event of interest at time T and the other individual either
 did not experience the event before this time T or experienced a competing event.</p>
-<p>The Brier score is one method to assess calibration, this refers to the agreement between the risk prediction and
+<p>The Brier score gives an indication of the calibration of a model (and its discrimination to an extent), this refers to the agreement between the risk prediction and
 the outcome. The Brier score is calculated as the average mean squared error of the predicted risk and the event outcome (where
 an event is 1 and not experiencing the event is 0). This is extended to the competing risks case by including the competing risk events as
 not experiencing the event.</p>
