@@ -68,7 +68,7 @@ The functions `fit_LOCF_landmark` and `fit_LME_landmark` are used to fit the lan
 
 Here is a diagram that represents the functions `fit_LOCF_landmark` (selecting option `fit_LOCF_longitudinal`) and `fit_LME_landmark` (selecting option `fit_LME_longitudinal`) to show how they are made up of their helper functions. All these functions are available with the R package Landmarking. 
 
-```{r figurename, echo=FALSE, fig.cap="", out.width = '100%'}
+```{r figurename3, echo=FALSE, fig.cap="", out.width = '100%'}
 knitr::include_graphics("./images/fit_LOCF_landmark_model.png")
 ```
 The first step of the functions `fit_LOCF_landmark` and `fit_LME_landmark` is forming the
@@ -79,30 +79,21 @@ individual must have:
 * entered the study at a time up to and including the landmark age `x_L`. This means that the individual
 has at least one LOCF value for all variables in `covariate` for the case of `fit_LOCF_landmark`, or
 at least one LOCF value for all variables in `fixed_effects` for the case of `fit_LME_landmark`. This condition is necessary
-for the LOCF approach, the LOCF values at the landmark age `x_L` are extracted for `covariates` and so at least one observation is needed and so at least one observation is needed of each of these.
-This condition is necessary for the LME approach, as the LOCF values at the landmark age `x_L` are extracted for `fixed_effects` and so at least one observation is needed of each of these.
-The function `fit_LME_landmark` allows for no observations in `random_effects` by the landmark age because the LME model can handle missing data in the random effects.
-The individuals in that satisfy this condition are selected using the function `return_ids_with_LOCF`.
+for the LOCF approach as the LOCF values at the landmark age `x_L` are extracted for all `covariates` and so at least one observation is needed of each of these. This condition is necessary for the LME approach, as the LOCF values at the landmark age `x_L` are extracted for `fixed_effects` and so at least one observation is needed of each of these. On the other hand, the function `fit_LME_landmark` allows for missing observations in `random_effects` by the landmark age as a result of the LME model.The individuals in that satisfy this condition are selected using the function `return_ids_with_LOCF`.
 
 * exited the study after and not including time `x_L`.
 
-After this dataset is formed for each of the landmark ages, the second step involves adding the cross-validation fold
-to the individuals in the dataset. The datasets that were just formed are re-combined in
-order to ensure that the cross-validation fold assignment is consistent across
-each of the datasets. The cross-validation folds
-may be defined in two ways:
+After this dataset is formed for each of the landmark ages, the second step involves adding the cross-validation fold to the individuals in the dataset. The datasets that were just formed are re-combined in order to ensure that the cross-validation fold assignment is consistent across each of the datasets. In other words the individual that is in the risk set at one landmark time has the same cross-validation number as when they are in the risk set at another landmark time. The cross-validation folds may be defined in two ways:
 
-the user sets parameter `k` which randomly assigns cross-validation folds to each individual using the function
-`add_cv_number`
+* the user sets parameter `k` which randomly assigns cross-validation folds to each individual using the function `add_cv_number`
 
-the user sets parameter `cross_validation_df` which refers to a data frame that contains the user-defined assignment of
-cross-validation folds.
+* the user sets parameter `cross_validation_df` which refers to a data frame that contains the user-defined assignment of cross-validation folds.
 
 Alternatively, no cross-validation is performed.
 
 In the third and fourth steps the landmark model is fitted separately to each of the datasets that correspond to a landmark age `x_L` (with the `cross_validation_number` added). If the parameters `k` or `cross_validation_df` are used, then the landmark model is formed using the training dataset and applied to the test dataset. 
 
-In the third step, function `fit_LOCF_longitudinal` or `fit_LME_longitudinal` is used. The function `fit_LOCF_longitudinal` extracts the LOCF value for each of the `covariates` in `data_long` up to (and including) time `x_L`. On the other hand, the function `fit_LME_longitudinal` fits a multivariate linear mixed effects model (with unstructured covariance) to the training dataset. The model contains a random intercept and random slope if `random_slope_in_LME=TRUE`. Once this model is fitted the estimates of the `random_effects` for the test dataset at the landmark age `x_L` are found. In particular the LOCF value for each of the covariates in `fixed_effects` is used as the covariates at the landmark age `x_L` in the prediction. The BLUP estimates (and slopes if `random_slope_as_covariate=TRUE` is used) are then calculated. For more information see `help(fit_LME_longitudinal)`.
+In the third step, function `fit_LOCF_longitudinal` or `fit_LME_longitudinal` is used. The function `fit_LOCF_longitudinal` extracts the LOCF value for each of the `covariates` in `data_long` up to (and including) time `x_L`. On the other hand, the function `fit_LME_longitudinal` fits a multivariate linear mixed effects model (with unstructured covariance) to the training dataset. The model contains a random intercept and random slope if `random_slope_in_LME=TRUE`. Once this model is fitted the estimates of the `random_effects` for the test dataset at the landmark age `x_L` are found. The LOCF value for each of the covariates in `fixed_effects` is used as the covariates at the landmark age `x_L` in the prediction. The BLUP estimates (and slopes if `random_slope_as_covariate=TRUE` is used) are then calculated. For more information see `help(fit_LME_longitudinal)`.
 
 These values are then used in the next step: fitting the survival model using `fit_survival_model`. There are
 three choices for this model (standard Cox model, Fine Gray model, and cause-specific model). For more information see `help(fit_survival_model)`.
