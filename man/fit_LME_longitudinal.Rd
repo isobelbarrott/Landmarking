@@ -96,12 +96,12 @@ Extending this model to the case where there are multiple random effects, denote
 
 \deqn{Y_{ik} = X_{ik} \beta_k + Z_{ik} U_{ik} + \epsilon_{ik}}
 
-Using this model we can allow a covariance structure within the random effects term \eqn{U_{ik}}, for example a sample from the
+Using this model we can allow a certain covariance structure within the random effects term \eqn{U_{ik}}, for example a sample from the
 multivariate normal (MVN) distribution \eqn{MVN(0,\Sigma_u)}. This covariance structure means the value of one random effects variable informs about the
 value of the other random effects variables, leading to more accurate predictions and allowing there to be missing data in the
 random effects variables.
 
-The function \code{fit_LME_landmark} uses this covariance structure for the random effects when fitting the LME model.
+The function \code{fit_LME_landmark} uses a unstructured covariance for the random effects when fitting the LME model (i.e. no constraints are imposed on the values).
 To fit the LME model the function \code{lme} from the package \code{nlme} is used.
 The fixed effects are calculated as the LOCF for the variables \code{fixed_effects} at the landmark age \code{x_L} and the random effects
 are those stated in \code{random_effects} and at times \code{random_effects_time}.  The random intercept is always included in the LME model.

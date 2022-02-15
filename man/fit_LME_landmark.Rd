@@ -144,7 +144,7 @@ from the entire set of individuals in the risk set by calculating Brier score an
 This is performed using \code{get_model_assessment}. See \code{?get_model_assessment} more for information about this function.
 }
 \examples{
-\dontrun{
+\donttest{
 library(Landmarking)
 data(data_repeat_outcomes)
 data_model_landmark_LME <-
