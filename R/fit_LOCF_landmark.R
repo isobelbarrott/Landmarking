@@ -446,7 +446,7 @@ fit_LOCF_landmark <- function(data_long,
         event_prediction = "event_prediction",
         event_status = event_status,
         event_time = event_time,
-        x_hor = x_h,
+        x_hor = max(setdiff(data_model_survival$data_survival[[event_time]],x_hor)),
         b = b
       )
 
