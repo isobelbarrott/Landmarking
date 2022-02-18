@@ -9,3 +9,4 @@
 ^man-roxygen
 ^\.github$
 ^CRAN-RELEASE$
+^CRAN-SUBMISSION$
