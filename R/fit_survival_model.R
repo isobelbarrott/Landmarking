@@ -111,7 +111,7 @@ fit_survival_model <- function(data,
           as.formula(paste0("Surv(", event_time, ", ", event_status, "==1) ~",
                             paste0(covariates, collapse = "+")))
         model_survival <- coxph(formula_survival, data = data_train,x=TRUE)
-        data_test$event_prediction <-riskRegression::predictRisk(model_survival, times = x_hor, newdata = data_test)
+        data_test$event_prediction <-1 - as.numeric(riskRegression::predictRisk(model_survival, times = x_hor, newdata = data_test))
       }
 
       if (survival_submodel == "cause_specific") {
