@@ -102,6 +102,11 @@ get_model_assessment <-
     data[["event_time"]] <- data[[event_time]]
     data[["event_status"]] <- data[[event_status]]
     data[["event_prediction"]] <- data[[event_prediction]]
+
+    if (setequal(data[[event_status]],0:1)){ # survival probabilities are needed for the non-competing risks model
+      data[["event_prediction"]] <- 1 - data[["event_prediction"]]
+    }
+
     c_index <-
       pec::cindex(
         object = matrix(data[["event_prediction"]]),
