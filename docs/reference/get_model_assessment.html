@@ -81,7 +81,7 @@ to calculate their standard errors using bootstraping." />
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">Landmarking</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.2</span>
       </span>
     </div>
 
@@ -203,8 +203,9 @@ the outcome. The Brier score is calculated as the average mean squared error of 
 an event is 1 and not experiencing the event is 0). This is extended to the competing risks case by including the competing risk events as
 not experiencing the event.</p>
 <p>For both the c-index and Brier score calculations, inverse probability censoring weighting (IPCW) is used to create weights
-which account for the occurence of censoring. The censoring model assumes for this function is the Kaplan Meier model, i.e. censoring occurs
-independently of covariates.</p>
+which account for the occurrence of censoring. The censoring model assumes for this function is the Kaplan Meier model, i.e. censoring occurs
+independently of covariates. If all individuals are censored at a certain time point, then it is best to set <code>x_hor</code> just before this time point, before all the
+individuals have been removed from the risk set.</p>
 <p>The c-index is calculated using the <code>cindex</code> function in package <code>pec</code>. The Brier score is calculated using
 <code>pec</code> function in package <code>pec</code>.</p>
     <h2 class="hasAnchor" id="author"><a class="anchor" href="#author"></a>Author</h2>
@@ -213,7 +214,7 @@ independently of covariates.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <div class="ref-examples sourceCode"><pre class='sourceCode r'><code><span class='r-in'><span class='kw'>if</span> <span class='op'>(</span><span class='cn'>FALSE</span><span class='op'>)</span> <span class='op'>{</span></span>
-<span class='r-in'><span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://github.com/isobelbarrott/Landmarking'>Landmarking</a></span><span class='op'>)</span></span>
+<span class='r-in'><span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://github.com/isobelbarrott/Landmarking/'>Landmarking</a></span><span class='op'>)</span></span>
 <span class='r-in'><span class='fu'><a href='https://rdrr.io/r/utils/data.html'>data</a></span><span class='op'>(</span><span class='va'>data_repeat_outcomes</span><span class='op'>)</span></span>
 <span class='r-in'><span class='va'>data_model_landmark_LOCF</span> <span class='op'>&lt;-</span></span>
 <span class='r-in'>  <span class='fu'><a href='fit_LOCF_landmark.html'>fit_LOCF_landmark</a></span><span class='op'>(</span></span>
@@ -235,7 +236,7 @@ independently of covariates.</p>
 <span class='r-in'>  event_prediction <span class='op'>=</span> <span class='st'>"event_prediction"</span>,</span>
 <span class='r-in'>  event_status <span class='op'>=</span> <span class='st'>"event_status"</span>,</span>
 <span class='r-in'>  event_time <span class='op'>=</span> <span class='st'>"event_time"</span>,</span>
-<span class='r-in'>  x_hor <span class='op'>=</span> <span class='fl'>65</span>,</span>
+<span class='r-in'>  x_hor <span class='op'>=</span> <span class='fl'>64.9</span>,</span>
 <span class='r-in'>  b <span class='op'>=</span> <span class='fl'>10</span><span class='op'>)</span><span class='op'>}</span></span>
 </code></pre></div>
   </div>

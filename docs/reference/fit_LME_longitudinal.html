@@ -80,7 +80,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">Landmarking</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.0.2</span>
       </span>
     </div>
 
@@ -146,8 +146,9 @@
   <span class='va'>fixed_effects_time</span>,
   <span class='va'>random_effects_time</span>,
   standardise_time <span class='op'>=</span> <span class='cn'>FALSE</span>,
-  random_slope_in_LME <span class='op'>=</span> <span class='cn'>TRUE</span>,
-  random_slope_as_covariate <span class='op'>=</span> <span class='cn'>FALSE</span>,
+  random_slope_longitudinal <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  random_slope_survival <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  include_data_after_x_L <span class='op'>=</span> <span class='cn'>TRUE</span>,
   cv_name <span class='op'>=</span> <span class='cn'>NA</span>,
   <span class='va'>individual_id</span>,
   lme_control <span class='op'>=</span> <span class='fu'>nlme</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/nlme/man/lmeControl.html'>lmeControl</a></span><span class='op'>(</span><span class='op'>)</span>
@@ -192,13 +193,18 @@ order of elements in <code>random_effects</code>.</p></td>
 and dividing by the standard deviation (see Details section for more information)</p></td>
     </tr>
     <tr>
-      <th>random_slope_in_LME</th>
+      <th>random_slope_longitudinal</th>
       <td><p>Boolean indicating whether to include a random slope in the LME model</p></td>
     </tr>
     <tr>
-      <th>random_slope_as_covariate</th>
+      <th>random_slope_survival</th>
       <td><p>Boolean indicating whether to include the random slope estimate from the LME model
 as a covariate in the survival submodel.</p></td>
+    </tr>
+    <tr>
+      <th>include_data_after_x_L</th>
+      <td><p>Boolean indicating whether to include all longitudinal data, including data after the landmark age x_L,
+in the model development dataset. See Details for more information.</p></td>
     </tr>
     <tr>
       <th>cv_name</th>
@@ -241,7 +247,7 @@ is the mean and standard deviation used to normalise times when fitting the LME 
 <li><p>\(\epsilon_i\) is the error term, typically from N(0, \(\sigma\))</p></li>
 </ul>
 
-<p>By using an LME model to fit repeat measures data we can allow measurements from the same individuals to be
+<p>By using an LME model to fit repeat measures data, rather than a linear model, we can allow measurements from the same individuals to be
 more similar than measurements from different individuals. This is done through the random intercept and/or
 random slope.</p>
 <p>Extending this model to the case where there are multiple random effects, denoted \(k\), we have</p>
@@ -251,17 +257,20 @@ multivariate normal (MVN) distribution \(MVN(0,\Sigma_u)\). This covariance stru
 value of the other random effects variables, leading to more accurate predictions and allowing there to be missing data in the
 random effects variables.</p>
 <p>The function <code>fit_LME_landmark</code> uses a unstructured covariance for the random effects when fitting the LME model (i.e. no constraints are imposed on the values).
-To fit the LME model the function <code>lme</code> from the package <code>nlme</code> is used.
-The fixed effects are calculated as the LOCF for the variables <code>fixed_effects</code> at the landmark age <code>x_L</code> and the random effects
-are those stated in <code>random_effects</code> and at times <code>random_effects_time</code>.  The random intercept is always included in the LME model.
-Additionally, the random slope can be included in the LME model using the parameter <code>random_slope_in_LME=TRUE</code>. The model is used to predict the
-values of the random effects at the landmark time <code>x_L</code>,
-and these are used as predictors in the survival model along with the LOCF values of the fixed effects.
+To fit the LME model the function <code>lme</code> from the package <code>nlme</code> is used.</p>
+<p>It is important to distinguish between the validation set and the development set for fitting the LME model in this function.
+The development dataset either includes all the repeat measurements (including those after the landmark age <code>x_L</code>), or only the repeat measurements
+recorded up to and including the landmark age <code>x_L</code>. This is controlled using the parameter <code>include_data_after_x_L</code>.
+The validation set only includes the repeat measurements recorded up until and including the landmark age <code>x_L</code>,
+i.e. it does not include future data in its predictions.</p>
+<p>The random intercept is always included in the LME model.
+Additionally, the random slope can be included in the LME model using the parameter <code>random_slope_longitudinal=TRUE</code>.</p>
+<p>Using the fitted model, the values of the best linear unbiased predictions (BLUPs)
+at the landmark age <code>x_L</code> are calculated. These are considered the predictions of the values of the <code>random_effects</code>
+the landmark age <code>x_L</code>. The values of the fixed effects used within this prediction are calculated as the LOCF values for the <code>fixed_effects</code>
+at the landmark age <code>x_L</code>. These predictions are used as covariates in the survival model along with the LOCF values of the fixed effects.
 Additionally, the estimated value of the random slope can
-be included as predictors in the survival model using the parameter <code>random_slope_as_covariate=TRUE</code>.</p>
-<p>It is important to distinguish between the validation set and the development set for fitting the LME model. The development set includes
-all the repeat measurements (including those after the landmark age <code>x_L</code>). Conversely, the validation set only includes
-the repeat measurements recorded up until and including the landmark age <code>x_L</code>.</p>
+be included as predictors in the survival model using the parameter <code>random_slope_survival=TRUE</code>.</p>
 <p>There is an important consideration about fitting the linear mixed effects model. As the variable <code>random_effects_time</code>
 gets further from 0, the random effects coefficients get closer to 0. This causes computational issues
 as the elements in the covariance matrix of the random effects, \(\Sigma_u\), are constrained to
