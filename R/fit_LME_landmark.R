@@ -413,6 +413,8 @@ fit_LME_longitudinal <- function(data_long,
 #' @template random_effects
 #' @template fixed_effects_time
 #' @template random_effects_time
+#' @param include_data_after_x_L Boolean indicating whether to include all longitudinal data, including data after the landmark age x_L,
+#' in the model development dataset. See Details for more information.
 #' @param random_slope_longitudinal Boolean indicating whether to include a random slope in the LME model
 #' @param random_slope_survival Boolean indicating whether to include the random slope estimate from the LME model
 #' as a covariate in the survival submodel.
