@@ -15,8 +15,8 @@ fit_LME_landmark(
   individual_id,
   k,
   cross_validation_df,
-  random_slope_in_LME = TRUE,
-  random_slope_as_covariate = TRUE,
+  random_slope_longitudinal = TRUE,
+  random_slope_survival = TRUE,
   standardise_time = FALSE,
   lme_control = nlme::lmeControl(),
   event_time,
@@ -57,9 +57,9 @@ named according to the landmark time \code{x_L} that they correspond. Each data 
 which contains the cross-validation fold of the individual. An alternative to setting parameter \code{k} for performing cross-validation;
 if both are missing no cross-validation is used.}
 
-\item{random_slope_in_LME}{Boolean indicating whether to include a random slope in the LME model}
+\item{random_slope_longitudinal}{Boolean indicating whether to include a random slope in the LME model}
 
-\item{random_slope_as_covariate}{Boolean indicating whether to include the random slope estimate from the LME model
+\item{random_slope_survival}{Boolean indicating whether to include the random slope estimate from the LME model
 as a covariate in the survival submodel.}
 
 \item{standardise_time}{Boolean indicating whether to standardise the time variables (\code{fixed_effects_time} and \code{random_effects_time}) by subtracting the mean
