@@ -13,7 +13,7 @@ fit_LME_longitudinal(
   random_effects_time,
   standardise_time = FALSE,
   random_slope_longitudinal = TRUE,
-  random_slope_survival = FALSE,
+  random_slope_survival = TRUE,
   include_data_after_x_L = TRUE,
   cv_name = NA,
   individual_id,
@@ -92,7 +92,7 @@ where
 \item \eqn{\epsilon_i} is the error term, typically from N(0, \eqn{\sigma})
 }
 
-By using an LME model to fit repeat measures data we can allow measurements from the same individuals to be
+By using an LME model to fit repeat measures data, rather than a linear model, we can allow measurements from the same individuals to be
 more similar than measurements from different individuals. This is done through the random intercept and/or
 random slope.
 
@@ -107,18 +107,22 @@ random effects variables.
 
 The function \code{fit_LME_landmark} uses a unstructured covariance for the random effects when fitting the LME model (i.e. no constraints are imposed on the values).
 To fit the LME model the function \code{lme} from the package \code{nlme} is used.
-The fixed effects are calculated as the LOCF for the variables \code{fixed_effects} at the landmark age \code{x_L} and the random effects
-are those stated in \code{random_effects} and at times \code{random_effects_time}.  The random intercept is always included in the LME model.
-Additionally, the random slope can be included in the LME model using the parameter \code{random_slope_longitudinal=TRUE}. The model is used to predict the
-values of the random effects at the landmark time \code{x_L},
-and these are used as predictors in the survival model along with the LOCF values of the fixed effects.
+
+It is important to distinguish between the validation set and the development set for fitting the LME model in this function.
+The development dataset either includes all the repeat measurements (including those after the landmark age \code{x_L}), or only the repeat measurements
+recorded up to and including the landmark age \code{x_L}. This is controlled using the parameter \code{include_data_after_x_L}.
+The validation set only includes the repeat measurements recorded up until and including the landmark age \code{x_L},
+i.e. it does not include future data in its predictions.
+
+The random intercept is always included in the LME model.
+Additionally, the random slope can be included in the LME model using the parameter \code{random_slope_longitudinal=TRUE}.
+
+Using the fitted model, the values of the best linear unbiased predictions (BLUPs)
+at the landmark age \code{x_L} are calculated. These are considered the predictions of the values of the \code{random_effects}
+the landmark age \code{x_L}. The values of the fixed effects used within this prediction are calculated as the LOCF values for the \code{fixed_effects}
+at the landmark age \code{x_L}. These predictions are used as covariates in the survival model along with the LOCF values of the fixed effects.
 Additionally, the estimated value of the random slope can
 be included as predictors in the survival model using the parameter \code{random_slope_survival=TRUE}.
-
-It is important to distinguish between the validation set and the development set for fitting the LME model. The validation set only includes
-the repeat measurements recorded up until and including the landmark age \code{x_L}, i.e. it does not include future data in its predictions.
-The development set can either include all the repeat measurements (including those after the landmark age \code{x_L}), or only the repeat measurements
-recorded up to and including the landmark age \code{x_L}. This is controlled using the parameter \code{include_data_after_x_L}.
 
 There is an important consideration about fitting the linear mixed effects model. As the variable \code{random_effects_time}
 gets further from 0, the random effects coefficients get closer to 0. This causes computational issues

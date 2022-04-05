@@ -12,11 +12,12 @@ fit_LME_landmark(
   random_effects,
   fixed_effects_time,
   random_effects_time,
+  random_slope_longitudinal = TRUE,
+  random_slope_survival = TRUE,
+  include_data_after_x_L = TRUE,
   individual_id,
   k,
   cross_validation_df,
-  random_slope_longitudinal = TRUE,
-  random_slope_survival = TRUE,
   standardise_time = FALSE,
   lme_control = nlme::lmeControl(),
   event_time,
@@ -47,6 +48,14 @@ which contain the times at which repeat measures were recorded. This should eith
 the same length as \code{random_effects}. In the latter case the order of elements must correspond to the
 order of elements in \code{random_effects}.}
 
+\item{random_slope_longitudinal}{Boolean indicating whether to include a random slope in the LME model}
+
+\item{random_slope_survival}{Boolean indicating whether to include the random slope estimate from the LME model
+as a covariate in the survival submodel.}
+
+\item{include_data_after_x_L}{Boolean indicating whether to include all longitudinal data, including data after the landmark age x_L,
+in the model development dataset. See Details for more information.}
+
 \item{individual_id}{Character string specifying the column name in \code{data_long} which contains the individual identifiers}
 
 \item{k}{Integer specifying the number of folds for cross-validation.
@@ -56,11 +65,6 @@ An alternative to setting parameter \code{cross_validation_df} for performing cr
 named according to the landmark time \code{x_L} that they correspond. Each data frame should contain the columns \code{individual_id} and a column \code{cross_validation_number}
 which contains the cross-validation fold of the individual. An alternative to setting parameter \code{k} for performing cross-validation;
 if both are missing no cross-validation is used.}
-
-\item{random_slope_longitudinal}{Boolean indicating whether to include a random slope in the LME model}
-
-\item{random_slope_survival}{Boolean indicating whether to include the random slope estimate from the LME model
-as a covariate in the survival submodel.}
 
 \item{standardise_time}{Boolean indicating whether to standardise the time variables (\code{fixed_effects_time} and \code{random_effects_time}) by subtracting the mean
 and dividing by the standard deviation (see Details section for more information)}
