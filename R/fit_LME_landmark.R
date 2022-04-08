@@ -350,12 +350,15 @@ fit_LME_longitudinal <- function(data_long,
         if (length(random_effects)==1){
           slopes_df<-mixoutsamp_LME_model_val_cv$random[,c("id","reffresponse_time")]
           slopes_df["reffresponse_time"]<-slopes_df["reffresponse_time"]+model_LME_cv$coefficients$fixed["response_time"]
+
         }
         if (length(random_effects)>1){
           slopes_df<-mixoutsamp_LME_model_val_cv$random[,c("id",paste0("reffresponse_type",random_effects,":response_time"))]
+          random_effects_dummy<-paste0("response_type",random_effects,":response_time")
+          random_effects_dummy[1]<-"response_time"
           for (i in 1:length(random_effects)){
             slopes_df[,paste0("reffresponse_type",random_effects[i],":response_time")]<-
-               slopes_df[,paste0("reffresponse_type",random_effects[i],":response_time")]+model_LME_cv$coefficients$fixed[paste0("response_type",random_effects[i])]
+               slopes_df[,paste0("reffresponse_type",random_effects[i],":response_time")]+model_LME_cv$coefficients$fixed[random_effects_dummy[i]]
           }
         }
       names(slopes_df)<-c("id",paste0(random_effects,"_slope"))
