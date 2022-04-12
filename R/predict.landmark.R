@@ -91,11 +91,11 @@ predict.landmark <- function(object, x_L, x_hor, newdata, cv_fold = NA, ...) {
     fixed_effects_time <- call$fixed_effects_time
     random_effects_time <- call$random_effects_time
     individual_id <- call$individual_id
-    random_slope_as_covariate <-
+    random_slope_survival <-
       ifelse(
-        is.null(call$random_slope_as_covariate),
+        is.null(call$random_slope_survival),
         TRUE,
-        call$random_slope_as_covariate
+        call$random_slope_survival
       )
 
     for (fixed_effect in fixed_effects) {
@@ -209,18 +209,27 @@ predict.landmark <- function(object, x_L, x_hor, newdata, cv_fold = NA, ...) {
       names(data_longitudinal)[grep(paste0("fitted.", name), names(data_longitudinal))] <-
         name
     }
-    if (random_slope_as_covariate == TRUE) {
-      data_longitudinal <- dplyr::left_join(data_longitudinal,
-                                            mixoutsamp_longitudinal$random[, c(
-                                              individual_id,
-                                              paste0("reffresponse_type", random_effects, ":response_time")
-                                            )],
-                                            by = individual_id)
-      for (name in paste0(random_effects)) {
-        names(data_longitudinal)[grep(
-          paste0("reffresponse_type", name, ":response_time"),
-          names(data_longitudinal)
-        )] <- paste0(name, "_slope")
+    if (random_slope_survival == TRUE) {
+
+      if (random_slope_survival == TRUE) {
+        if (length(random_effects)==1){
+          slopes_df<-mixoutsamp_longitudinal$random[,c("id","reffresponse_time")]
+          slopes_df["reffresponse_time"]<-slopes_df["reffresponse_time"]+model_LME$coefficients$fixed["response_time"]
+
+        }
+        if (length(random_effects)>1){
+          slopes_df<-mixoutsamp_longitudinal$random[,c("id",paste0("reffresponse_type",random_effects,":response_time"))]
+          random_effects_dummy<-paste0("response_type",random_effects,":response_time")
+          random_effects_dummy[1]<-"response_time"
+          for (i in 1:length(random_effects)){
+            slopes_df[,paste0("reffresponse_type",random_effects[i],":response_time")]<-
+              slopes_df[,paste0("reffresponse_type",random_effects[i],":response_time")]+model_LME$coefficients$fixed[random_effects_dummy[i]]
+          }
+        }
+        names(slopes_df)<-c("id",paste0(random_effects,"_slope"))
+        data_longitudinal <- dplyr::left_join(data_longitudinal,
+                                                  slopes_df,
+                                                  by = individual_id)
       }
     }
   }
@@ -252,3 +261,5 @@ predict.landmark <- function(object, x_L, x_hor, newdata, cv_fold = NA, ...) {
   }
   return(data_longitudinal)
 }
+
+
