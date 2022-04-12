@@ -30,7 +30,7 @@ The key idea behind landmark models is the concept of predefined **landmark time
 >Continuing the example and supposing we wish to be able to predict the risk of CVD disease for any age between 45 and 50 years old, we define six landmark ages (45, ... , 50 years old) and fit six models for each of these. This is demonstrated in Figure 1.
 
 ```{r figurename, echo=FALSE, fig.cap="*Figure 1: Illustration of a landmark model with six landmark times (ages 45 to 50 years). The blue solid line represents the time interval of longitudinal (repeat measures) data that feeds into the first stage of the two-stage landmark model. The red dashed line represents the time interval of the time-to-event data to be inputted into the survival model which is the second stage of the landmark model. Events after the time horizon need to be censored within this framework.*", out.width = '70%'}
-knitr::include_graphics("./images/landmarking_models.png")
+knitr::include_graphics("./images/landmarking_models")
 ```
 
 To form a model at each landmark age, landmark models use a **two-stage model** that is comprised of a extracting information from the **longitudinal data** which then feeds into **survival model**. The typical form of this is the last observation carried forward (LOCF) method and the Cox proportional hazards model respectively, although there are extensions and these are discussed in the `Features of the R package Landmarking' section. Figure 1 shows the time intervals of the longitudinal (repeat measures) data and time-to-event data that is included when using the model, which is relative to the landmark age and time horizon. It should be noted that all the longitudinal (repeat measures) data may be used, including those passed the landmark age, in the first stage to develop a model. The survival model is fit only for the time-to-event data between the landmark age and the time horizon with all individuals censored at the time horizon. For a Cox proportional hazard survival  model, this has the advantage that proportional hazards is only assumed for the short period between the landmark time and the time horizon rather than the entire period up until the end of study.
@@ -50,7 +50,7 @@ The LME model is an alternative to using the LOCF method for the longitudinal da
 Figure 2 illustrates the use of these two types of models to predict systolic blood pressure at the landmark time. The LOCF model simply uses the most recently observed value of a risk factor. On the other hand, the LME model uses the entire history of the values of the risk factor from the individual, in combination with the trend in the risk factor from individuals used to develop the model. Using the Landmarking package, it is possible include a covariance structure in the random effects meaning that other risk factors can inform predictions. This improves the accuracy of the estimated value of the risk factor at the landmark time value compared to the LOCF model.
 
 ```{r figurename2, echo=FALSE, fig.cap="*Figure 2: Comparison of the LOCF and LME model to predict systolic blood pressure at a landmark age for an individual with 8 repeat measures.*", out.width = '90%'}
-knitr::include_graphics("./images/landmarking_lme_model.png")
+knitr::include_graphics("./images/landmarking_lme_model")
 ```
 
 ### 2. Competing risks modelling
@@ -69,8 +69,9 @@ The functions `fit_LOCF_landmark` and `fit_LME_landmark` are used to fit the lan
 Here is a diagram that represents the functions `fit_LOCF_landmark` (selecting option `fit_LOCF_longitudinal`) and `fit_LME_landmark` (selecting option `fit_LME_longitudinal`) to show how they are made up of their helper functions. All these functions are available with the R package Landmarking. 
 
 ```{r figurename3, echo=FALSE, fig.cap="", out.width = '100%'}
-knitr::include_graphics("./images/fit_LOCF_landmark_model.png")
+knitr::include_graphics("./images/fit_LOCF_landmark_model")
 ```
+
 The first step of the functions `fit_LOCF_landmark` and `fit_LME_landmark` is forming the
 datasets that correspond to each value of the landmark ages in `x_L`. These datasets will contain
 only the data of the individuals in the risk set at each landmark age `x_L`. To be in the risk set at age `x_L` the
@@ -93,13 +94,10 @@ Alternatively, no cross-validation is performed.
 
 In the third and fourth steps the landmark model is fitted separately to each of the datasets that correspond to a landmark age `x_L` (with the `cross_validation_number` added). If the parameters `k` or `cross_validation_df` are used, then the landmark model is formed using the training dataset and applied to the test dataset. 
 
-In the third step, function `fit_LOCF_longitudinal` or `fit_LME_longitudinal` is used. The function `fit_LOCF_longitudinal` extracts the LOCF value for each of the `covariates` in `data_long` up to (and including) time `x_L`. On the other hand, the function `fit_LME_longitudinal` fits a multivariate linear mixed effects model (with unstructured covariance) to the training dataset. The model contains a random intercept and random slope if `random_slope_longitudinal=TRUE`. Once this model is fitted the estimates of the `random_effects` for the test dataset at the landmark age `x_L` are found. The LOCF value for each of the covariates in `fixed_effects` is used as the covariates at the landmark age `x_L` in the prediction. The BLUP estimates (and slopes if `random_slope_survival=TRUE` is used) are then calculated. For more information see `help(fit_LME_longitudinal)`.
+In the third step, function `fit_LOCF_longitudinal` or `fit_LME_longitudinal` is used. The function `fit_LOCF_longitudinal` extracts the LOCF value for each of the `covariates` in `data_long` up to (and including) time `x_L`. On the other hand, the function `fit_LME_longitudinal` fits a multivariate linear mixed effects model (with unstructured covariance) to the training dataset. The model contains a random intercept and random slope (if `random_slope_longitudinal=TRUE`). Once this model is fitted, the BLUP estimates of the random effects (and slopes if `random_slope_survival=TRUE` is used) are calculated for the test dataset. These values, along with the LOCF value for each of the covariates in `fixed_effects`, are used as the covariates in the survival model. For more information see `help(fit_LME_longitudinal)`.
 
-These values are then used in the next step: fitting the survival model using `fit_survival_model`. There are
+Fitting the survival model is performed using `fit_survival_model`. There are
 three choices for this model (standard Cox model, Fine Gray model, and cause-specific model). For more information see `help(fit_survival_model)`.
 
 In the fifth step, the performance of the model is assessed using c-index and Brier score. If the parameter `b` is defined, then the bootstrap estimates of the c-index and Brier score are calculated as well. For both the c-index and Brier score calculations, inverse probability censoring weighting (IPCW) is used to create weights which account for the occurrence of censoring. The censoring model assumes for this function is the Kaplan Meier model, i.e. censoring occurs independently of covariates.
-
-
-
 
