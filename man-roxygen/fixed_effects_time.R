@@ -1,2 +1,4 @@
-#' @param fixed_effects_time Character string specifying the column name in \code{data_long}
-#' which contains the time at which the fixed effects were recorded
+#' @param fixed_effects_time Vector of character strings specifying the column names in \code{data_long}
+#' which contains the time at which the fixed effects variables were recorded.
+#' This should either be length 1 or the same length as `fixed_effects`.
+#' In the latter case the order of elements must correspond to the order of elements in `fixed_effects`.
