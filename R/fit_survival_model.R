@@ -1,4 +1,4 @@
-#' Fit a survival sub-model
+#' Fit a survival sub-model as part of a landmarking analysis
 #'
 #' This function is a helper function for `fit_LOCF_landmark_model` and `fit_LME_landmark_model`.
 #'
@@ -19,14 +19,16 @@
 #' element in the list corresponding to a different cross-validation fold.
 #'
 #' @details
-#' For the survival submodel, there are three choices of model:
+#'
+#' This function fits the survival model from the landmark model framework. The individuals are censored at the time horizon `x_hor` and the survival model is fitted with
+#' covariates specified in parameter `covariates`.
+#'
+#' For the survival model, there are three choices of model:
 #' * the standard Cox model, this is a wrapper function for \code{coxph} from the package \code{survival}
 #' * the cause-specific model, this is a wrapper function for \code{CSC} from package \code{riskRegression}
 #' * the Fine Gray model, this is a wrapper function for \code{FGR} from package \code{riskRegression}
 #'
 #' The latter two models estimate the probability of the event of interest in the presence of competing events.
-#'
-#' For both the c-index and Brier score calculations, inverse probability censoring weighting (IPCW) is used to create weights which account for the occurrence of censoring. The censoring model assumes for this function is the Kaplan Meier model, i.e. censoring occurs independently of covariates.
 #'
 #' @author Isobel Barrott \email{isobel.barrott@@gmail.com}
 #' @export
@@ -94,6 +96,12 @@ fit_survival_model <- function(data,
     model <- as.list(cv_numbers)
     names(model) <- cv_numbers
     Surv<-survival::Surv
+
+    #Censor at the time horizon
+    data[[event_status]][data[[event_time]] > x_hor] <-
+      0
+    data[[event_time]][data[[event_time]] > x_hor] <-
+      x_hor
 
     data_cv <- lapply(cv_numbers, function(cv_number) {
 
