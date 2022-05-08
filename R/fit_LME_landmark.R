@@ -1,22 +1,22 @@
-#' Fit a landmarking model using a linear mixed effects (LME) model for the longitudinal submodel
+#' Fit a landmarking model using a linear mixed effects (LME) model for the longitudinal data
 #'
 #' This function is a helper function for `fit_LME_landmark`.
 #'
 #' @param data_long Data frame containing repeat measurement data and time-to-event data in long format.
 #' @template x_L
-#' @param standardise_time Boolean indicating whether to standardise the time variable by subtracting the mean
-#' and dividing by the standard deviation (see Details section for more information)
+#' @param standardise_time  Boolean indicating whether to standardise the time variable in the LME model by subtracting the mean
+#' and dividing by the standard deviation. See Details section of `fit_LME_longitudinal` for more information.
 #' @param cv_name Character string specifying the column name in `data_long` that indicates cross-validation fold
 #' @template individual_id
 #' @template fixed_effects
 #' @template random_effects
 #' @template fixed_effects_time
 #' @template random_effects_time
-#' @param random_slope_longitudinal Boolean indicating whether to include a random slope in the LME model
+#' @param random_slope_longitudinal Boolean indicating whether to include a random slope in the LME model. See Details section of `fit_LME_longitudinal` for more information.
 #' @param random_slope_survival Boolean indicating whether to include the random slope estimate from the LME model
-#' as a covariate in the survival submodel.
-#' @param include_data_after_x_L Boolean indicating whether to include all longitudinal data, including data after the landmark age x_L,
-#' in the model development dataset. See Details for more information.
+#' as a covariate in the survival submodel. See Details section of `fit_LME_longitudinal` for more information.
+#' @param include_data_after_x_L Boolean indicating whether to include all longitudinal data, including data after the landmark age `x_L`,
+#' in the model development dataset. See Details section of `fit_LME_longitudinal` for more information.
 #' @param lme_control Object created using `nlme::lmeControl()`, which will be passed to the `control` argument of the `lme` function
 #' @return List containing elements:
 #' `data_longitudinal`, `model_longitudinal`, `model_LME`, and `model_LME_standardise_time`.
@@ -55,13 +55,13 @@
 #'
 #' \deqn{Y_{ik} = X_{ik} \beta_k + Z_{ik} U_{ik} + \epsilon_{ik}}
 #'
-#' Using this model we can allow a certain covariance structure within the random effects term \eqn{U_{ik}}, for example a sample from the
-#' multivariate normal (MVN) distribution \eqn{MVN(0,\Sigma_u)}. This covariance structure means the value of one random effects variable informs about the
-#' value of the other random effects variables, leading to more accurate predictions and allowing there to be missing data in the
-#' random effects variables.
+#' Typically the random effects are assumed to be from the multivariate normal (MVN) distribution \eqn{MVN(0,\Sigma_u)}
+#' and we choose a certain covariance structure for \eqn{\Sigma_u}. The function \code{fit_LME_landmark} uses this distribution with
+#' unstructured covariance for the random effects when fitting the LME model (i.e. no constraints are imposed on the values).
 #'
-#' The function \code{fit_LME_landmark} uses a unstructured covariance for the random effects when fitting the LME model (i.e. no constraints are imposed on the values).
 #' To fit the LME model the function \code{lme} from the package \code{nlme} is used.
+#' The random intercept is always included in the LME model.
+#' Additionally, the random slope can be included in the LME model using the parameter `random_slope_longitudinal=TRUE`.
 #'
 #' It is important to distinguish between the validation set and the development set for fitting the LME model in this function.
 #' The development dataset either includes all the repeat measurements (including those after the landmark age \code{x_L}), or only the repeat measurements
@@ -69,14 +69,11 @@
 #' The validation set only includes the repeat measurements recorded up until and including the landmark age \code{x_L},
 #' i.e. it does not include future data in its predictions.
 #'
-#' The random intercept is always included in the LME model.
-#' Additionally, the random slope can be included in the LME model using the parameter `random_slope_longitudinal=TRUE`.
-#'
 #' Using the fitted model, the values of the best linear unbiased predictions (BLUPs)
-#' at the landmark age \code{x_L} are calculated. These are considered the predictions of the values of the \code{random_effects}
-#' the landmark age \code{x_L}. The values of the fixed effects used within this prediction are calculated as the LOCF values for the \code{fixed_effects}
-#' at the landmark age \code{x_L}. These predictions are used as covariates in the survival model along with the LOCF values of the fixed effects.
-#' Additionally, the estimated value of the random slope can
+#' at the landmark age \code{x_L} are calculated. These BLUPs are the predictions of the values of the \code{random_effects}
+#' the landmark age \code{x_L}. The values of the fixed effects used as covariates in this prediction are the LOCF values of the \code{fixed_effects}
+#' at the landmark age \code{x_L}. In the function `fit_LME_landmark`, these predictions are used as covariates in the survival
+#' model along with the LOCF values of the fixed effects. Additionally, the estimated value of the random slope can
 #' be included as predictors in the survival model using the parameter `random_slope_survival=TRUE`.
 #'
 #' There is an important consideration about fitting the linear mixed effects model. As the variable \code{random_effects_time}
@@ -85,9 +82,6 @@
 #' be greater than 0. Using parameter \code{standard_time=TRUE} can prevent this issue by standardising the
 #' time variables to ensure that the \code{random_effects_time} values are not too close to 0.
 #'
-#' The LOCF values for the fixed effects and the prediction of the random effects at the landmark age
-#' are used as the covariates for the survival submodel, in addition to the estimated random slopes
-#' if option `random_effects_as_covariate` is selected.
 #'
 #' @export
 fit_LME_longitudinal <- function(data_long,
@@ -405,8 +399,8 @@ fit_LME_longitudinal <- function(data_long,
 #' Each data frame contains repeat measurements data and time-to-event data in long format.
 #' @template x_L
 #' @template x_hor
-#' @param standardise_time Boolean indicating whether to standardise the time variables (`fixed_effects_time` and `random_effects_time`) by subtracting the mean
-#' and dividing by the standard deviation (see Details section for more information)
+#' @param standardise_time Boolean indicating whether to standardise the time variable in the LME model by subtracting the mean
+#' and dividing by the standard deviation. See Details section of `fit_LME_longitudinal` for more information.
 #' @template event_status
 #' @template event_time
 #' @template k
@@ -416,11 +410,12 @@ fit_LME_longitudinal <- function(data_long,
 #' @template random_effects
 #' @template fixed_effects_time
 #' @template random_effects_time
-#' @param include_data_after_x_L Boolean indicating whether to include all longitudinal data, including data after the landmark age x_L,
-#' in the model development dataset. See Details for more information.
-#' @param random_slope_longitudinal Boolean indicating whether to include a random slope in the LME model
-#' @param random_slope_survival Boolean indicating whether to include the random slope estimate from the LME model
-#' as a covariate in the survival submodel.
+#' @param include_data_after_x_L Boolean indicating whether to include all longitudinal data, including data after the landmark age `x_L`,
+#' in the model development dataset. See Details section of `fit_LME_longitudinal` for more information.
+#' @param random_slope_longitudinal Boolean indicating whether to include a random slope in the LME model. See Details section of `fit_LME_longitudinal` for more information.
+#' @param random_slope_survival Boolean indicating whether to include the random slope estimate from the LME model.
+#' See Details section of `fit_LME_longitudinal` for more information.
+#' as a covariate in the survival submodel. See Details section of `fit_LME_longitudinal` for more information.
 #' @param lme_control Object created using `nlme::lmeControl()`, which will be passed to the `control` argument of the `lme`
 #' function
 #' @template b
@@ -441,9 +436,6 @@ fit_LME_longitudinal <- function(data_long,
 #' the `lme` function from package `nlme`. For a model using cross-validation,
 #' `model_LME` contains a list of outputs with each
 #' element in the list corresponds to a different cross-validation fold.
-#' `prediction_error` contains a list indicating the c-index and Brier score at time `x_hor` and their standard errors if parameter `b` is used.
-#' For more information on how the prediction error is calculated
-#' please see `?get_model_assessment` which is the function used to do this within `fit_LME_landmark`.
 #'
 #' `model_LME_standardise_time` contains a list of two objects `mean_response_time` and `sd_response_time` if the parameter `standardise_time=TRUE` is used. This
 #' is the mean and standard deviation use to normalise times when fitting the LME model.
@@ -452,16 +444,12 @@ fit_LME_longitudinal <- function(data_long,
 #' the survival submodel functions, including the estimated parameters of the model. For a model using cross-validation,
 #' `model_survival` will contain a list of outputs with each
 #' element in the list corresponding to a different cross-validation fold.
-#' `model_survival` contains the outputs from the function used to fit the survival submodel, including the estimated parameters of the model.
-#' For a model using cross-validation, `model_survival` contains a list of outputs with each
-#' element in the list corresponding to a different cross-validation fold. For more information on how the survival model is fitted
-#' please see `?fit_survival_model` which is the function used to do this within `fit_LME_landmark`.
 #'
 #' `prediction_error` contains a list indicating the c-index and Brier score at time `x_hor` and their standard errors if parameter `b` is used.
 #' @details Firstly, this function selects the individuals in the risk set at the landmark time \code{x_L}.
-#' Specifically, the individuals in the risk set are those that have entered the study before the landmark age
-#' (there is at least one observation for each of the \code{fixed_effects} and\code{random_effects} on or before \code{x_L}) and
-#' exited the study on after the landmark age (\code{event_time}
+#' Specifically, the individuals in the risk set are those that have entered the study before the landmark time \code{x_L}
+#' (there is at least one observation for each of the \code{fixed_effects} and \code{random_effects} on or before \code{x_L}) and
+#' exited the study after the landmark age (\code{event_time}
 #' is greater than \code{x_L}).
 #'
 #' Secondly, if the option to use cross validation
@@ -472,9 +460,10 @@ fit_LME_longitudinal <- function(data_long,
 #' If cross-validation is not selected then the landmark model is
 #' fit to the entire group of individuals in the risk set (this is both the training and test dataset).
 #'
-#' Thirdly, the landmark model is then fit to each of the training data. There are two parts to fitting the landmark model: using the longitudinal data and using the survival data.
+#' Thirdly, the landmark model is then fit to each of the training datasets. There are two parts to fitting the landmark model: using the longitudinal data and using the survival data.
 #' Using the longitudinal data is the first stage and is performed using `fit_LME_longitudinal`. See `?fit_LME_longitudinal` more for information about this function.
-#' Using the survival data is the second stage and is performed using `fit_survival_model`. See `?fit_survival_model` more for information about this function.
+#' Using the survival data is the second stage and is performed using `fit_survival_model`. This function censors the
+#' individuals at the time horizon `x_L` and fits the survival model. See `?fit_survival_model` more for information about this function.
 #'
 #' Fourthly, the performance of the model is then assessed on the set of predictions
 #' from the entire set of individuals in the risk set by calculating Brier score and C-index.
@@ -690,11 +679,6 @@ fit_LME_landmark <- function(data_long,
       )
     }
     data_long_x_l <- data_long_x_l_risk_set
-    #Censor at the time horizon
-    data_long_x_l[[event_status]][data_long_x_l[[event_time]] > x_h] <-
-      0
-    data_long_x_l[[event_time]][data_long_x_l[[event_time]] > x_h] <-
-      x_h
 
     if (cross_validation_df_add == TRUE) {
       data_long_x_l <-
@@ -774,6 +758,12 @@ fit_LME_landmark <- function(data_long,
       survival_submodel = survival_submodel,
       x_hor = x_h
     )
+
+    data_events <-
+      dplyr::left_join(data_events,
+                       data_model_survival$data_survival[,c(individual_id,"event_prediction")],
+                       by = individual_id)
+
     print(paste0("Complete, landmark age ", x_l))
 
     prediction_error <-
@@ -783,7 +773,7 @@ fit_LME_landmark <- function(data_long,
         event_prediction = "event_prediction",
         event_status = event_status,
         event_time = event_time,
-        x_hor =  max(setdiff(data_model_survival$data_survival[[event_time]],x_hor)),
+        x_hor =  x_h,
         b = b
       )
 

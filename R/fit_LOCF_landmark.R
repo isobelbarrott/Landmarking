@@ -118,8 +118,7 @@ fit_LOCF_longitudinal <- function(data_long,
 
 #' Fit a landmark model using a last observation carried forward (LOCF) method for the longitudinal data
 #'
-#' This function performs the two-stage landmarking analysis. In the first stage, the longitudinal submodel is fitted using the LOCF method and in the
-#' second stage the survival submodel is fitted.
+#' This function performs the two-stage landmarking analysis.
 #'
 #' @param data_long Data frame or list of data frames each corresponding to a landmark age `x_L` (each element of the list must be named the value of `x_L` it corresponds to).
 #' Each data frame contains repeat measurements data and time-to-event data in long format.
@@ -156,9 +155,9 @@ fit_LOCF_longitudinal <- function(data_long,
 #' please see `?get_model_assessment` which is the function used to do this within `fit_LOCF_landmark`.
 #'
 #' @details Firstly, this function selects the individuals in the risk set at the landmark time \code{x_L}.
-#' Specifically, the individuals in the risk set are those that have entered the study before the landmark age
-#' (there is at least one observation for each of the \code{covariates} on or before \code{x_L}) and
-#' exited the study on after the landmark age (\code{event_time}
+#' Specifically, the individuals in the risk set are those that have entered the study before the landmark time \code{x_L}
+#' (there is at least one observation for each of the \code{fixed_effects} and \code{random_effects} on or before \code{x_L}) and
+#' exited the study after the landmark age (\code{event_time}
 #' is greater than \code{x_L}).
 #'
 #' Secondly, if the option to use cross validation
@@ -169,9 +168,10 @@ fit_LOCF_longitudinal <- function(data_long,
 #' If cross-validation is not selected then the landmark model is
 #' fit to the entire group of individuals in the risk set (this is both the training and test dataset).
 #'
-#' Thirdly, the landmark model is then fit to each of the training data. There are two parts to fitting the landmark model: using the longitudinal data and using the survival data.
+#' Thirdly, the landmark model is then fit to each of the training datasets. There are two parts to fitting the landmark model: using the longitudinal data and using the survival data.
 #' Using the longitudinal data is the first stage and is performed using `fit_LOCF_longitudinal`. See `?fit_LOCF_longitudinal` more for information about this function.
-#' Using the survival data is the second stage and is performed using `fit_survival_model`. See `?fit_survival_model` more for information about this function.
+#' This function censors the
+#' individuals at the time horizon `x_L` and fits the survival model. Using the survival data is the second stage and is performed using `fit_survival_model`. See `?fit_survival_model` more for information about this function.
 #'
 #' Fourthly, the performance of the model is then assessed on the set of predictions
 #' from the entire set of individuals in the risk set by calculating Brier score and C-index.
@@ -365,11 +365,6 @@ fit_LOCF_landmark <- function(data_long,
       )
     }
     data_long_x_l <- data_long_x_l_risk_set
-    #Censor at the time horizon
-    data_long_x_l[[event_status]][data_long_x_l[[event_time]] > x_h] <-
-      0
-    data_long_x_l[[event_time]][data_long_x_l[[event_time]] > x_h] <-
-      x_h
 
     if (cross_validation_df_add == TRUE) {
       data_long_x_l <-
@@ -438,6 +433,10 @@ fit_LOCF_landmark <- function(data_long,
     )
     print(paste0("Complete, landmark age ", x_l))
 
+    data_events <-
+      dplyr::left_join(data_events,
+                       data_model_survival$data_survival[,c(individual_id,"event_prediction")],
+                       by = individual_id)
 
     prediction_error <-
       get_model_assessment(
@@ -446,7 +445,7 @@ fit_LOCF_landmark <- function(data_long,
         event_prediction = "event_prediction",
         event_status = event_status,
         event_time = event_time,
-        x_hor = max(setdiff(data_model_survival$data_survival[[event_time]],x_hor)),
+        x_hor = x_h,
         b = b
       )
 
