@@ -2,7 +2,7 @@
 % Please edit documentation in R/fit_LME_landmark.R
 \name{fit_LME_longitudinal}
 \alias{fit_LME_longitudinal}
-\title{Fit a landmarking model using a linear mixed effects (LME) model for the longitudinal submodel}
+\title{Fit a landmarking model using a linear mixed effects (LME) model for the longitudinal data}
 \usage{
 fit_LME_longitudinal(
   data_long,
@@ -26,29 +26,31 @@ fit_LME_longitudinal(
 \item{x_L}{Numeric specifying the landmark time(s)}
 
 \item{fixed_effects}{Vector of character strings specifying the column names in \code{data_long}
-which correspond to the fixed effects}
+which correspond to the fixed effects variables}
 
 \item{random_effects}{Vector of character strings specifying the column names in \code{data_long}
-which correspond to the random effects}
+which correspond to the random effects variables}
 
-\item{fixed_effects_time}{Character string specifying the column name in \code{data_long}
-which contains the time at which the fixed effects were recorded}
+\item{fixed_effects_time}{Vector of character strings specifying the column names in \code{data_long}
+which contains the time at which the fixed effects variables were recorded.
+This should either be length 1 or the same length as \code{fixed_effects}.
+In the latter case the order of elements must correspond to the order of elements in \code{fixed_effects}.}
 
 \item{random_effects_time}{Vector of character strings specifying the column names in \code{data_long}
-which contain the times at which repeat measures were recorded. This should either be length 1 or
+which contain the times at which random effect variables were recorded. This should either be length 1 or
 the same length as \code{random_effects}. In the latter case the order of elements must correspond to the
 order of elements in \code{random_effects}.}
 
-\item{standardise_time}{Boolean indicating whether to standardise the time variable by subtracting the mean
-and dividing by the standard deviation (see Details section for more information)}
+\item{standardise_time}{Boolean indicating whether to standardise the time variable in the LME model by subtracting the mean
+and dividing by the standard deviation. See Details section of \code{fit_LME_longitudinal} for more information.}
 
-\item{random_slope_longitudinal}{Boolean indicating whether to include a random slope in the LME model}
+\item{random_slope_longitudinal}{Boolean indicating whether to include a random slope in the LME model. See Details section of \code{fit_LME_longitudinal} for more information.}
 
 \item{random_slope_survival}{Boolean indicating whether to include the random slope estimate from the LME model
-as a covariate in the survival submodel.}
+as a covariate in the survival submodel. See Details section of \code{fit_LME_longitudinal} for more information.}
 
-\item{include_data_after_x_L}{Boolean indicating whether to include all longitudinal data, including data after the landmark age x_L,
-in the model development dataset. See Details for more information.}
+\item{include_data_after_x_L}{Boolean indicating whether to include all longitudinal data, including data after the landmark age \code{x_L},
+in the model development dataset. See Details section of \code{fit_LME_longitudinal} for more information.}
 
 \item{cv_name}{Character string specifying the column name in \code{data_long} that indicates cross-validation fold}
 
@@ -100,13 +102,13 @@ Extending this model to the case where there are multiple random effects, denote
 
 \deqn{Y_{ik} = X_{ik} \beta_k + Z_{ik} U_{ik} + \epsilon_{ik}}
 
-Using this model we can allow a certain covariance structure within the random effects term \eqn{U_{ik}}, for example a sample from the
-multivariate normal (MVN) distribution \eqn{MVN(0,\Sigma_u)}. This covariance structure means the value of one random effects variable informs about the
-value of the other random effects variables, leading to more accurate predictions and allowing there to be missing data in the
-random effects variables.
+Typically the random effects are assumed to be from the multivariate normal (MVN) distribution \eqn{MVN(0,\Sigma_u)}
+and we choose a certain covariance structure for \eqn{\Sigma_u}. The function \code{fit_LME_landmark} uses this distribution with
+unstructured covariance for the random effects when fitting the LME model (i.e. no constraints are imposed on the values).
 
-The function \code{fit_LME_landmark} uses a unstructured covariance for the random effects when fitting the LME model (i.e. no constraints are imposed on the values).
 To fit the LME model the function \code{lme} from the package \code{nlme} is used.
+The random intercept is always included in the LME model.
+Additionally, the random slope can be included in the LME model using the parameter \code{random_slope_longitudinal=TRUE}.
 
 It is important to distinguish between the validation set and the development set for fitting the LME model in this function.
 The development dataset either includes all the repeat measurements (including those after the landmark age \code{x_L}), or only the repeat measurements
@@ -114,14 +116,11 @@ recorded up to and including the landmark age \code{x_L}. This is controlled usi
 The validation set only includes the repeat measurements recorded up until and including the landmark age \code{x_L},
 i.e. it does not include future data in its predictions.
 
-The random intercept is always included in the LME model.
-Additionally, the random slope can be included in the LME model using the parameter \code{random_slope_longitudinal=TRUE}.
-
 Using the fitted model, the values of the best linear unbiased predictions (BLUPs)
-at the landmark age \code{x_L} are calculated. These are considered the predictions of the values of the \code{random_effects}
-the landmark age \code{x_L}. The values of the fixed effects used within this prediction are calculated as the LOCF values for the \code{fixed_effects}
-at the landmark age \code{x_L}. These predictions are used as covariates in the survival model along with the LOCF values of the fixed effects.
-Additionally, the estimated value of the random slope can
+at the landmark age \code{x_L} are calculated. These BLUPs are the predictions of the values of the \code{random_effects}
+the landmark age \code{x_L}. The values of the fixed effects used as covariates in this prediction are the LOCF values of the \code{fixed_effects}
+at the landmark age \code{x_L}. In the function \code{fit_LME_landmark}, these predictions are used as covariates in the survival
+model along with the LOCF values of the fixed effects. Additionally, the estimated value of the random slope can
 be included as predictors in the survival model using the parameter \code{random_slope_survival=TRUE}.
 
 There is an important consideration about fitting the linear mixed effects model. As the variable \code{random_effects_time}
@@ -129,8 +128,4 @@ gets further from 0, the random effects coefficients get closer to 0. This cause
 as the elements in the covariance matrix of the random effects, \eqn{\Sigma_u}, are constrained to
 be greater than 0. Using parameter \code{standard_time=TRUE} can prevent this issue by standardising the
 time variables to ensure that the \code{random_effects_time} values are not too close to 0.
-
-The LOCF values for the fixed effects and the prediction of the random effects at the landmark age
-are used as the covariates for the survival submodel, in addition to the estimated random slopes
-if option \code{random_effects_as_covariate} is selected.
 }
