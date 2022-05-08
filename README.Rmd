@@ -28,7 +28,7 @@ devtools::install_github("isobelbarrott/Landmarking")
 
 ## A simple example
 
-Below is a simple example of how to use this package with the pbc2 dataset from package JM to predict the risk of death for a new patient. 
+Below is a simple toy example of how to use this package with the pbc2 dataset from package JM to predict the risk of death for a new patient. 
 
 This uses the LOCF method for the first stage of the landmark model and cause-specific model for the second stage.
 
