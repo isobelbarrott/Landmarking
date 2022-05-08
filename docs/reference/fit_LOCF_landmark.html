@@ -40,8 +40,7 @@
 
 
 <meta property="og:title" content="Fit a landmark model using a last observation carried forward (LOCF) method for the longitudinal data — fit_LOCF_landmark" />
-<meta property="og:description" content="This function performs the two-stage landmarking analysis. In the first stage, the longitudinal submodel is fitted using the LOCF method and in the
-second stage the survival submodel is fitted." />
+<meta property="og:description" content="This function performs the two-stage landmarking analysis." />
 
 
 
@@ -136,8 +135,7 @@ second stage the survival submodel is fitted." />
     </div>
 
     <div class="ref-description">
-    <p>This function performs the two-stage landmarking analysis. In the first stage, the longitudinal submodel is fitted using the LOCF method and in the
-second stage the survival submodel is fitted.</p>
+    <p>This function performs the two-stage landmarking analysis.</p>
     </div>
 
     <div class="ref-usage sourceCode"><pre class='sourceCode r'><code><span class='fu'>fit_LOCF_landmark</span><span class='op'>(</span>
@@ -219,7 +217,7 @@ regression model (<code>"fine_gray"</code>)</p></td>
     </tr>
     <tr>
       <th>b</th>
-      <td><p>Integer specifying the number of bootstrap samples to take when calcluating standard error of c-index and Brier score</p></td>
+      <td><p>Integer specifying the number of bootstrap samples to take when calculating standard error of c-index and Brier score</p></td>
     </tr>
     </table>
 
@@ -243,9 +241,9 @@ please see <code><a href='get_model_assessment.html'>?get_model_assessment</a></
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
     <p>Firstly, this function selects the individuals in the risk set at the landmark time <code>x_L</code>.
-Specifically, the individuals in the risk set are those that have entered the study before the landmark age
-(there is at least one observation for each of the <code>covariates</code> on or before <code>x_L</code>) and
-exited the study on after the landmark age (<code>event_time</code>
+Specifically, the individuals in the risk set are those that have entered the study before the landmark time <code>x_L</code>
+(there is at least one observation for each of the <code>fixed_effects</code> and <code>random_effects</code> on or before <code>x_L</code>) and
+exited the study after the landmark age (<code>event_time</code>
 is greater than <code>x_L</code>).</p>
 <p>Secondly, if the option to use cross validation
 is selected (using either parameter <code>k</code> or <code>cross_validation_df</code>), then an extra column <code>cross_validation_number</code> is added with the
@@ -254,9 +252,10 @@ randomly assigns these folds. For more details on this function see <code><a hre
 If the parameter <code>cross_validation_df</code> is used, then the folds specified in this data frame are added.
 If cross-validation is not selected then the landmark model is
 fit to the entire group of individuals in the risk set (this is both the training and test dataset).</p>
-<p>Thirdly, the landmark model is then fit to each of the training data. There are two parts to fitting the landmark model: using the longitudinal data and using the survival data.
+<p>Thirdly, the landmark model is then fit to each of the training datasets. There are two parts to fitting the landmark model: using the longitudinal data and using the survival data.
 Using the longitudinal data is the first stage and is performed using <code>fit_LOCF_longitudinal</code>. See <code><a href='fit_LOCF_longitudinal.html'>?fit_LOCF_longitudinal</a></code> more for information about this function.
-Using the survival data is the second stage and is performed using <code>fit_survival_model</code>. See <code><a href='fit_survival_model.html'>?fit_survival_model</a></code> more for information about this function.</p>
+This function censors the
+individuals at the time horizon <code>x_L</code> and fits the survival model. Using the survival data is the second stage and is performed using <code>fit_survival_model</code>. See <code><a href='fit_survival_model.html'>?fit_survival_model</a></code> more for information about this function.</p>
 <p>Fourthly, the performance of the model is then assessed on the set of predictions
 from the entire set of individuals in the risk set by calculating Brier score and C-index.
 This is performed using <code>get_model_assessment</code>. See <code><a href='get_model_assessment.html'>?get_model_assessment</a></code> more for information about this function.</p>

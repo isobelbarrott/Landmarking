@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Fit a survival sub-model — fit_survival_model • Landmarking</title>
+<title>Fit a survival sub-model as part of a landmarking analysis — fit_survival_model • Landmarking</title>
 
 
 <!-- jquery -->
@@ -39,7 +39,7 @@
 
 
 
-<meta property="og:title" content="Fit a survival sub-model — fit_survival_model" />
+<meta property="og:title" content="Fit a survival sub-model as part of a landmarking analysis — fit_survival_model" />
 <meta property="og:description" content="This function is a helper function for fit_LOCF_landmark_model and fit_LME_landmark_model." />
 
 
@@ -129,7 +129,7 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Fit a survival sub-model</h1>
+    <h1>Fit a survival sub-model as part of a landmarking analysis</h1>
     <small class="dont-index">Source: <a href='https://github.com/isobelbarrott/Landmarking/blob/master/R/fit_survival_model.R'><code>R/fit_survival_model.R</code></a></small>
     <div class="hidden name"><code>fit_survival_model.Rd</code></div>
     </div>
@@ -199,14 +199,15 @@ For a model using cross-validation, <code>model_survival</code> contains a list 
 element in the list corresponding to a different cross-validation fold.</p>
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>For the survival submodel, there are three choices of model:</p><ul>
+    <p>This function fits the survival model from the landmark model framework. The individuals are censored at the time horizon <code>x_hor</code> and the survival model is fitted with
+covariates specified in parameter <code>covariates</code>.</p>
+<p>For the survival model, there are three choices of model:</p><ul>
 <li><p>the standard Cox model, this is a wrapper function for <code>coxph</code> from the package <code>survival</code></p></li>
 <li><p>the cause-specific model, this is a wrapper function for <code>CSC</code> from package <code>riskRegression</code></p></li>
 <li><p>the Fine Gray model, this is a wrapper function for <code>FGR</code> from package <code>riskRegression</code></p></li>
 </ul>
 
 <p>The latter two models estimate the probability of the event of interest in the presence of competing events.</p>
-<p>For both the c-index and Brier score calculations, inverse probability censoring weighting (IPCW) is used to create weights which account for the occurrence of censoring. The censoring model assumes for this function is the Kaplan Meier model, i.e. censoring occurs independently of covariates.</p>
     <h2 class="hasAnchor" id="author"><a class="anchor" href="#author"></a>Author</h2>
 
     <p>Isobel Barrott <a href='mailto:isobel.barrott@gmail.com'>isobel.barrott@gmail.com</a></p>

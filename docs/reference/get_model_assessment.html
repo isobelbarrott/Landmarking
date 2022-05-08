@@ -180,7 +180,7 @@ there should be one row for each individual</p></td>
     </tr>
     <tr>
       <th>b</th>
-      <td><p>Integer specifying the number of bootstrap samples to take when calcluating standard error of c-index and Brier score</p></td>
+      <td><p>Integer specifying the number of bootstrap samples to take when calculating standard error of c-index and Brier score</p></td>
     </tr>
     </table>
 
@@ -204,8 +204,7 @@ an event is 1 and not experiencing the event is 0). This is extended to the comp
 not experiencing the event.</p>
 <p>For both the c-index and Brier score calculations, inverse probability censoring weighting (IPCW) is used to create weights
 which account for the occurrence of censoring. The censoring model assumes for this function is the Kaplan Meier model, i.e. censoring occurs
-independently of covariates. If all individuals are censored at a certain time point, then it is best to set <code>x_hor</code> just before this time point, before all the
-individuals have been removed from the risk set.</p>
+independently of covariates.</p>
 <p>The c-index is calculated using the <code>cindex</code> function in package <code>pec</code>. The Brier score is calculated using
 <code>pec</code> function in package <code>pec</code>.</p>
     <h2 class="hasAnchor" id="author"><a class="anchor" href="#author"></a>Author</h2>
@@ -236,8 +235,8 @@ individuals have been removed from the risk set.</p>
 <span class='r-in'>  event_prediction <span class='op'>=</span> <span class='st'>"event_prediction"</span>,</span>
 <span class='r-in'>  event_status <span class='op'>=</span> <span class='st'>"event_status"</span>,</span>
 <span class='r-in'>  event_time <span class='op'>=</span> <span class='st'>"event_time"</span>,</span>
-<span class='r-in'>  x_hor <span class='op'>=</span> <span class='fl'>64.9</span>,</span>
-<span class='r-in'>  b <span class='op'>=</span> <span class='fl'>10</span><span class='op'>)</span><span class='op'>}</span></span>
+<span class='r-in'>  x_hor <span class='op'>=</span> <span class='fl'>65</span>,</span>
+<span class='r-in'>  b <span class='op'>=</span> <span class='fl'>100</span><span class='op'>)</span><span class='op'>}</span></span>
 </code></pre></div>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
