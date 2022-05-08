@@ -4,7 +4,7 @@
 #'
 #' @param data_long Data frame in long format i.e. there may be more than one row per individual
 #' @template individual_id
-#' @template k
+#' @param k Integer specifying the number of folds for cross-validation.
 #' @param seed The value of the seed (default is 1)
 #' @return Data frame `data_long` updated to contain a new column `cross_validation_number`
 #' indicating the fold to which the individual has been assigned.
