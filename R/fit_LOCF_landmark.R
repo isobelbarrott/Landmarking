@@ -235,7 +235,7 @@ fit_LOCF_landmark <- function(data_long,
   }
   else{
     cross_validation_df_add <- TRUE
-    if (class(cross_validation_df) == "list") {
+    if (inherits(cross_validation_df, "list")) {
       if (!all(x_L %in% names(cross_validation_df))) {
         stop(
           "The names of elements in cross_validation_df list should be the landmark times in x_L"
@@ -247,7 +247,7 @@ fit_LOCF_landmark <- function(data_long,
         stop("Cross validation folds should be the same for the same individual")
       }
     }
-    else if (class(cross_validation_df) == "data.frame") {
+    else if (inherits(cross_validation_df,"data.frame")) {
       if (any(duplicated(dplyr::distinct(cross_validation_df[, c(individual_id, "cross_validation_number")])[, individual_id]))) {
         stop("Cross validation folds should be the same for the same individual")
       }
