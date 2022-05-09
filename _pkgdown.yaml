@@ -32,8 +32,11 @@ navbar:
       -  text: Introduction to Landmark Models and the R package Landmarking
          href: articles/Landmarking.html
       -  text: How to use the R package 'Landmarking'
-         href: articles/how_to_use.html      
+         href: articles/how_to_use.html
   right:
     - icon: fa-github fa-lg
       text: "github"
       href: https://https://github.com/isobelbarrott/Landmarking/
+    - icon: fa-file-code-o
+      text: "Functions"
+      href: reference/index.html
