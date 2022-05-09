@@ -20,7 +20,7 @@ mixoutsamp <- function(model, newdata) {
   n = dim(newdata)[1]
 
   #----error message
-  if (class(model) != "lme") {
+  if (!(inherits(model,"lme"))) {
     stop("Error: model is not of type lme")
   }
   #----end of error message
