@@ -48,7 +48,7 @@
 #'  predict(object=data_model_landmark_LOCF,x_L=60,x_hor=62,newdata=newdata,cv_fold=1)
 #' @export
 predict.landmark <- function(object, x_L, x_hor, newdata, cv_fold = NA, ...) {
-  if (class(object) != "landmark") {
+  if (!inherits(object,"landmark")) {
     stop("object must have class 'landmark'")
   }
   if (!(as.character(x_L) %in% names(object))) {
@@ -240,10 +240,10 @@ predict.landmark <- function(object, x_L, x_hor, newdata, cv_fold = NA, ...) {
   } else{
     model_survival <- object[[as.character(x_L)]]$model_survival
   }
-  if (!(class(model_survival) %in% c("CauseSpecificCox", "FGR", "coxph"))) {
+  if (!inherits(model_survival,c("CauseSpecificCox", "FGR", "coxph"))){
     stop("Class of survival model should be 'CauseSpecificCox','FGR', or 'coxph'")
   }
-  if (class(model_survival) %in% c("CauseSpecificCox", "FGR")) {
+  if (inherits(model_survival,c("CauseSpecificCox", "FGR"))) {
     data_longitudinal$event_prediction <- as.numeric(
       riskRegression::predictRisk(
         model_survival,
@@ -254,7 +254,7 @@ predict.landmark <- function(object, x_L, x_hor, newdata, cv_fold = NA, ...) {
       )
     )
   }
-  if (class(model_survival) == "coxph") {
+  if (inherits(model_survival,"coxph")) {
     data_longitudinal$event_prediction <- as.numeric(
       riskRegression::predictRisk(model_survival, times = x_hor, newdata = data_longitudinal, ...)
     )
