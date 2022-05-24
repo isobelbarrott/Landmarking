@@ -361,7 +361,8 @@ fit_LOCF_landmark <- function(data_long,
       warning(
         n,
         " individuals have been removed from the model building as they are not in the risk set at landmark age ",
-        x_l
+        x_l,
+        "\n"
       )
     }
     data_long_x_l <- data_long_x_l_risk_set
@@ -398,7 +399,7 @@ fit_LOCF_landmark <- function(data_long,
 
     data_long <- data_long_x_L[[as.character(x_l)]]
 
-    print(paste0("Fitting longitudinal submodel, landmark age ", x_l))
+    message("Fitting longitudinal submodel, landmark age ", x_l)
     data_model_longitudinal <-
       fit_LOCF_longitudinal(
         data_long = data_long,
@@ -411,7 +412,7 @@ fit_LOCF_landmark <- function(data_long,
           individual_id
       )
 
-    print(paste0("Complete, landmark age ", x_l))
+    message("Complete, landmark age ", x_l)
 
     data_events <-
       dplyr::distinct(data_long[, c(individual_id, event_status, event_time)])
@@ -420,7 +421,7 @@ fit_LOCF_landmark <- function(data_long,
                        data_events,
                        by = individual_id)
 
-    print(paste0("Fitting survival submodel, landmark age ", x_l))
+    message("Fitting survival submodel, landmark age ", x_l)
     data_model_survival <- fit_survival_model(
       data = data_longitudinal,
       individual_id = individual_id,
@@ -431,7 +432,7 @@ fit_LOCF_landmark <- function(data_long,
       survival_submodel = survival_submodel,
       x_hor = x_h
     )
-    print(paste0("Complete, landmark age ", x_l))
+    message("Complete, landmark age ", x_l)
 
     data_events <-
       dplyr::left_join(data_events,
