@@ -92,7 +92,7 @@
       <h1 data-toc-skip>Introduction to Landmark Models and the R package Landmarking</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/isobelbarrott/Landmarking/blob/master/../Landmarking/vignettes/Landmarking.Rmd" class="external-link"><code>../Landmarking/vignettes/Landmarking.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/isobelbarrott/Landmarking/blob/master/vignettes/Landmarking.Rmd" class="external-link"><code>vignettes/Landmarking.Rmd</code></a></small>
       <div class="hidden name"><code>Landmarking.Rmd</code></div>
 
     </div>
@@ -158,12 +158,13 @@
 <a href="#how-is-the-landmark-model-fit-within-the-r-package-landmarking" class="anchor" aria-hidden="true"></a>How is the landmark model fit within the R package Landmarking?</h2>
 <p>The functions <code>fit_LOCF_landmark</code> and <code>fit_LME_landmark</code> are used to fit the landmark model in this package. See the vignette <strong>How to use the R package ‘Landmarking’</strong> to see a worked example which uses these functions.</p>
 <p>Here is a diagram that represents the functions <code>fit_LOCF_landmark</code> (selecting option <code>fit_LOCF_longitudinal</code>) and <code>fit_LME_landmark</code> (selecting option <code>fit_LME_longitudinal</code>) to show how they are made up of their helper functions. All these functions are available with the R package Landmarking.</p>
-<p><img src="../man/figures/fit_LOCF_landmark_model.PNG" width="553"></p>
+<p><img src="../man/figures/fit_LOCF_landmark_model.png" width="553"></p>
 <p>The first step of the functions <code>fit_LOCF_landmark</code> and <code>fit_LME_landmark</code> is forming the datasets that correspond to each value of the landmark ages in <code>x_L</code>. These datasets will contain only the data of the individuals in the risk set at each landmark age <code>x_L</code>. To be in the risk set at age <code>x_L</code> the individual must have:</p>
 <ul>
-<li><p>entered the study at a time up to and including the landmark age <code>x_L</code>. This means that the individual has at least one LOCF value for all variables in <code>covariate</code> for the case of <code>fit_LOCF_landmark</code>, or at least one LOCF value for all variables in <code>fixed_effects</code> for the case of <code>fit_LME_landmark</code>. The individuals in that satisfy this condition are selected using the function <code>return_ids_with_LOCF</code>. This condition is necessary for the LOCF approach as the LOCF values at the landmark age <code>x_L</code> are extracted for all <code>covariates</code> and so at least one observation is needed of each of these. This condition is necessary for the LME approach, as the LOCF values at the landmark age <code>x_L</code> are extracted for <code>fixed_effects</code> and so at least one observation is needed of each of these. On the other hand, the function <code>fit_LME_landmark</code> allows for missing observations in <code>random_effects</code> by the landmark age.</p></li>
+<li><p>entered the study at a time up to and including the landmark age <code>x_L</code>. This means that the individual has at least one LOCF value for all variables in <code>covariate</code> for the case of <code>fit_LOCF_landmark</code>, or at least one LOCF value for all variables in <code>fixed_effects</code> for the case of <code>fit_LME_landmark</code>. This condition is necessary for the LOCF approach as the LOCF values at the landmark age <code>x_L</code> are extracted for all <code>covariates</code> and so at least one observation is needed of each of these. This condition is necessary for the LME approach, as the LOCF values at the landmark age <code>x_L</code> are extracted for <code>fixed_effects</code> and so at least one observation is needed of each of these. On the other hand, the function <code>fit_LME_landmark</code> allows for missing observations in <code>random_effects</code> by the landmark age.</p></li>
 <li><p>exited the study after and not including time <code>x_L</code>.</p></li>
 </ul>
+<p>This is performed using the functions <code>find_LOCF_risk_set</code> or <code>find_LME_risk_set</code>.</p>
 <p>After this dataset is formed for each of the landmark ages, the second step involves adding the cross-validation fold to the individuals in the dataset. The datasets that were just formed are re-combined in order to ensure that the cross-validation fold assignment is consistent across each of the datasets. In other words the individual that is in the risk set at one landmark time has the same cross-validation number as when they are in the risk set at another landmark time. The cross-validation folds may be defined in two ways:</p>
 <ul>
 <li><p>the user sets parameter <code>k</code> which randomly assigns cross-validation folds to each individual using the function <code>add_cv_number</code></p></li>
