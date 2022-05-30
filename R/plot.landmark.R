@@ -42,10 +42,10 @@ plot.landmark <- function(x, x_L, n, x_lims, y_lims, ...) {
   if (!inherits(x,"landmark")) {
     stop("x must have class 'landmark'")
   }
-  if (!is.numeric(x_L)) {
+  if (!inherits(x_L,"numeric")) {
     stop("x_L should be numeric")
   }
-  if (!is.numeric(n)) {
+  if (!inherits(n,"numeric")) {
     stop("n must have class numeric")
   }
   if (!(as.character(x_L) %in% names(x))) {

@@ -72,18 +72,38 @@ get_model_assessment <-
            event_time,
            x_hor,
            b) {
-    for (col in c(event_prediction,
+    if (!(inherits(data,"data.frame"))) {
+      stop("data should be a data frame")
+    }
+    if (!(inherits(individual_id,"character"))) {
+      stop("individual_id should have class character")
+    }
+    if (!(inherits(event_prediction,"character"))) {
+      stop("event_prediction should have class character")
+    }
+    if (!(inherits(event_status,"character"))) {
+      stop("event_status should have class character")
+    }
+    if (!(inherits(event_time,"character"))) {
+      stop("event_time should have class character")
+    }
+    for (col in c(individual_id,
+                  event_prediction,
                   event_status,
                   event_time)) {
       if (!(col %in% names(data))) {
         stop(col, " is not a column name in data")
       }
+      if(any(is.na(data[[col]]))){
+        stop(col, " contains NA values")
+      }
     }
-    if (!(is.numeric(x_hor))) {
+
+    if (!(inherits(x_hor,"numeric"))) {
       stop("x_hor should be numeric")
     }
     if (!is.na(b)) {
-      if (!(is.numeric(b))) {
+      if (!(inherits(b,"numberic"))) {
         stop("b should be numeric")
       }
       standard_error <- TRUE

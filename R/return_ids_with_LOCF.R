@@ -39,11 +39,27 @@ return_ids_with_LOCF <-
            x_L,
            covariates,
            covariates_time) {
+    if (!(inherits(data_long,"data.frame"))) {
+      stop("data_long should be a data frame")
+    }
+    if (!(inherits(individual_id,"character"))) {
+      stop("individual_id should have class character")
+    }
+    if (!(inherits(covariates,"character"))) {
+      stop("covariates should have class character")
+    }
+    if (!(inherits(covariates_time,"character"))) {
+      stop("covariates_time should have class character")
+    }
+
     for (col in c(covariates,
                   individual_id,
                   covariates_time)) {
       if (!(col %in% names(data_long))) {
         stop(col, " is not a column name in data_long")
+      }
+      if(any(is.na(data_long[[col]]))){
+        stop(col, " contains NA values")
       }
     }
 
@@ -53,6 +69,9 @@ return_ids_with_LOCF <-
 
     if (length(covariates_time) == 1) {
       covariates_time <- rep(covariates_time, times = length(covariates))
+    }
+    if (!(inherits(x_L,"numeric"))) {
+      stop("x_L should have class numeric")
     }
 
     out_list <- lapply(x_L, function(x_l) {

@@ -55,6 +55,10 @@ predict.landmark <- function(object, x_L, x_hor, newdata, cv_fold = NA, ...) {
     stop("x_L must be the name of an element in 'object'")
   }
 
+  if (!(inherits(x_hor,"numeric"))) {
+    stop("x_hor should have class numeric")
+  }
+
   call <- lapply(as.list(object[[as.character(x_L)]]$call), eval)
 
 

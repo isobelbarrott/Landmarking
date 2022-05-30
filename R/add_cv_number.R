@@ -22,11 +22,21 @@
 
 add_cv_number <- function(data_long, individual_id, k, seed = 1) {
   set.seed(seed)
-  if (!(is.data.frame(data_long))) {
+  if (!(inherits(data_long,"data.frame"))) {
     stop("data_long should be a data frame")
   }
+  if (!(inherits(individual_id,"character"))) {
+    stop("individual_id should have class character")
+  }
+
   if (!(individual_id %in% colnames(data_long))) {
     stop("individual_id should be a column name in data_long")
+  }
+  if(any(is.na(data_long[[individual_id]]))){
+    stop(individual_id, " contains NA values")
+  }
+  if (!(inherits(k,"numeric"))) {
+    stop("k should have class numeric")
   }
   ids <- data_long[[individual_id]]
   unique_ids <- unique(ids)
