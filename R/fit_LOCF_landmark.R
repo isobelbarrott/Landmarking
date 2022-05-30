@@ -1,3 +1,131 @@
+#' Find the risk set for a landmark model (LOCF)
+#'
+#' This function is a helper function for `fit_LOCF_landmark`.
+#'
+#' @param data_long Data frame in long format i.e. there may be more than one row per individual
+#' @template x_L
+#' @template x_hor
+#' @template covariates
+#' @template covariates_time
+#' @template individual_id
+#' @template event_time
+#' @template event_status
+#' @return List with elements corresponding to each landmark time in x_L. Each element is a data frame, containing only those individuals
+#' in the risk set at each of the landmark times x_L.
+#'
+#'
+#' @author Isobel Barrott \email{isobel.barrott@@gmail.com}
+#' @details This function finds the risk set for each of landmark times in x_L. This means that each of the individuals has a LOCF value for all covariates at the landmark time and
+#' has not experienced an event up to (and including) the landmark time.
+#' @export
+
+find_LOCF_risk_set <- function(data_long,
+                                  x_L,
+                               x_hor,
+                                  covariates,
+                                  covariates_time,
+                                  individual_id,
+                               event_time,
+                               event_status){
+  if (!(is.data.frame(data_long) ||
+        is.list(data_long))) {
+    stop("data_long should be a list or data.frame")
+  }
+  if (is.data.frame(data_long)) {
+    data_long <- lapply(x_L, function(x_l) {
+      data_long
+    })
+    names(data_long) <- x_L
+  }
+  if (is.list(data_long)) {
+    if (!setequal(names(data_long), x_L)) {
+      stop("Names of elements in data_long should be landmark ages x_L")
+    }
+  }
+
+
+  if (!(inherits(covariates,"character"))) {
+    stop("covariates should have class character")
+  }
+  if (!(inherits(covariates_time,"character"))) {
+    stop("covariates_time should have class character")
+  }
+  if (!(inherits(individual_id,"character"))) {
+    stop("individual_id should have class character")
+  }
+  if (!(inherits(event_time,"character"))) {
+    stop("event_time should have class character")
+  }
+  if (!(inherits(event_status,"character"))) {
+    stop("event_status should have class character")
+  }
+
+  if (!(inherits(x_L,"numeric"))) {
+     stop("'x_L' should be numeric")
+  }
+  if (!(inherits(x_hor,"numeric"))) {
+     stop("'x_hor' should be numeric")
+  }
+
+  if (!(length(covariates_time) %in% c(length(covariates), 1))) {
+    stop("Length of covariates_time should be equal to length of covariates or 1")
+  }
+
+  if (length(covariates_time) == 1) {
+    covariates_time <- rep(covariates_time, times = length(covariates))
+  }
+
+  data_long_x_L <- lapply(1:length(x_L), function(i) {
+
+    x_l <- x_L[i]
+    x_h <- x_hor[i]
+
+    data_long_x_l <- data_long[[as.character(x_l)]]
+    for (col in c(covariates,
+                  covariates_time,
+                  individual_id,
+                  event_time,
+                  event_status)) {
+      if (!(col %in% names(data_long_x_l))) {
+        stop(col, " is not a column name in data_long")
+      }
+      if(any(is.na(data_long_x_l[[col]]))){
+        stop(col, " contains NA values")
+      }
+    }
+
+    data_long_x_l[[individual_id]] <-
+      as.factor(data_long_x_l[[individual_id]])
+
+    #Pull out individuals in the risk set
+    data_long_x_l_risk_set <-
+      return_ids_with_LOCF(
+        data_long = data_long_x_l,
+        individual_id = individual_id,
+        x_L = x_l,
+        covariates = covariates,
+        covariates_time = covariates_time
+      )
+    data_long_x_l_risk_set <-
+      data_long_x_l_risk_set[data_long_x_l_risk_set[[event_time]] > x_l,]
+    n <-
+      length(unique(data_long_x_l[[individual_id]])) - length(unique(data_long_x_l_risk_set[[individual_id]]))
+
+    if (n >= 1) {
+      warning(
+        n,
+        " individuals have been removed from the model building as they are not in the risk set at landmark age ",
+        x_l
+      )
+    }
+    data_long_x_l <- data_long_x_l_risk_set
+
+    return(data_long_x_l)
+  })
+  names(data_long_x_L)<-x_L
+  data_long_x_L
+}
+
 #' Find the last observation carried forward (LOCF) values for covariates in a dataset
 #'
 #' This function is a helper function for `fit_LOCF_landmark`.
@@ -28,10 +156,10 @@ fit_LOCF_longitudinal <- function(data_long,
                                   cv_name = NA,
                                   individual_id) {
   call <- match.call()
-  if (!(is.data.frame(data_long))) {
+  if (!(inherits(data_long,"data.frame"))) {
     stop("data_long should be a data frame")
   }
-  if (!(is.numeric(x_L))) {
+  if (!(inherits(x_L,"numeric"))) {
     stop("'x_L' should be numeric")
   }
 
@@ -40,6 +168,9 @@ fit_LOCF_longitudinal <- function(data_long,
                 individual_id)) {
     if (!(col %in% names(data_long))) {
       stop(col, " is not a column name in data_long")
+    }
+    if (any(is.na(data_long[[col]]))){
+      stop(col, " contains NA values")
     }
   }
 
@@ -251,6 +382,8 @@ fit_LOCF_landmark <- function(data_long,
       if (any(duplicated(dplyr::distinct(cross_validation_df[, c(individual_id, "cross_validation_number")])[, individual_id]))) {
         stop("Cross validation folds should be the same for the same individual")
       }
+      cross_validation_df<-list(cross_validation_df)
+      names(cross_validation_df)<-x_L
     }
     else{
       stop("cross_validation_df should be either a data frame or a list")
@@ -296,87 +429,26 @@ fit_LOCF_landmark <- function(data_long,
   if (missing(b)) {
     b <- NA
   }
+  #Find risk set
+  data_long_x_L<-find_LOCF_risk_set(data_long=data_long,
+                     x_L=x_L,
+                     x_hor=x_hor,
+                     covariates=covariates,
+                     covariates_time=covariates_time,
+                     individual_id=individual_id,
+                     event_time=event_time,
+                     event_status=event_status)
 
-
-  data_long_x_L <- lapply(1:length(x_L), function(i) {
-    x_l <- x_L[i]
-    x_h <- x_hor[i]
-
-    data_long_x_l <- data_long[[as.character(x_l)]]
-
-    if (!is.null(levels(data_long_x_l[[event_status]]))) {
-      data_long_x_l[[event_status]] <-
-        as.numeric(levels(data_long_x_l[[event_status]]))[data_long_x_l[[event_status]]]
-    }
-
-    if (survival_submodel %in% c("cause_specific", "fine_gray")) {
-      if (!(setequal(data_long_x_l[[event_status]], 0:max(data_long_x_l[[event_status]])))) {
-        stop(
-          "event_status column should contain only values 0, 1, 2, ... for cause_specific or fine_gray survival model,
-          or values 0 and 1 for standard_cox survival model"
-        )
-      }
-    }
-    if (survival_submodel %in% c("standard_cox")) {
-      if (!(setequal(data_long_x_l[[event_status]], 0:1))) {
-        stop(
-          "event_status column should contain only values 0, 1, 2, ... for cause_specific or fine_gray survival model,
-          or values 0 and 1 for standard_cox survival model"
-        )
-      }
-    }
-
-    if (!all(is.numeric(x_l))) {
-      stop("'x_L' should be numeric")
-    }
-    if (!all(is.numeric(x_h))) {
-      stop("'x_hor' should be numeric")
-    }
-    for (col in c(covariates,
-                  covariates_time,
-                  individual_id,
-                  event_time,
-                  event_status)) {
-      if (!(col %in% names(data_long_x_l))) {
-        stop(col, " is not a column name in data_long")
-      }
-    }
-    data_long_x_l[[individual_id]] <-
-      as.factor(data_long_x_l[[individual_id]])
-
-    #Pull out individuals in the risk set
-    data_long_x_l_risk_set <-
-      return_ids_with_LOCF(
-        data_long = data_long_x_l,
-        individual_id = individual_id,
-        x_L = x_l,
-        covariates = covariates,
-        covariates_time = covariates_time
-      )
-    data_long_x_l_risk_set <-
-      data_long_x_l_risk_set[data_long_x_l_risk_set[[event_time]] > x_l,]
-    n <-
-      length(unique(data_long_x_l[[individual_id]])) - length(unique(data_long_x_l_risk_set[[individual_id]]))
-    if (n >= 1) {
-      warning(
-        n,
-        " individuals have been removed from the model building as they are not in the risk set at landmark age ",
-        x_l
-      )
-    }
-    data_long_x_l <- data_long_x_l_risk_set
-
-    if (cross_validation_df_add == TRUE) {
-      data_long_x_l <-
-        dplyr::left_join(data_long_x_l, cross_validation_df[[as.character(x_l)]][, c(individual_id, "cross_validation_number")], by =
-                           individual_id)
-    }
-    return(data_long_x_l)
-  })
-
-  names(data_long_x_L) <- x_L
 
   #Add cross-validation folds
+  if (cross_validation_df_add == TRUE) {
+    for (x_l in x_L){
+      data_long_x_L[[as.character(x_l)]]<-
+        dplyr::left_join(data_long_x_L[[as.character(x_l)]], cross_validation_df[[as.character(x_l)]][,c(individual_id,"cross_validation_number")],by=individual_id)
+    }
+    if(any(is.na(data_long_x_L[[as.character(x_l)]][,"cross_validation_number"]))){stop("Cross validation number not defined for all in individual_id")}
+  }
+
   if (k_add == TRUE) {
     data_long_x_L_cv <-
       add_cv_number(
