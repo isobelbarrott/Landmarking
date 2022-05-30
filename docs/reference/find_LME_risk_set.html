@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Select individuals in a dataset with a last observation carried forward (LOCF) at a landmark time — return_ids_with_LOCF • Landmarking</title>
+<title>Find the risk set for a landmark model (LME) — find_LME_risk_set • Landmarking</title>
 
 
 <!-- jquery -->
@@ -39,10 +39,8 @@
 
 
 
-<meta property="og:title" content="Select individuals in a dataset with a last observation carried forward (LOCF) at a landmark time — return_ids_with_LOCF" />
-<meta property="og:description" content="To fit the LOCF model, all individuals must have at least one
-non-NA entry by landmark time x_L for all covariates.
-This function selects these individuals and removes the other rows." />
+<meta property="og:title" content="Find the risk set for a landmark model (LME) — find_LME_risk_set" />
+<meta property="og:description" content="This function is a helper function for fit_LME_landmark." />
 
 
 
@@ -138,23 +136,26 @@ This function selects these individuals and removes the other rows." />
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Select individuals in a dataset with a last observation carried forward (LOCF) at a landmark time</h1>
-    <small class="dont-index">Source: <a href='https://github.com/isobelbarrott/Landmarking/blob/master/R/return_ids_with_LOCF.R'><code>R/return_ids_with_LOCF.R</code></a></small>
-    <div class="hidden name"><code>return_ids_with_LOCF.Rd</code></div>
+    <h1>Find the risk set for a landmark model (LME)</h1>
+    <small class="dont-index">Source: <a href='https://github.com/isobelbarrott/Landmarking/blob/master/R/fit_LME_landmark.R'><code>R/fit_LME_landmark.R</code></a></small>
+    <div class="hidden name"><code>find_LME_risk_set.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>To fit the LOCF model, all individuals must have at least one
-non-<code>NA</code> entry by landmark time <code>x_L</code> for all covariates.
-This function selects these individuals and removes the other rows.</p>
+    <p>This function is a helper function for <code>fit_LME_landmark</code>.</p>
     </div>
 
-    <div class="ref-usage sourceCode"><pre class='sourceCode r'><code><span class='fu'>return_ids_with_LOCF</span><span class='op'>(</span>
+    <div class="ref-usage sourceCode"><pre class='sourceCode r'><code><span class='fu'>find_LME_risk_set</span><span class='op'>(</span>
   <span class='va'>data_long</span>,
-  <span class='va'>individual_id</span>,
   <span class='va'>x_L</span>,
-  <span class='va'>covariates</span>,
-  <span class='va'>covariates_time</span>
+  <span class='va'>x_hor</span>,
+  <span class='va'>fixed_effects</span>,
+  <span class='va'>fixed_effects_time</span>,
+  <span class='va'>random_effects</span>,
+  <span class='va'>random_effects_time</span>,
+  <span class='va'>individual_id</span>,
+  <span class='va'>event_time</span>,
+  <span class='va'>event_status</span>
 <span class='op'>)</span></code></pre></div>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
@@ -162,57 +163,69 @@ This function selects these individuals and removes the other rows.</p>
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>data_long</th>
-      <td><p>Data frame with repeated measurements data in long format</p></td>
-    </tr>
-    <tr>
-      <th>individual_id</th>
-      <td><p>Character string specifying the column name in <code>data_long</code> which contains the individual identifiers</p></td>
+      <td><p>Data frame in long format i.e. there may be more than one row per individual</p></td>
     </tr>
     <tr>
       <th>x_L</th>
       <td><p>Numeric specifying the landmark time(s)</p></td>
     </tr>
     <tr>
-      <th>covariates</th>
-      <td><p>Vector of character strings specifying the column names in <code>data_long</code>
-which correspond to the covariates</p></td>
+      <th>x_hor</th>
+      <td><p>Numeric specifying the horizon time(s)</p></td>
     </tr>
     <tr>
-      <th>covariates_time</th>
+      <th>fixed_effects</th>
       <td><p>Vector of character strings specifying the column names in <code>data_long</code>
-which contain the times at which <code>covariates</code> were recorded. This should either be length 1 or
-the same length as <code>covariates</code>. In the latter case the order of elements must correspond to the
-order of elements in <code>covariates</code>.</p></td>
+which correspond to the fixed effects variables</p></td>
+    </tr>
+    <tr>
+      <th>fixed_effects_time</th>
+      <td><p>Vector of character strings specifying the column names in <code>data_long</code>
+which contains the time at which the fixed effects variables were recorded.
+This should either be length 1 or the same length as <code>fixed_effects</code>.
+In the latter case the order of elements must correspond to the order of elements in <code>fixed_effects</code>.</p></td>
+    </tr>
+    <tr>
+      <th>random_effects</th>
+      <td><p>Vector of character strings specifying the column names in <code>data_long</code>
+which correspond to the random effects variables</p></td>
+    </tr>
+    <tr>
+      <th>random_effects_time</th>
+      <td><p>Vector of character strings specifying the column names in <code>data_long</code>
+which contain the times at which random effect variables were recorded. This should either be length 1 or
+the same length as <code>random_effects</code>. In the latter case the order of elements must correspond to the
+order of elements in <code>random_effects</code>.</p></td>
+    </tr>
+    <tr>
+      <th>individual_id</th>
+      <td><p>Character string specifying the column name in <code>data_long</code> which contains the individual identifiers</p></td>
+    </tr>
+    <tr>
+      <th>event_time</th>
+      <td><p>Character string specifying the column name in <code>data_long</code>
+which contains the event time</p></td>
+    </tr>
+    <tr>
+      <th>event_status</th>
+      <td><p>Character string specifying the column name in <code>data_long</code>
+which contains the event status (where 0=censoring, 1=event of interest, if there are competing events these are labelled
+2 or above).</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>List of data frames which correspond to each landmark time <code>x_L</code>.
-Each data frame is an updated version of <code>data_long</code> which contains only rows
-of individuals with a LOCF at age <code>x_L</code>, other rows are removed.</p>
+    <p>List with elements corresponding to each landmark time in x_L. Each element is a data frame, containing only those individuals
+in the risk set at each of the landmark times x_L.</p>
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>Individuals have a LOCF if there is a non-<code>NA</code> entry for each of the covariates in
-<code>covariates</code> up until (not including) time <code>x_L</code>.</p>
+    <p>This function finds the risk set for each of landmark times in x_L. This means that each of the individuals has a LME value for all fixed_effects at the landmark time and
+has not experienced an event up to (and including) the landmark time.</p>
     <h2 class="hasAnchor" id="author"><a class="anchor" href="#author"></a>Author</h2>
 
     <p>Isobel Barrott <a href='mailto:isobel.barrott@gmail.com'>isobel.barrott@gmail.com</a></p>
 
-    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <div class="ref-examples sourceCode"><pre class='sourceCode r'><code><span class='r-in'><span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://github.com/isobelbarrott/Landmarking'>Landmarking</a></span><span class='op'>)</span></span>
-<span class='r-in'><span class='fu'><a href='https://rdrr.io/r/utils/data.html'>data</a></span><span class='op'>(</span><span class='va'>data_repeat_outcomes</span><span class='op'>)</span></span>
-<span class='r-in'><span class='va'>data_repeat_outcomes</span> <span class='op'>&lt;-</span></span>
-<span class='r-in'>  <span class='fu'>return_ids_with_LOCF</span><span class='op'>(</span></span>
-<span class='r-in'>    data_long <span class='op'>=</span> <span class='va'>data_repeat_outcomes</span>,</span>
-<span class='r-in'>    individual_id <span class='op'>=</span> <span class='st'>"id"</span>,</span>
-<span class='r-in'>    covariates <span class='op'>=</span></span>
-<span class='r-in'>      <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"ethnicity"</span>, <span class='st'>"smoking"</span>, <span class='st'>"diabetes"</span>, <span class='st'>"sbp_stnd"</span>, <span class='st'>"tchdl_stnd"</span><span class='op'>)</span>,</span>
-<span class='r-in'>    covariates_time <span class='op'>=</span></span>
-<span class='r-in'>      <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/rep.html'>rep</a></span><span class='op'>(</span><span class='st'>"response_time_sbp_stnd"</span>, <span class='fl'>4</span><span class='op'>)</span>, <span class='st'>"response_time_tchdl_stnd"</span><span class='op'>)</span>,</span>
-<span class='r-in'>    x_L <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>60</span>,<span class='fl'>61</span><span class='op'>)</span></span>
-<span class='r-in'>  <span class='op'>)</span></span>
-</code></pre></div>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
