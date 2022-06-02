@@ -38,7 +38,7 @@ navbar:
   right:
     - icon: fa-github fa-lg
       text: "github"
-      href: https://https://github.com/isobelbarrott/Landmarking/
+      href: https://github.com/isobelbarrott/Landmarking/
     - icon: fa-file-code-o
       text: "Functions"
       href: reference/index.html

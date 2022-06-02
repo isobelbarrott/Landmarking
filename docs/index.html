@@ -72,7 +72,7 @@
       </ul>
 <ul class="nav navbar-nav navbar-right">
 <li>
-  <a href="https://https://github.com/isobelbarrott/Landmarking/">
+  <a href="https://github.com/isobelbarrott/Landmarking/">
     <span class="fa fa-github fa-lg"></span>
      
     github
@@ -115,7 +115,7 @@
 <p>This uses the LOCF method for the first stage of the landmark model and cause-specific model for the second stage.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co">#Load the library and dataset</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/isobelbarrott/Landmarking/" class="external-link">Landmarking</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/isobelbarrott/Landmarking" class="external-link">Landmarking</a></span><span class="op">)</span>
 <span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">pbc2</span>,package<span class="op">=</span><span class="st">"JM"</span><span class="op">)</span>
 <span class="co">#Change levels to make the death the event of interest (event_status=1), transplant the competing risks (event_status=2), and leave censoring (event_status=0)</span>
 <span class="fu"><a href="https://rdrr.io/r/base/levels.html" class="external-link">levels</a></span><span class="op">(</span><span class="va">pbc2</span><span class="op">$</span><span class="va">status</span><span class="op">)</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"0"</span>,<span class="st">"2"</span>,<span class="st">"1"</span><span class="op">)</span>
