@@ -69,7 +69,7 @@ The functions `fit_LOCF_landmark` and `fit_LME_landmark` are used to fit the lan
 Here is a diagram that represents the functions `fit_LOCF_landmark` (selecting option `fit_LOCF_longitudinal`) and `fit_LME_landmark` (selecting option `fit_LME_longitudinal`) to show how they are made up of their helper functions. All these functions are available with the R package Landmarking. 
 
 ```{r figurename3, echo=FALSE, fig.cap=""}
-knitr::include_graphics("../man/figures/fit_LOCF_landmark_model.png")
+knitr::include_graphics("../man/figures/fit_LOCF_landmark_model.PNG")
 ```
 
 The first step of the functions `fit_LOCF_landmark` and `fit_LME_landmark` is forming the
