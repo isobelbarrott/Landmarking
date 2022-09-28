@@ -276,7 +276,7 @@ mixoutsamp <- function(model, newdata) {
 
   preddata = cbind(newdata, xbstar, reffects, fitted)
   names(preddata) = c(names(newdata), "fixed", "random", "fitted")
-  random = data.frame(unique(pred.ids), reffects.individual)
+  random = data.frame(names(split.obs.ids), reffects.individual)
   names(random) = c(id.name,  paste0("reff", re.names))
 
   list(preddata = preddata, random = random)
