@@ -56,3 +56,6 @@ newdata<-rbind(data.frame(id=c(313,313,313),year=c(30,32,35),serBilir=c(2.4,2.7,
 #Return event prediction and LOCF values
 predict(object=data_model_landmark_LOCF,x_L=40,x_hor=45,newdata=newdata)
 ```
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/isobelbarrott/Landmarking/workflows/R-CMD-check/badge.svg)](https://github.com/isobelbarrott/Landmarking/actions)
+<!-- badges: end -->
