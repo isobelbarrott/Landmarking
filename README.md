@@ -44,7 +44,7 @@ pbc2$years<-pbc2$years+pbc2$age
 data_model_landmark_LOCF<-fit_LOCF_landmark(data=pbc2,
                                                   x_L=40,
                                                   x_hor=45,
-                                                  covariates=c("drug","serBilir","serChol"),
+                                                  covariates=c("serBilir","serChol"),
                                                   covariates_time="year",
                                                   individual_id="id",
                                                   event_time="years",
@@ -52,7 +52,12 @@ data_model_landmark_LOCF<-fit_LOCF_landmark(data=pbc2,
                                                   survival_submodel = "cause_specific",
                                                   b=50)
 #Define new dataset
-newdata<-rbind(data.frame(id=c(313,313,313),year=c(30,32,35),drug=c("placebo","placebo","placebo"),serBilir=c(2.4,2.7,2.6),serChol=c(220,234,234)))
+newdata<-rbind(data.frame(id=c(313,313,313),year=c(30,32,35),serBilir=c(2.4,2.7,2.6),serChol=c(220,233,234)))
 #Return event prediction and LOCF values
 predict(object=data_model_landmark_LOCF,x_L=40,x_hor=45,newdata=newdata)
 ```
+
+<!-- badges: start -->
+
+[![R-CMD-check](https://github.com/isobelbarrott/Landmarking/workflows/R-CMD-check/badge.svg)](https://github.com/isobelbarrott/Landmarking/actions)
+<!-- badges: end -->
