@@ -103,7 +103,7 @@ get_model_assessment <-
       stop("x_hor should be numeric")
     }
     if (!is.na(b)) {
-      if (!(inherits(b,"numberic"))) {
+      if (!(inherits(b,"numeric"))) {
         stop("b should be numeric")
       }
       standard_error <- TRUE
