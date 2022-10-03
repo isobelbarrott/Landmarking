@@ -1,3 +1,4 @@
+set.seed(1)
 data(data_repeat_outcomes)
 data_repeat_outcomes <-
   find_LOCF_risk_set(
@@ -23,6 +24,7 @@ data_model_landmark_LOCF <-
     event_status = "event_status",
     survival_submodel = "cause_specific"
   )
+cross_validation_list <- lapply(data_model_landmark_LOCF, "[[", i = 1)
 data_model_landmark_LME <-
   fit_LME_landmark(
     data_long = data_repeat_outcomes[["60"]],
@@ -32,7 +34,7 @@ data_model_landmark_LME <-
       cross_validation_list,
     fixed_effects = c("ethnicity", "smoking", "diabetes"),
     fixed_effects_time =
-      "time_sbp",
+      "response_time_sbp_stnd",
     random_effects = c("sbp_stnd", "tchdl_stnd"),
     random_effects_time = c("response_time_sbp_stnd", "response_time_tchdl_stnd"),
     individual_id = "id",
@@ -55,5 +57,5 @@ test_that("fitting landmark (LOCF)", {
 
 test_that("fitting landmark (LME)", {
   expect_snapshot_file(save_file(
-    data_model_landmark_LME), "out_data_model_landmark_LOCF.RDS",cran = FALSE)
+    data_model_landmark_LME), "out_data_model_landmark_LME.RDS",cran = FALSE)
 })
