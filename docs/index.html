@@ -125,7 +125,7 @@
 <span class="va">data_model_landmark_LOCF</span><span class="op">&lt;-</span><span class="fu"><a href="reference/fit_LOCF_landmark.html">fit_LOCF_landmark</a></span><span class="op">(</span>data<span class="op">=</span><span class="va">pbc2</span>,
                                                   x_L<span class="op">=</span><span class="fl">40</span>,
                                                   x_hor<span class="op">=</span><span class="fl">45</span>,
-                                                  covariates<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"drug"</span>,<span class="st">"serBilir"</span>,<span class="st">"serChol"</span><span class="op">)</span>,
+                                                  covariates<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"serBilir"</span>,<span class="st">"serChol"</span><span class="op">)</span>,
                                                   covariates_time<span class="op">=</span><span class="st">"year"</span>,
                                                   individual_id<span class="op">=</span><span class="st">"id"</span>,
                                                   event_time<span class="op">=</span><span class="st">"years"</span>,
@@ -133,9 +133,11 @@
                                                   survival_submodel <span class="op">=</span> <span class="st">"cause_specific"</span>,
                                                   b<span class="op">=</span><span class="fl">50</span><span class="op">)</span>
 <span class="co">#Define new dataset</span>
-<span class="va">newdata</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>id<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">313</span>,<span class="fl">313</span>,<span class="fl">313</span><span class="op">)</span>,year<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">30</span>,<span class="fl">32</span>,<span class="fl">35</span><span class="op">)</span>,drug<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"placebo"</span>,<span class="st">"placebo"</span>,<span class="st">"placebo"</span><span class="op">)</span>,serBilir<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2.4</span>,<span class="fl">2.7</span>,<span class="fl">2.6</span><span class="op">)</span>,serChol<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">220</span>,<span class="fl">234</span>,<span class="fl">234</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+<span class="va">newdata</span><span class="op">&lt;-</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>id<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">313</span>,<span class="fl">313</span>,<span class="fl">313</span><span class="op">)</span>,year<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">30</span>,<span class="fl">32</span>,<span class="fl">35</span><span class="op">)</span>,serBilir<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2.4</span>,<span class="fl">2.7</span>,<span class="fl">2.6</span><span class="op">)</span>,serChol<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">220</span>,<span class="fl">233</span>,<span class="fl">234</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
 <span class="co">#Return event prediction and LOCF values</span>
 <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span>object<span class="op">=</span><span class="va">data_model_landmark_LOCF</span>,x_L<span class="op">=</span><span class="fl">40</span>,x_hor<span class="op">=</span><span class="fl">45</span>,newdata<span class="op">=</span><span class="va">newdata</span><span class="op">)</span></code></pre></div>
+<!-- badges: start -->
+
 </div>
 
   </div>
@@ -170,7 +172,12 @@
 </ul>
 </div>
 
-
+<div class="dev-status">
+<h2 data-toc-skip>Dev status</h2>
+<ul class="list-unstyled">
+<li><a href="https://github.com/isobelbarrott/Landmarking/actions" class="external-link"><img src="https://github.com/isobelbarrott/Landmarking/workflows/R-CMD-check/badge.svg" alt="R-CMD-check"></a></li>
+</ul>
+</div>
 
   </div>
 </div>
