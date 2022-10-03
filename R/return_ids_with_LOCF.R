@@ -58,9 +58,9 @@ return_ids_with_LOCF <-
       if (!(col %in% names(data_long))) {
         stop(col, " is not a column name in data_long")
       }
-      if(any(is.na(data_long[[col]]))){
-        stop(col, " contains NA values")
-      }
+      # if(any(is.na(data_long[[col]]))){
+      #   stop(col, " contains NA values")
+      # }
     }
 
     if (!(length(covariates_time) %in% c(length(covariates), 1))) {

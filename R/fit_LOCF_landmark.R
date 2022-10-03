@@ -89,9 +89,9 @@ find_LOCF_risk_set <- function(data_long,
       if (!(col %in% names(data_long_x_l))) {
         stop(col, " is not a column name in data_long")
       }
-      if(any(is.na(data_long_x_l[[col]]))){
-        stop(col, " contains NA values")
-      }
+      # if(any(is.na(data_long_x_l[[col]]))){
+      #   stop(col, " contains NA values")
+      # }
     }
 
     data_long_x_l[[individual_id]] <-
@@ -169,9 +169,9 @@ fit_LOCF_longitudinal <- function(data_long,
     if (!(col %in% names(data_long))) {
       stop(col, " is not a column name in data_long")
     }
-    if (any(is.na(data_long[[col]]))){
-      stop(col, " contains NA values")
-    }
+    # if (any(is.na(data_long[[col]]))){
+    #   stop(col, " contains NA values")
+    # }
   }
 
   if (!is.na(cv_name)) {
