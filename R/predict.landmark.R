@@ -227,7 +227,9 @@ predict.landmark <- function(object, x_L, x_hor, newdata, cv_fold = NA, ...) {
           random_effects_dummy[1]<-"response_time"
           for (i in 1:length(random_effects)){
             slopes_df[,paste0("reffresponse_type",random_effects[i],":response_time")]<-
-              slopes_df[,paste0("reffresponse_type",random_effects[i],":response_time")]+model_LME$coefficients$fixed[random_effects_dummy[i]]
+              slopes_df[,paste0("reffresponse_type",random_effects[i],":response_time")]+model_LME$coefficients$fixed[random_effects_dummy[1]]
+            if(i!=1){slopes_df[,paste0("reffresponse_type",random_effects[i],":response_time")]<-
+              slopes_df[,paste0("reffresponse_type",random_effects[i],":response_time")]+model_LME$coefficients$fixed[random_effects_dummy[i]]}
           }
         }
         names(slopes_df)<-c("id",paste0(random_effects,"_slope"))
