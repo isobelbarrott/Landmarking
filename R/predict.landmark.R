@@ -59,22 +59,20 @@ predict.landmark <- function(object, x_L, x_hor, newdata, cv_fold = NA, ...) {
     stop("x_hor should have class numeric")
   }
 
-  call <- lapply(as.list(object[[as.character(x_L)]]$call), eval)
-
-
   model_longitudinal <- object[[as.character(x_L)]]$model_longitudinal
 
   if (model_longitudinal == "LOCF") {
-    covariates <- call$covariates
-    covariates_time <- call$covariates_time
-    individual_id <- call$individual_id
+    call <- as.list(object[[as.character(x_L)]]$call)
+
+    covariates <- eval(call$covariates)
+    covariates_time <- eval(call$covariates_time)
+    individual_id <- eval(call$individual_id)
     for (covariate in covariates) {
       if (is.factor(object[[as.character(x_L)]]$data[[covariate]])) {
         newdata[[covariate]] <-
           factor(newdata[[covariate]], levels = levels(object[[as.character(x_L)]]$data[[covariate]]))
       }
     }
-
 
     data_model_longitudinal <-
       fit_LOCF_longitudinal(
@@ -90,16 +88,18 @@ predict.landmark <- function(object, x_L, x_hor, newdata, cv_fold = NA, ...) {
   }
 
   if (model_longitudinal == "LME") {
-    random_effects <- call$random_effects
-    fixed_effects <- call$fixed_effects
-    fixed_effects_time <- call$fixed_effects_time
-    random_effects_time <- call$random_effects_time
-    individual_id <- call$individual_id
+    call <- as.list(object[[as.character(x_L)]]$call)
+
+    random_effects <- eval(call$random_effects)
+    fixed_effects <- eval(call$fixed_effects)
+    fixed_effects_time <- eval(call$fixed_effects_time)
+    random_effects_time <- eval(call$random_effects_time)
+    individual_id <- eval(call$individual_id)
     random_slope_survival <-
       ifelse(
-        is.null(call$random_slope_survival),
+        is.null(eval(call$random_slope_survival)),
         TRUE,
-        call$random_slope_survival
+        eval(call$random_slope_survival)
       )
 
     for (fixed_effect in fixed_effects) {
@@ -114,7 +114,7 @@ predict.landmark <- function(object, x_L, x_hor, newdata, cv_fold = NA, ...) {
         object[[as.character(x_L)]]$model_LME[[as.character(cv_fold)]]
       model_LME_standardise_time <-
         object[[as.character(x_L)]]$model_LME_standardise_time[[as.character(cv_fold)]]
-    } else{
+    }else{
       model_LME <- object[[as.character(x_L)]]$model_LME
       model_LME_standardise_time <-
         object[[as.character(x_L)]]$model_LME_standardise_time
@@ -178,7 +178,7 @@ predict.landmark <- function(object, x_L, x_hor, newdata, cv_fold = NA, ...) {
                  response_type,
                  response,
                  response_time)
-
+    data_LME<-data_LME[data_LME$response_time<=x_L,]
     data_LME$predict <- 0
     data_longitudinal <- dplyr::bind_rows(data_LOCF, data_LME)
 
