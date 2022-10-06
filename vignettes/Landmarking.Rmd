@@ -30,7 +30,7 @@ The key idea behind landmark models is the concept of predefined **landmark time
 >Continuing the example and supposing we wish to be able to predict the risk of CVD disease for any age between 45 and 50 years old, we define six landmark ages (45, ... , 50 years old) and fit six models for each of these. This is demonstrated in Figure 1.
 
 ```{r figurename, echo=FALSE, fig.cap="*Figure 1: Illustration of a landmark model with six landmark times (ages 45 to 50 years). The blue solid line represents the time interval of longitudinal (repeat measures) data that feeds into the first stage of the two-stage landmark model. The red dashed line represents the time interval of the time-to-event data to be inputted into the survival model which is the second stage of the landmark model. Events after the time horizon need to be censored within this framework.*"}
-knitr::include_graphics("../man/figures/landmarking_models.PNG")
+knitr::include_graphics("../man/figures/landmarking_models.png")
 ```
 
 To form a model at each landmark age, landmark models use a **two-stage model** that is comprised of a extracting information from the **longitudinal data** which then feeds into **survival model**. The typical form of this is the last observation carried forward (LOCF) method and the Cox proportional hazards model respectively, although there are extensions and these are discussed in the `Features of the R package Landmarking' section. Figure 1 shows the time intervals of the longitudinal (repeat measures) data and time-to-event data that is included when using the model, which is relative to the landmark age and time horizon. It should be noted that all the longitudinal (repeat measures) data may be used, including those passed the landmark age, in the first stage to develop a model. The survival model is fit only for the time-to-event data between the landmark age and the time horizon with all individuals censored at the time horizon. For a Cox proportional hazard survival  model, this has the advantage that proportional hazards is only assumed for the short period between the landmark time and the time horizon rather than the entire period up until the end of study.
@@ -50,7 +50,7 @@ The LME model is an alternative to using the LOCF method for the longitudinal da
 Figure 2 illustrates the use of these two types of models to predict systolic blood pressure at the landmark time. The LOCF model simply uses the most recently observed value of a risk factor. On the other hand, the LME model uses the entire history of the values of the risk factor from the individual, in combination with the trend in the risk factor from individuals used to develop the model. Using the Landmarking package, it is possible include a covariance structure in the random effects meaning that other risk factors can inform predictions. This improves the accuracy of the estimated value of the risk factor at the landmark time value compared to the LOCF model.
 
 ```{r figurename2, echo=FALSE, fig.cap="*Figure 2: Comparison of the LOCF and LME model to predict systolic blood pressure at a landmark age for an individual with 8 repeat measures.*"}
-knitr::include_graphics("../man/figures/landmarking_lme_model.PNG")
+knitr::include_graphics("../man/figures/landmarking_lme_model.png")
 ```
 
 ### 2. Competing risks modelling
@@ -69,7 +69,7 @@ The functions `fit_LOCF_landmark` and `fit_LME_landmark` are used to fit the lan
 Here is a diagram that represents the functions `fit_LOCF_landmark` (selecting option `fit_LOCF_longitudinal`) and `fit_LME_landmark` (selecting option `fit_LME_longitudinal`) to show how they are made up of their helper functions. All these functions are available with the R package Landmarking. 
 
 ```{r figurename3, echo=FALSE, fig.cap=""}
-knitr::include_graphics("../man/figures/fit_LOCF_landmark_model.PNG")
+knitr::include_graphics("../man/figures/fit_LOCF_landmark_model.png")
 ```
 
 The first step of the functions `fit_LOCF_landmark` and `fit_LME_landmark` is forming the
