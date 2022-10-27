@@ -43,10 +43,10 @@ fit_survival_model <- function(data,
                                x_hor) {
   #Checks
   #####
-  if (!(is.data.frame(data))) {
+  if (!(inherits(data,"data.frame"))) {
     stop("data should be a dataframe")
   }
-  if (!(is.numeric(x_hor))) {
+  if (!(inherits(x_hor,"numeric"))) {
     stop("x_hor should be numeric")
   }
   for (col in c(covariates,
@@ -55,6 +55,9 @@ fit_survival_model <- function(data,
                 individual_id)) {
     if (!(col %in% names(data))) {
       stop(col, " is not a column name in data")
+    }
+    if(any(is.na(data[[col]]))){
+      stop(col, " contains NA values")
     }
   }
 

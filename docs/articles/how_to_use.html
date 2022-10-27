@@ -63,7 +63,7 @@
       </ul>
 <ul class="nav navbar-nav navbar-right">
 <li>
-  <a href="https://https://github.com/isobelbarrott/Landmarking/" class="external-link">
+  <a href="https://github.com/isobelbarrott/Landmarking/" class="external-link">
     <span class="fa fa-github fa-lg"></span>
      
     github
@@ -153,16 +153,23 @@
 <p>We are now ready to begin the analysis using the Landmarking package.</p>
 <p>There are a couple of issues to deal with before we start, these stem from the fact that we wish to compare the LOCF and LME longitudinal model. We want to ensure that the same dataset is used for both of these models so that the comparison is fair.</p>
 <p>The first issue is that the presence of <code>NA</code> values means that some individuals in the risk set do not have LOCF values for all the covariates. This means that the LOCF longitudinal model cannot be fitted for these individuals, however the LME longitudinal model can allow missing values in the random effects covariates. As we wish that the dataset that both models are fitted are the same, we should consider removing these individuals from the dataset.</p>
-<p>Helpfully, the <code>Landmarking</code> package contains a function <code>return_ids_with_LOCF</code> to create a dataset with individuals with a LOCF for all covariates contained in the <code>covariates</code> parameter at landmark time <code>x_L</code>.</p>
+<p>Helpfully, the <code>Landmarking</code> package contains a function <code>find_LOCF_risk_set</code> to create a dataset with individuals with a LOCF for all covariates contained in the <code>covariates</code> parameter at landmark time <code>x_L</code>. There is also a function <code>find_LME_risk_set</code> to create a dataset with individuals with a LOCF for all covariates contained in the <code>fixed_effects</code> parameter at landmark time <code>x_L</code>. This is needed as the landmark model with the LME approach estimates the values of the fixed effects at landmark time <code>x_L</code> using the LOCF.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="va">data_repeat_outcomes</span> <span class="op">&lt;-</span>
-  <span class="fu"><a href="../reference/return_ids_with_LOCF.html">return_ids_with_LOCF</a></span><span class="op">(</span>
+  <span class="fu"><a href="../reference/find_LOCF_risk_set.html">find_LOCF_risk_set</a></span><span class="op">(</span>
     data_long <span class="op">=</span> <span class="va">data_repeat_outcomes</span>,
     individual_id <span class="op">=</span> <span class="st">"id"</span>,
+    event_time <span class="op">=</span> <span class="st">"event_time"</span>,
+    event_status <span class="op">=</span> <span class="st">"event_status"</span>,
     covariates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ethnicity"</span>, <span class="st">"smoking"</span>, <span class="st">"diabetes"</span>, <span class="st">"sbp_stnd"</span>, <span class="st">"tchdl_stnd"</span><span class="op">)</span>,
     covariates_time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"response_time_sbp_stnd"</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"response_time_tchdl_stnd"</span><span class="op">)</span>,
-    x_L <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">60</span>, <span class="fl">61</span><span class="op">)</span>
-  <span class="op">)</span></code></pre></div>
+    x_L <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">60</span>,<span class="fl">61</span><span class="op">)</span>,
+    x_hor<span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">65</span>,<span class="fl">66</span><span class="op">)</span>
+  <span class="op">)</span>
+<span class="co">#&gt; Warning in FUN(X[[i]], ...): 887 individuals have been removed from the model</span>
+<span class="co">#&gt; building as they are not in the risk set at landmark age 60</span>
+<span class="co">#&gt; Warning in FUN(X[[i]], ...): 745 individuals have been removed from the model</span>
+<span class="co">#&gt; building as they are not in the risk set at landmark age 61</span></code></pre></div>
 <p>The second issue is to do with cross-validation, but we will deal with this once we have fitted the LOCF landmark model.</p>
 <p>So we can now fit the landmark model using the LOCF longitudinal submodel. To demonstrate how to use the package, we use only landmark times 60 and 61 years old however we may wish to use more landmark times in practice. For more information about this function, see the Details section of the <code>fit_LOCF_landmark_model</code> documentation.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
@@ -179,8 +186,6 @@
     event_status <span class="op">=</span> <span class="st">"event_status"</span>,
     survival_submodel <span class="op">=</span> <span class="st">"cause_specific"</span>
   <span class="op">)</span>
-<span class="co">#&gt; Warning in FUN(X[[i]], ...): 132 individuals have been removed from the model</span>
-<span class="co">#&gt; building as they are not in the risk set at landmark age 61</span>
 <span class="co">#&gt; [1] "Fitting longitudinal submodel, landmark age 60"</span>
 <span class="co">#&gt; [1] "Complete, landmark age 60"</span>
 <span class="co">#&gt; [1] "Fitting survival submodel, landmark age 60"</span>
@@ -388,13 +393,13 @@
 <span class="co">#&gt; [1] NA</span>
 <span class="va">data_model_landmark_LME</span><span class="op">[[</span><span class="st">"60"</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">prediction_error</span>
 <span class="co">#&gt; $c_index</span>
-<span class="co">#&gt; [1] 0.7550631</span>
+<span class="co">#&gt; [1] 0.7535563</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $c_index_standard_error</span>
 <span class="co">#&gt; [1] NA</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $brier_score</span>
-<span class="co">#&gt; [1] 0.08802139</span>
+<span class="co">#&gt; [1] 0.08805522</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; $brier_score_standard_error</span>
 <span class="co">#&gt; [1] NA</span></code></pre></div>
@@ -421,7 +426,7 @@
 <span class="co">#&gt;      id ethnicity smoking diabetes  sbp_stnd  tchdl_stnd sbp_stnd_slope</span>
 <span class="co">#&gt; 1: 3001    Indian       0        0 0.5582313 -0.02973252     0.02788248</span>
 <span class="co">#&gt;    tchdl_stnd_slope event_prediction</span>
-<span class="co">#&gt; 1:      -0.01839017       0.04339261</span>
+<span class="co">#&gt; 1:       0.02685595        0.0431397</span>
 <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span>
   object <span class="op">=</span> <span class="va">data_model_landmark_LME</span>,
   x_L <span class="op">=</span> <span class="fl">60</span>,
@@ -432,7 +437,7 @@
 <span class="co">#&gt;      id ethnicity smoking diabetes  sbp_stnd  tchdl_stnd sbp_stnd_slope</span>
 <span class="co">#&gt; 1: 3001    Indian       0        0 0.5582313 -0.02973252     0.02788248</span>
 <span class="co">#&gt;    tchdl_stnd_slope event_prediction</span>
-<span class="co">#&gt; 1:      -0.01839017       0.07621137</span></code></pre></div>
+<span class="co">#&gt; 1:       0.02685595       0.07574385</span></code></pre></div>
 </div>
   </div>
 

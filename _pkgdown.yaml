@@ -11,6 +11,8 @@ reference:
       - '`fit_LME_landmark`'
       - '`add_cv_number`'
       - '`return_ids_with_LOCF`'
+      - '`find_LOCF_risk_set`'
+      - '`find_LME_risk_set`'      
       - '`fit_LOCF_longitudinal`'
       - '`fit_LME_longitudinal`'
       - '`fit_survival_model`'
@@ -36,7 +38,7 @@ navbar:
   right:
     - icon: fa-github fa-lg
       text: "github"
-      href: https://https://github.com/isobelbarrott/Landmarking/
+      href: https://github.com/isobelbarrott/Landmarking/
     - icon: fa-file-code-o
       text: "Functions"
       href: reference/index.html

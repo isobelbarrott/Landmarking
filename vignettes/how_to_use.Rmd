@@ -58,16 +58,19 @@ There are a couple of issues to deal with before we start, these stem from the f
 
 The first issue is that the presence of `NA` values means that some individuals in the risk set do not have LOCF values for all the covariates. This means that the LOCF longitudinal model cannot be fitted for these individuals, however the LME longitudinal model can allow missing values in the random effects covariates. As we wish that the dataset that both models are fitted are the same, we should consider removing these individuals from the dataset.
 
-Helpfully, the `Landmarking` package contains a function `return_ids_with_LOCF` to create a dataset with individuals with a LOCF for all covariates contained in the `covariates` parameter at landmark time `x_L`.
+Helpfully, the `Landmarking` package contains a function `find_LOCF_risk_set` to create a dataset with individuals with a LOCF for all covariates contained in the `covariates` parameter at landmark time `x_L`. There is also a function `find_LME_risk_set` to create a dataset with individuals with a LOCF for all covariates contained in the `fixed_effects` parameter at landmark time `x_L`. This is needed as the landmark model with the LME approach estimates the values of the fixed effects at landmark time `x_L` using the LOCF.
 
 ```{r 9}
 data_repeat_outcomes <-
-  return_ids_with_LOCF(
+  find_LOCF_risk_set(
     data_long = data_repeat_outcomes,
     individual_id = "id",
+    event_time = "event_time",
+    event_status = "event_status",
     covariates = c("ethnicity", "smoking", "diabetes", "sbp_stnd", "tchdl_stnd"),
     covariates_time = c(rep("response_time_sbp_stnd", 4), "response_time_tchdl_stnd"),
-    x_L = c(60, 61)
+    x_L = c(60,61),
+    x_hor= c(65,66)
   )
 ```
 
