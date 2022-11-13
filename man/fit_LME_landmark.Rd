@@ -8,10 +8,10 @@ fit_LME_landmark(
   data_long,
   x_L,
   x_hor,
-  fixed_effects,
-  random_effects,
-  fixed_effects_time,
-  random_effects_time,
+  predictors_LME,
+  responses_LME,
+  predictors_LME_time,
+  responses_LME_time,
   random_slope_longitudinal = TRUE,
   random_slope_survival = TRUE,
   include_data_after_x_L = TRUE,
@@ -34,21 +34,21 @@ Each data frame contains repeat measurements data and time-to-event data in long
 
 \item{x_hor}{Numeric specifying the horizon time(s)}
 
-\item{fixed_effects}{Vector of character strings specifying the column names in \code{data_long}
-which correspond to the fixed effects variables}
+\item{predictors_LME}{Vector of character strings specifying the column names in \code{data_long}
+which correspond to the predictor variables in the LME model}
 
-\item{random_effects}{Vector of character strings specifying the column names in \code{data_long}
-which correspond to the random effects variables}
+\item{responses_LME}{Vector of character strings specifying the column names in \code{data_long}
+which correspond to the response variables in the LME model}
 
-\item{fixed_effects_time}{Vector of character strings specifying the column names in \code{data_long}
-which contains the time at which the fixed effects variables were recorded.
-This should either be length 1 or the same length as \code{fixed_effects}.
-In the latter case the order of elements must correspond to the order of elements in \code{fixed_effects}.}
+\item{predictors_LME_time}{Vector of character strings specifying the column names in \code{data_long}
+which contains the time at which the predictor variables were recorded.
+This should either be length 1 or the same length as \code{predictors_LME}.
+In the latter case the order of elements must correspond to the order of elements in \code{predictors_LME}.}
 
-\item{random_effects_time}{Vector of character strings specifying the column names in \code{data_long}
-which contain the times at which random effect variables were recorded. This should either be length 1 or
-the same length as \code{random_effects}. In the latter case the order of elements must correspond to the
-order of elements in \code{random_effects}.}
+\item{responses_LME_time}{Vector of character strings specifying the column names in \code{data_long}
+which contain the times at which response variables were recorded. This should either be length 1 or
+the same length as \code{responses_LME}. In the latter case the order of elements must correspond to the
+order of elements in \code{responses_LME}.}
 
 \item{random_slope_longitudinal}{Boolean indicating whether to include a random slope in the LME model. See Details section of \code{fit_LME_longitudinal} for more information.}
 
@@ -95,8 +95,8 @@ Each element of this list is named the corresponding landmark time, and is itsel
 \code{data}, \code{model_longitudinal}, \code{model_LME}, \code{model_LME_standardise_time}, \code{model_survival}, and \code{prediction_error}.
 
 \code{data} has one row for each individual in the risk set at \code{x_L} and
-contains the value of the \code{fixed_effects} using the LOCF approach and predicted values of the
-\code{random_effects} using the LME model at the landmark time \code{x_L}. It also includes the predicted
+contains the value of the \code{predictors_LME} using the LOCF approach and predicted values of the
+\code{responses_LME} using the LME model at the landmark time \code{x_L}. It also includes the predicted
 probability that the event of interest has occurred by time \code{x_hor}, labelled as \code{"event_prediction"}.
 There is one row for each individual.
 
@@ -123,7 +123,7 @@ This function performs the two-stage landmarking analysis.
 \details{
 Firstly, this function selects the individuals in the risk set at the landmark time \code{x_L}.
 Specifically, the individuals in the risk set are those that have entered the study before the landmark time \code{x_L}
-(there is at least one observation for each of the \code{fixed_effects} and \code{random_effects} on or before \code{x_L}) and
+(there is at least one observation for each of the \code{predictors_LME} and \code{responses_LME} on or before \code{x_L}) and
 exited the study after the landmark age (\code{event_time}
 is greater than \code{x_L}).
 
@@ -154,10 +154,10 @@ data_model_landmark_LME <-
     x_L = c(60, 61),
     x_hor = c(65, 66),
     k = 10,
-    fixed_effects = c("ethnicity", "smoking", "diabetes"),
-    fixed_effects_time = "response_time_sbp_stnd",
-    random_effects = c("sbp_stnd", "tchdl_stnd"),
-    random_effects_time = c("response_time_sbp_stnd", "response_time_tchdl_stnd"),
+    predictors_LME = c("ethnicity", "smoking", "diabetes"),
+    predictors_LME_time = "response_time_sbp_stnd",
+    responses_LME = c("sbp_stnd", "tchdl_stnd"),
+    responses_LME_time = c("response_time_sbp_stnd", "response_time_tchdl_stnd"),
     individual_id = "id",
     standardise_time = TRUE,
     lme_control = nlme::lmeControl(maxIter = 100, msMaxIter = 100),

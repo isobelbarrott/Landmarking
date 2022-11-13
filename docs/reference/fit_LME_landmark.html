@@ -149,10 +149,10 @@
   <span class='va'>data_long</span>,
   <span class='va'>x_L</span>,
   <span class='va'>x_hor</span>,
-  <span class='va'>fixed_effects</span>,
-  <span class='va'>random_effects</span>,
-  <span class='va'>fixed_effects_time</span>,
-  <span class='va'>random_effects_time</span>,
+  <span class='va'>predictors_LME</span>,
+  <span class='va'>responses_LME</span>,
+  <span class='va'>predictors_LME_time</span>,
+  <span class='va'>responses_LME_time</span>,
   random_slope_longitudinal <span class='op'>=</span> <span class='cn'>TRUE</span>,
   random_slope_survival <span class='op'>=</span> <span class='cn'>TRUE</span>,
   include_data_after_x_L <span class='op'>=</span> <span class='cn'>TRUE</span>,
@@ -184,28 +184,28 @@ Each data frame contains repeat measurements data and time-to-event data in long
       <td><p>Numeric specifying the horizon time(s)</p></td>
     </tr>
     <tr>
-      <th>fixed_effects</th>
+      <th>predictors_LME</th>
       <td><p>Vector of character strings specifying the column names in <code>data_long</code>
-which correspond to the fixed effects variables</p></td>
+which correspond to the predictor variables in the LME model</p></td>
     </tr>
     <tr>
-      <th>random_effects</th>
+      <th>responses_LME</th>
       <td><p>Vector of character strings specifying the column names in <code>data_long</code>
-which correspond to the random effects variables</p></td>
+which correspond to the response variables in the LME model</p></td>
     </tr>
     <tr>
-      <th>fixed_effects_time</th>
+      <th>predictors_LME_time</th>
       <td><p>Vector of character strings specifying the column names in <code>data_long</code>
-which contains the time at which the fixed effects variables were recorded.
-This should either be length 1 or the same length as <code>fixed_effects</code>.
-In the latter case the order of elements must correspond to the order of elements in <code>fixed_effects</code>.</p></td>
+which contains the time at which the predictor variables were recorded.
+This should either be length 1 or the same length as <code>predictors_LME</code>.
+In the latter case the order of elements must correspond to the order of elements in <code>predictors_LME</code>.</p></td>
     </tr>
     <tr>
-      <th>random_effects_time</th>
+      <th>responses_LME_time</th>
       <td><p>Vector of character strings specifying the column names in <code>data_long</code>
-which contain the times at which random effect variables were recorded. This should either be length 1 or
-the same length as <code>random_effects</code>. In the latter case the order of elements must correspond to the
-order of elements in <code>random_effects</code>.</p></td>
+which contain the times at which response variables were recorded. This should either be length 1 or
+the same length as <code>responses_LME</code>. In the latter case the order of elements must correspond to the
+order of elements in <code>responses_LME</code>.</p></td>
     </tr>
     <tr>
       <th>random_slope_longitudinal</th>
@@ -278,8 +278,8 @@ regression model (<code>"fine_gray"</code>)</p></td>
 Each element of this list is named the corresponding landmark time, and is itself a list containing elements:
 <code>data</code>, <code>model_longitudinal</code>, <code>model_LME</code>, <code>model_LME_standardise_time</code>, <code>model_survival</code>, and <code>prediction_error</code>.</p>
 <p><code>data</code> has one row for each individual in the risk set at <code>x_L</code> and
-contains the value of the <code>fixed_effects</code> using the LOCF approach and predicted values of the
-<code>random_effects</code> using the LME model at the landmark time <code>x_L</code>. It also includes the predicted
+contains the value of the <code>predictors_LME</code> using the LOCF approach and predicted values of the
+<code>responses_LME</code> using the LME model at the landmark time <code>x_L</code>. It also includes the predicted
 probability that the event of interest has occurred by time <code>x_hor</code>, labelled as <code>"event_prediction"</code>.
 There is one row for each individual.</p>
 <p><code>model_longitudinal</code> indicates that the longitudinal approach is LME.</p>
@@ -298,7 +298,7 @@ element in the list corresponding to a different cross-validation fold.</p>
 
     <p>Firstly, this function selects the individuals in the risk set at the landmark time <code>x_L</code>.
 Specifically, the individuals in the risk set are those that have entered the study before the landmark time <code>x_L</code>
-(there is at least one observation for each of the <code>fixed_effects</code> and <code>random_effects</code> on or before <code>x_L</code>) and
+(there is at least one observation for each of the <code>predictors_LME</code> and <code>responses_LME</code> on or before <code>x_L</code>) and
 exited the study after the landmark age (<code>event_time</code>
 is greater than <code>x_L</code>).</p>
 <p>Secondly, if the option to use cross validation
@@ -329,10 +329,10 @@ This is performed using <code>get_model_assessment</code>. See <code><a href='ge
 <span class='r-in'>    x_L <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>60</span>, <span class='fl'>61</span><span class='op'>)</span>,</span>
 <span class='r-in'>    x_hor <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>65</span>, <span class='fl'>66</span><span class='op'>)</span>,</span>
 <span class='r-in'>    k <span class='op'>=</span> <span class='fl'>10</span>,</span>
-<span class='r-in'>    fixed_effects <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"ethnicity"</span>, <span class='st'>"smoking"</span>, <span class='st'>"diabetes"</span><span class='op'>)</span>,</span>
-<span class='r-in'>    fixed_effects_time <span class='op'>=</span> <span class='st'>"response_time_sbp_stnd"</span>,</span>
-<span class='r-in'>    random_effects <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"sbp_stnd"</span>, <span class='st'>"tchdl_stnd"</span><span class='op'>)</span>,</span>
-<span class='r-in'>    random_effects_time <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"response_time_sbp_stnd"</span>, <span class='st'>"response_time_tchdl_stnd"</span><span class='op'>)</span>,</span>
+<span class='r-in'>    predictors_LME <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"ethnicity"</span>, <span class='st'>"smoking"</span>, <span class='st'>"diabetes"</span><span class='op'>)</span>,</span>
+<span class='r-in'>    predictors_LME_time <span class='op'>=</span> <span class='st'>"response_time_sbp_stnd"</span>,</span>
+<span class='r-in'>    responses_LME <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"sbp_stnd"</span>, <span class='st'>"tchdl_stnd"</span><span class='op'>)</span>,</span>
+<span class='r-in'>    responses_LME_time <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"response_time_sbp_stnd"</span>, <span class='st'>"response_time_tchdl_stnd"</span><span class='op'>)</span>,</span>
 <span class='r-in'>    individual_id <span class='op'>=</span> <span class='st'>"id"</span>,</span>
 <span class='r-in'>    standardise_time <span class='op'>=</span> <span class='cn'>TRUE</span>,</span>
 <span class='r-in'>    lme_control <span class='op'>=</span> <span class='fu'>nlme</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/nlme/man/lmeControl.html'>lmeControl</a></span><span class='op'>(</span>maxIter <span class='op'>=</span> <span class='fl'>100</span>, msMaxIter <span class='op'>=</span> <span class='fl'>100</span><span class='op'>)</span>,</span>

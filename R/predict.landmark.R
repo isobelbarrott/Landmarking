@@ -9,8 +9,8 @@
 #' @param x_hor Numeric specifying the horizon time. The function assesses the risk of event before this time.
 #' @param newdata Data frame containing new data to return the risk prediction of the event of interest. The data should be in in long format
 #' and the columns must contain the covariates and time variables that are used to fit the model.
-#' For the LME model this the variables `fixed_effects`, `random_effects`, `fixed_effects_time`, and
-#' `random_effects_time`. For the LOCF model this is `covariates` and `covariates_time`.
+#' For the LME model this the variables `predictors_LME`, `responses_LME`, `predictors_LME_time`, and
+#' `responses_LME_time`. For the LOCF model this is `covariates` and `covariates_time`.
 #' @param cv_fold If cross validation is used to fit `fit_LME_landmark` or `fit_LOCF_landmark`, then the cross validation fold to use when making risk predictions needs to be specified.
 #' @param \dots Arguments passed on to `riskRegression::predictRisk`
 #' @return Data frame `newdata` updated to contained a new column `event_prediction`
@@ -90,10 +90,10 @@ predict.landmark <- function(object, x_L, x_hor, newdata, cv_fold = NA, ...) {
   if (model_longitudinal == "LME") {
     call <- as.list(object[[as.character(x_L)]]$call)
 
-    random_effects <- eval(call$random_effects)
-    fixed_effects <- eval(call$fixed_effects)
-    fixed_effects_time <- eval(call$fixed_effects_time)
-    random_effects_time <- eval(call$random_effects_time)
+    responses_LME <- eval(call$responses_LME)
+    predictors_LME <- eval(call$predictors_LME)
+    predictors_LME_time <- eval(call$predictors_LME_time)
+    responses_LME_time <- eval(call$responses_LME_time)
     individual_id <- eval(call$individual_id)
     random_slope_survival <-
       ifelse(
@@ -102,10 +102,10 @@ predict.landmark <- function(object, x_L, x_hor, newdata, cv_fold = NA, ...) {
         eval(call$random_slope_survival)
       )
 
-    for (fixed_effect in fixed_effects) {
-      if (is.factor(object[[as.character(x_L)]]$data[[fixed_effect]])) {
-        newdata[[fixed_effect]] <-
-          factor(newdata[[fixed_effect]], levels = levels(object[[as.character(x_L)]]$data[[fixed_effect]]))
+    for (predictor_LME in predictors_LME) {
+      if (is.factor(object[[as.character(x_L)]]$data[[predictor_LME]])) {
+        newdata[[predictor_LME]] <-
+          factor(newdata[[predictor_LME]], levels = levels(object[[as.character(x_L)]]$data[[predictor_LME]]))
       }
     }
 
@@ -124,28 +124,28 @@ predict.landmark <- function(object, x_L, x_hor, newdata, cv_fold = NA, ...) {
       fit_LOCF_longitudinal(
         data_long = newdata,
         x_L = x_L,
-        covariates = fixed_effects,
+        covariates = predictors_LME,
         covariates_time =
-          fixed_effects_time,
+          predictors_LME_time,
         individual_id =
           individual_id
       )
     data_LOCF <- data_model_longitudinal$data_longitudinal
 
     response_type <-
-      Reduce(c, lapply(random_effects, function(i) {
+      Reduce(c, lapply(responses_LME, function(i) {
         rep(i, dim(data_LOCF)[1])
       }))
     response <- as.numeric(rep(NA, length(response_type)))
     response_time <- as.numeric(rep(x_L, length(response_type)))
-    data_fixed_effects <-
+    data_predictors_LME <-
       do.call("rbind", replicate(
-        n = length(random_effects),
-        data_LOCF[, c(individual_id, fixed_effects)],
+        n = length(responses_LME),
+        data_LOCF[, c(individual_id, predictors_LME)],
         simplify = FALSE
       ))
     data_LOCF <-
-      data.frame(data_fixed_effects,
+      data.frame(data_predictors_LME,
                  response_type,
                  response,
                  response_time,
@@ -154,27 +154,27 @@ predict.landmark <- function(object, x_L, x_hor, newdata, cv_fold = NA, ...) {
     #Create validation and development dataset
     #####
     response_type <-
-      Reduce(c, lapply(random_effects, function(i) {
+      Reduce(c, lapply(responses_LME, function(i) {
         rep(i, dim(newdata)[1])
       }))
     response <-
-      as.numeric(Reduce(c, lapply(1:length(random_effects), function(i) {
-        newdata[, random_effects[i]]
+      as.numeric(Reduce(c, lapply(1:length(responses_LME), function(i) {
+        newdata[, responses_LME[i]]
       })))
     response_time <-
-      as.numeric(Reduce(c, lapply(1:length(random_effects), function(i) {
-        newdata[, random_effects_time[i]]
+      as.numeric(Reduce(c, lapply(1:length(responses_LME), function(i) {
+        newdata[, responses_LME_time[i]]
       })))
-    data_fixed_effects <-
+    data_predictors_LME <-
       do.call("rbind", replicate(
-        n = length(random_effects),
-        newdata[, c(individual_id, fixed_effects)],
+        n = length(responses_LME),
+        newdata[, c(individual_id, predictors_LME)],
         simplify = FALSE
       ))
-    data_fixed_effects[[individual_id]] <-
-      as.factor(data_fixed_effects[[individual_id]])
+    data_predictors_LME[[individual_id]] <-
+      as.factor(data_predictors_LME[[individual_id]])
     data_LME <-
-      data.frame(data_fixed_effects,
+      data.frame(data_predictors_LME,
                  response_type,
                  response,
                  response_time)
@@ -199,40 +199,40 @@ predict.landmark <- function(object, x_L, x_hor, newdata, cv_fold = NA, ...) {
 
     data_longitudinal <-
       mixoutsamp_longitudinal$preddata[response_predictions,][, c(individual_id,
-                                                                  fixed_effects,
+                                                                  predictors_LME,
                                                                   "response_type",
                                                                   "fitted")]
     data_longitudinal <-
       stats::reshape(
         data_longitudinal,
         timevar = "response_type",
-        idvar = c(individual_id, fixed_effects),
+        idvar = c(individual_id, predictors_LME),
         direction = "wide"
       )
-    for (name in random_effects) {
+    for (name in responses_LME) {
       names(data_longitudinal)[grep(paste0("fitted.", name), names(data_longitudinal))] <-
         name
     }
     if (random_slope_survival == TRUE) {
 
       if (random_slope_survival == TRUE) {
-        if (length(random_effects)==1){
+        if (length(responses_LME)==1){
           slopes_df<-mixoutsamp_longitudinal$random[,c("id","reffresponse_time")]
           slopes_df["reffresponse_time"]<-slopes_df["reffresponse_time"]+model_LME$coefficients$fixed["response_time"]
 
         }
-        if (length(random_effects)>1){
-          slopes_df<-mixoutsamp_longitudinal$random[,c("id",paste0("reffresponse_type",random_effects,":response_time"))]
-          random_effects_dummy<-paste0("response_type",random_effects,":response_time")
-          random_effects_dummy[1]<-"response_time"
-          for (i in 1:length(random_effects)){
-            slopes_df[,paste0("reffresponse_type",random_effects[i],":response_time")]<-
-              slopes_df[,paste0("reffresponse_type",random_effects[i],":response_time")]+model_LME$coefficients$fixed[random_effects_dummy[1]]
-            if(i!=1){slopes_df[,paste0("reffresponse_type",random_effects[i],":response_time")]<-
-              slopes_df[,paste0("reffresponse_type",random_effects[i],":response_time")]+model_LME$coefficients$fixed[random_effects_dummy[i]]}
+        if (length(responses_LME)>1){
+          slopes_df<-mixoutsamp_longitudinal$random[,c("id",paste0("reffresponse_type",responses_LME,":response_time"))]
+          responses_LME_dummy<-paste0("response_type",responses_LME,":response_time")
+          responses_LME_dummy[1]<-"response_time"
+          for (i in 1:length(responses_LME)){
+            slopes_df[,paste0("reffresponse_type",responses_LME[i],":response_time")]<-
+              slopes_df[,paste0("reffresponse_type",responses_LME[i],":response_time")]+model_LME$coefficients$fixed[responses_LME_dummy[1]]
+            if(i!=1){slopes_df[,paste0("reffresponse_type",responses_LME[i],":response_time")]<-
+              slopes_df[,paste0("reffresponse_type",responses_LME[i],":response_time")]+model_LME$coefficients$fixed[responses_LME_dummy[i]]}
           }
         }
-        names(slopes_df)<-c("id",paste0(random_effects,"_slope"))
+        names(slopes_df)<-c("id",paste0(responses_LME,"_slope"))
         data_longitudinal <- dplyr::left_join(data_longitudinal,
                                                   slopes_df,
                                                   by = individual_id)

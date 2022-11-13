@@ -8,10 +8,10 @@ find_LME_risk_set(
   data_long,
   x_L,
   x_hor,
-  fixed_effects,
-  fixed_effects_time,
-  random_effects,
-  random_effects_time,
+  predictors_LME,
+  predictors_LME_time,
+  responses_LME,
+  responses_LME_time,
   individual_id,
   event_time,
   event_status
@@ -24,21 +24,21 @@ find_LME_risk_set(
 
 \item{x_hor}{Numeric specifying the horizon time(s)}
 
-\item{fixed_effects}{Vector of character strings specifying the column names in \code{data_long}
-which correspond to the fixed effects variables}
+\item{predictors_LME}{Vector of character strings specifying the column names in \code{data_long}
+which correspond to the predictor variables in the LME model}
 
-\item{fixed_effects_time}{Vector of character strings specifying the column names in \code{data_long}
-which contains the time at which the fixed effects variables were recorded.
-This should either be length 1 or the same length as \code{fixed_effects}.
-In the latter case the order of elements must correspond to the order of elements in \code{fixed_effects}.}
+\item{predictors_LME_time}{Vector of character strings specifying the column names in \code{data_long}
+which contains the time at which the predictor variables were recorded.
+This should either be length 1 or the same length as \code{predictors_LME}.
+In the latter case the order of elements must correspond to the order of elements in \code{predictors_LME}.}
 
-\item{random_effects}{Vector of character strings specifying the column names in \code{data_long}
-which correspond to the random effects variables}
+\item{responses_LME}{Vector of character strings specifying the column names in \code{data_long}
+which correspond to the response variables in the LME model}
 
-\item{random_effects_time}{Vector of character strings specifying the column names in \code{data_long}
-which contain the times at which random effect variables were recorded. This should either be length 1 or
-the same length as \code{random_effects}. In the latter case the order of elements must correspond to the
-order of elements in \code{random_effects}.}
+\item{responses_LME_time}{Vector of character strings specifying the column names in \code{data_long}
+which contain the times at which response variables were recorded. This should either be length 1 or
+the same length as \code{responses_LME}. In the latter case the order of elements must correspond to the
+order of elements in \code{responses_LME}.}
 
 \item{individual_id}{Character string specifying the column name in \code{data_long} which contains the individual identifiers}
 
@@ -57,7 +57,7 @@ in the risk set at each of the landmark times x_L.
 This function is a helper function for \code{fit_LME_landmark}.
 }
 \details{
-This function finds the risk set for each of landmark times in x_L. This means that each of the individuals has a LME value for all fixed_effects at the landmark time and
+This function finds the risk set for each of landmark times in x_L. This means that each of the individuals has a LME value for all predictors_LME at the landmark time and
 has not experienced an event up to (and including) the landmark time.
 }
 \author{

@@ -287,7 +287,7 @@ fit_LOCF_longitudinal <- function(data_long,
 #'
 #' @details Firstly, this function selects the individuals in the risk set at the landmark time \code{x_L}.
 #' Specifically, the individuals in the risk set are those that have entered the study before the landmark time \code{x_L}
-#' (there is at least one observation for each of the \code{fixed_effects} and \code{random_effects} on or before \code{x_L}) and
+#' (there is at least one observation for each of the \code{predictors_LME} and \code{random_effects} on or before \code{x_L}) and
 #' exited the study after the landmark age (\code{event_time}
 #' is greater than \code{x_L}).
 #'

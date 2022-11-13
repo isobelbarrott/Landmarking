@@ -16,8 +16,8 @@ of landmark models corresponding to different landmark times \code{x_L}.}
 
 \item{newdata}{Data frame containing new data to return the risk prediction of the event of interest. The data should be in in long format
 and the columns must contain the covariates and time variables that are used to fit the model.
-For the LME model this the variables \code{fixed_effects}, \code{random_effects}, \code{fixed_effects_time}, and
-\code{random_effects_time}. For the LOCF model this is \code{covariates} and \code{covariates_time}.}
+For the LME model this the variables \code{predictors_LME}, \code{responses_LME}, \code{predictors_LME_time}, and
+\code{responses_LME_time}. For the LOCF model this is \code{covariates} and \code{covariates_time}.}
 
 \item{cv_fold}{If cross validation is used to fit \code{fit_LME_landmark} or \code{fit_LOCF_landmark}, then the cross validation fold to use when making risk predictions needs to be specified.}
 

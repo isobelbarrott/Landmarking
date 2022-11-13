@@ -7,10 +7,10 @@
 fit_LME_longitudinal(
   data_long,
   x_L,
-  fixed_effects,
-  random_effects,
-  fixed_effects_time,
-  random_effects_time,
+  predictors_LME,
+  responses_LME,
+  predictors_LME_time,
+  responses_LME_time,
   standardise_time = FALSE,
   random_slope_longitudinal = TRUE,
   random_slope_survival = TRUE,
@@ -25,21 +25,21 @@ fit_LME_longitudinal(
 
 \item{x_L}{Numeric specifying the landmark time(s)}
 
-\item{fixed_effects}{Vector of character strings specifying the column names in \code{data_long}
-which correspond to the fixed effects variables}
+\item{predictors_LME}{Vector of character strings specifying the column names in \code{data_long}
+which correspond to the predictor variables in the LME model}
 
-\item{random_effects}{Vector of character strings specifying the column names in \code{data_long}
-which correspond to the random effects variables}
+\item{responses_LME}{Vector of character strings specifying the column names in \code{data_long}
+which correspond to the response variables in the LME model}
 
-\item{fixed_effects_time}{Vector of character strings specifying the column names in \code{data_long}
-which contains the time at which the fixed effects variables were recorded.
-This should either be length 1 or the same length as \code{fixed_effects}.
-In the latter case the order of elements must correspond to the order of elements in \code{fixed_effects}.}
+\item{predictors_LME_time}{Vector of character strings specifying the column names in \code{data_long}
+which contains the time at which the predictor variables were recorded.
+This should either be length 1 or the same length as \code{predictors_LME}.
+In the latter case the order of elements must correspond to the order of elements in \code{predictors_LME}.}
 
-\item{random_effects_time}{Vector of character strings specifying the column names in \code{data_long}
-which contain the times at which random effect variables were recorded. This should either be length 1 or
-the same length as \code{random_effects}. In the latter case the order of elements must correspond to the
-order of elements in \code{random_effects}.}
+\item{responses_LME_time}{Vector of character strings specifying the column names in \code{data_long}
+which contain the times at which response variables were recorded. This should either be length 1 or
+the same length as \code{responses_LME}. In the latter case the order of elements must correspond to the
+order of elements in \code{responses_LME}.}
 
 \item{standardise_time}{Boolean indicating whether to standardise the time variable in the LME model by subtracting the mean
 and dividing by the standard deviation. See Details section of \code{fit_LME_longitudinal} for more information.}
@@ -63,8 +63,8 @@ List containing elements:
 \code{data_longitudinal}, \code{model_longitudinal}, \code{model_LME}, and \code{model_LME_standardise_time}.
 
 \code{data_longitudinal} has one row for each individual in the risk set at \code{x_L} and
-contains the value of the covariates at the landmark time \code{x_L} of the \code{fixed_effects} using the LOCF model and
-\code{random_effects} using the LME model.
+contains the value of the covariates at the landmark time \code{x_L} of the \code{predictors_LME} using the LOCF model and
+\code{responses_LME} using the LME model.
 
 \code{model_longitudinal} indicates that the LME approach is used.
 
@@ -86,10 +86,10 @@ For an individual \eqn{i}, the LME model can be written as
 
 where
 \itemize{
-\item \eqn{Y_i} is the vector of outcomes at different time points for the individual
-\item \eqn{X_i} is the matrix of covariates for the fixed effects at these time points
+\item \eqn{Y_i} is the vector of responses at different time points for the individual
+\item \eqn{X_i} is the matrix of predictors for the fixed effects at these time points
 \item \eqn{\beta} is the vector of coefficients for the fixed effects
-\item \eqn{Z_i} is the matrix of covariates for the random effects
+\item \eqn{Z_i} is the matrix of predictors for the random effects
 \item \eqn{U_i} is the matrix of coefficients for the random effects
 \item \eqn{\epsilon_i} is the error term, typically from N(0, \eqn{\sigma})
 }
@@ -117,15 +117,15 @@ The validation set only includes the repeat measurements recorded up until and i
 i.e. it does not include future data in its predictions.
 
 Using the fitted model, the values of the best linear unbiased predictions (BLUPs)
-at the landmark age \code{x_L} are calculated. These BLUPs are the predictions of the values of the \code{random_effects}
-the landmark age \code{x_L}. The values of the fixed effects used as covariates in this prediction are the LOCF values of the \code{fixed_effects}
+at the landmark age \code{x_L} are calculated. These BLUPs are the predictions of the values of the \code{responses_LME}
+the landmark age \code{x_L}. The values of the predictors in this prediction are the LOCF values of the \code{predictors_LME}
 at the landmark age \code{x_L}. In the function \code{fit_LME_landmark}, these predictions are used as covariates in the survival
-model along with the LOCF values of the fixed effects. Additionally, the estimated value of the random slope can
+model along with the LOCF values of  \code{predictors_LME}. Additionally, the estimated value of the random slope can
 be included as predictors in the survival model using the parameter \code{random_slope_survival=TRUE}.
 
-There is an important consideration about fitting the linear mixed effects model. As the variable \code{random_effects_time}
+There is an important consideration about fitting the linear mixed effects model. As the variable \code{responses_LME_time}
 gets further from 0, the random effects coefficients get closer to 0. This causes computational issues
 as the elements in the covariance matrix of the random effects, \eqn{\Sigma_u}, are constrained to
 be greater than 0. Using parameter \code{standard_time=TRUE} can prevent this issue by standardising the
-time variables to ensure that the \code{random_effects_time} values are not too close to 0.
+time variables to ensure that the \code{responses_LME_time} values are not too close to 0.
 }

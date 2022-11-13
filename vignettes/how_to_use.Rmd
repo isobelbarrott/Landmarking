@@ -58,7 +58,7 @@ There are a couple of issues to deal with before we start, these stem from the f
 
 The first issue is that the presence of `NA` values means that some individuals in the risk set do not have LOCF values for all the covariates. This means that the LOCF longitudinal model cannot be fitted for these individuals, however the LME longitudinal model can allow missing values in the random effects covariates. As we wish that the dataset that both models are fitted are the same, we should consider removing these individuals from the dataset.
 
-Helpfully, the `Landmarking` package contains a function `find_LOCF_risk_set` to create a dataset with individuals with a LOCF for all covariates contained in the `covariates` parameter at landmark time `x_L`. There is also a function `find_LME_risk_set` to create a dataset with individuals with a LOCF for all covariates contained in the `fixed_effects` parameter at landmark time `x_L`. This is needed as the landmark model with the LME approach estimates the values of the fixed effects at landmark time `x_L` using the LOCF.
+Helpfully, the `Landmarking` package contains a function `find_LOCF_risk_set` to create a dataset with individuals with a LOCF for all covariates contained in the `covariates` parameter at landmark time `x_L`. There is also a function `find_LME_risk_set` to create a dataset with individuals with a LOCF for all covariates contained in the `predictors_LME` parameter at landmark time `x_L`. This is needed as the landmark model with the LME approach estimates the values of the fixed effects at landmark time `x_L` using the LOCF.
 
 ```{r 9}
 data_repeat_outcomes <-
@@ -125,7 +125,7 @@ In order to assess the performance of the model, there is also the `plot` method
 plot(x = data_model_landmark_LOCF, x_L = 60, n = 5)
 ```
 
-Now we can move on to fitting the landmark model using the LME longitudinal submodel.  For more information about this function, see the Details section of the `fit_LME_landmark_model` documentation. The variables standardised systolic blood pressure (SBP) and standardised total cholesterol to high density lipoprotein (HDL) ratio are continuous and repeatedly measured and so these are included as random effects in the LME model.  
+Now we can move on to fitting the landmark model using the LME longitudinal submodel.  For more information about this function, see the Details section of the `fit_LME_landmark_model` documentation. The variables standardised systolic blood pressure (SBP) and standardised total cholesterol to high density lipoprotein (HDL) ratio are continuous and repeatedly measured and so these are included as responses in an LME model.  
 
 The second issue which was mentioned previously is related to cross-validation. In particular we wish to perform k-fold cross-validation using exactly the same folds for both LOCF and LME models to ensure a fair comparison. To do this we use the parameter `cross_validation_df` which uses a list of data frames that indicate which fold each individual belongs to. We create this list using the output of `fit_LOCF_landmark_model`.
 
@@ -145,11 +145,11 @@ data_model_landmark_LME <-
     x_hor = c(65),
     cross_validation_df =
       cross_validation_list,
-    fixed_effects = c("ethnicity", "smoking", "diabetes"),
-    fixed_effects_time =
+    predictors_LME = c("ethnicity", "smoking", "diabetes"),
+    predictors_LME_time =
       "response_time_sbp_stnd",
-    random_effects = c("sbp_stnd", "tchdl_stnd"),
-    random_effects_time = c("response_time_sbp_stnd", "response_time_tchdl_stnd"),
+    responses_LME = c("sbp_stnd", "tchdl_stnd"),
+    responses_LME_time = c("response_time_sbp_stnd", "response_time_tchdl_stnd"),
     individual_id = "id",
     standardise_time = TRUE,
     lme_control = nlme::lmeControl(maxIter =

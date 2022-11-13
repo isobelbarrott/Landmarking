@@ -148,10 +148,10 @@
     <div class="ref-usage sourceCode"><pre class='sourceCode r'><code><span class='fu'>fit_LME_longitudinal</span><span class='op'>(</span>
   <span class='va'>data_long</span>,
   <span class='va'>x_L</span>,
-  <span class='va'>fixed_effects</span>,
-  <span class='va'>random_effects</span>,
-  <span class='va'>fixed_effects_time</span>,
-  <span class='va'>random_effects_time</span>,
+  <span class='va'>predictors_LME</span>,
+  <span class='va'>responses_LME</span>,
+  <span class='va'>predictors_LME_time</span>,
+  <span class='va'>responses_LME_time</span>,
   standardise_time <span class='op'>=</span> <span class='cn'>FALSE</span>,
   random_slope_longitudinal <span class='op'>=</span> <span class='cn'>TRUE</span>,
   random_slope_survival <span class='op'>=</span> <span class='cn'>TRUE</span>,
@@ -173,28 +173,28 @@
       <td><p>Numeric specifying the landmark time(s)</p></td>
     </tr>
     <tr>
-      <th>fixed_effects</th>
+      <th>predictors_LME</th>
       <td><p>Vector of character strings specifying the column names in <code>data_long</code>
-which correspond to the fixed effects variables</p></td>
+which correspond to the predictor variables in the LME model</p></td>
     </tr>
     <tr>
-      <th>random_effects</th>
+      <th>responses_LME</th>
       <td><p>Vector of character strings specifying the column names in <code>data_long</code>
-which correspond to the random effects variables</p></td>
+which correspond to the response variables in the LME model</p></td>
     </tr>
     <tr>
-      <th>fixed_effects_time</th>
+      <th>predictors_LME_time</th>
       <td><p>Vector of character strings specifying the column names in <code>data_long</code>
-which contains the time at which the fixed effects variables were recorded.
-This should either be length 1 or the same length as <code>fixed_effects</code>.
-In the latter case the order of elements must correspond to the order of elements in <code>fixed_effects</code>.</p></td>
+which contains the time at which the predictor variables were recorded.
+This should either be length 1 or the same length as <code>predictors_LME</code>.
+In the latter case the order of elements must correspond to the order of elements in <code>predictors_LME</code>.</p></td>
     </tr>
     <tr>
-      <th>random_effects_time</th>
+      <th>responses_LME_time</th>
       <td><p>Vector of character strings specifying the column names in <code>data_long</code>
-which contain the times at which random effect variables were recorded. This should either be length 1 or
-the same length as <code>random_effects</code>. In the latter case the order of elements must correspond to the
-order of elements in <code>random_effects</code>.</p></td>
+which contain the times at which response variables were recorded. This should either be length 1 or
+the same length as <code>responses_LME</code>. In the latter case the order of elements must correspond to the
+order of elements in <code>responses_LME</code>.</p></td>
     </tr>
     <tr>
       <th>standardise_time</th>
@@ -234,8 +234,8 @@ in the model development dataset. See Details section of <code>fit_LME_longitudi
     <p>List containing elements:
 <code>data_longitudinal</code>, <code>model_longitudinal</code>, <code>model_LME</code>, and <code>model_LME_standardise_time</code>.</p>
 <p><code>data_longitudinal</code> has one row for each individual in the risk set at <code>x_L</code> and
-contains the value of the covariates at the landmark time <code>x_L</code> of the <code>fixed_effects</code> using the LOCF model and
-<code>random_effects</code> using the LME model.</p>
+contains the value of the covariates at the landmark time <code>x_L</code> of the <code>predictors_LME</code> using the LOCF model and
+<code>responses_LME</code> using the LME model.</p>
 <p><code>model_longitudinal</code> indicates that the LME approach is used.</p>
 <p><code>model_LME</code> contains the output from
 the <code>lme</code> function from package <code>nlme</code>. For a model using cross-validation,
@@ -248,10 +248,10 @@ is the mean and standard deviation used to normalise times when fitting the LME 
     <p>For an individual \(i\), the LME model can be written as</p>
 <p>$$Y_i = X_i \beta + Z_i U_i + \epsilon_i$$</p>
 <p>where</p><ul>
-<li><p>\(Y_i\) is the vector of outcomes at different time points for the individual</p></li>
-<li><p>\(X_i\) is the matrix of covariates for the fixed effects at these time points</p></li>
+<li><p>\(Y_i\) is the vector of responses at different time points for the individual</p></li>
+<li><p>\(X_i\) is the matrix of predictors for the fixed effects at these time points</p></li>
 <li><p>\(\beta\) is the vector of coefficients for the fixed effects</p></li>
-<li><p>\(Z_i\) is the matrix of covariates for the random effects</p></li>
+<li><p>\(Z_i\) is the matrix of predictors for the random effects</p></li>
 <li><p>\(U_i\) is the matrix of coefficients for the random effects</p></li>
 <li><p>\(\epsilon_i\) is the error term, typically from N(0, \(\sigma\))</p></li>
 </ul>
@@ -273,16 +273,16 @@ recorded up to and including the landmark age <code>x_L</code>. This is controll
 The validation set only includes the repeat measurements recorded up until and including the landmark age <code>x_L</code>,
 i.e. it does not include future data in its predictions.</p>
 <p>Using the fitted model, the values of the best linear unbiased predictions (BLUPs)
-at the landmark age <code>x_L</code> are calculated. These BLUPs are the predictions of the values of the <code>random_effects</code>
-the landmark age <code>x_L</code>. The values of the fixed effects used as covariates in this prediction are the LOCF values of the <code>fixed_effects</code>
+at the landmark age <code>x_L</code> are calculated. These BLUPs are the predictions of the values of the <code>responses_LME</code>
+the landmark age <code>x_L</code>. The values of the predictors in this prediction are the LOCF values of the <code>predictors_LME</code>
 at the landmark age <code>x_L</code>. In the function <code>fit_LME_landmark</code>, these predictions are used as covariates in the survival
-model along with the LOCF values of the fixed effects. Additionally, the estimated value of the random slope can
+model along with the LOCF values of  <code>predictors_LME</code>. Additionally, the estimated value of the random slope can
 be included as predictors in the survival model using the parameter <code>random_slope_survival=TRUE</code>.</p>
-<p>There is an important consideration about fitting the linear mixed effects model. As the variable <code>random_effects_time</code>
+<p>There is an important consideration about fitting the linear mixed effects model. As the variable <code>responses_LME_time</code>
 gets further from 0, the random effects coefficients get closer to 0. This causes computational issues
 as the elements in the covariance matrix of the random effects, \(\Sigma_u\), are constrained to
 be greater than 0. Using parameter <code>standard_time=TRUE</code> can prevent this issue by standardising the
-time variables to ensure that the <code>random_effects_time</code> values are not too close to 0.</p>
+time variables to ensure that the <code>responses_LME_time</code> values are not too close to 0.</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

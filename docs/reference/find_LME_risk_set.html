@@ -149,10 +149,10 @@
   <span class='va'>data_long</span>,
   <span class='va'>x_L</span>,
   <span class='va'>x_hor</span>,
-  <span class='va'>fixed_effects</span>,
-  <span class='va'>fixed_effects_time</span>,
-  <span class='va'>random_effects</span>,
-  <span class='va'>random_effects_time</span>,
+  <span class='va'>predictors_LME</span>,
+  <span class='va'>predictors_LME_time</span>,
+  <span class='va'>responses_LME</span>,
+  <span class='va'>responses_LME_time</span>,
   <span class='va'>individual_id</span>,
   <span class='va'>event_time</span>,
   <span class='va'>event_status</span>
@@ -174,28 +174,28 @@
       <td><p>Numeric specifying the horizon time(s)</p></td>
     </tr>
     <tr>
-      <th>fixed_effects</th>
+      <th>predictors_LME</th>
       <td><p>Vector of character strings specifying the column names in <code>data_long</code>
-which correspond to the fixed effects variables</p></td>
+which correspond to the predictor variables in the LME model</p></td>
     </tr>
     <tr>
-      <th>fixed_effects_time</th>
+      <th>predictors_LME_time</th>
       <td><p>Vector of character strings specifying the column names in <code>data_long</code>
-which contains the time at which the fixed effects variables were recorded.
-This should either be length 1 or the same length as <code>fixed_effects</code>.
-In the latter case the order of elements must correspond to the order of elements in <code>fixed_effects</code>.</p></td>
+which contains the time at which the predictor variables were recorded.
+This should either be length 1 or the same length as <code>predictors_LME</code>.
+In the latter case the order of elements must correspond to the order of elements in <code>predictors_LME</code>.</p></td>
     </tr>
     <tr>
-      <th>random_effects</th>
+      <th>responses_LME</th>
       <td><p>Vector of character strings specifying the column names in <code>data_long</code>
-which correspond to the random effects variables</p></td>
+which correspond to the response variables in the LME model</p></td>
     </tr>
     <tr>
-      <th>random_effects_time</th>
+      <th>responses_LME_time</th>
       <td><p>Vector of character strings specifying the column names in <code>data_long</code>
-which contain the times at which random effect variables were recorded. This should either be length 1 or
-the same length as <code>random_effects</code>. In the latter case the order of elements must correspond to the
-order of elements in <code>random_effects</code>.</p></td>
+which contain the times at which response variables were recorded. This should either be length 1 or
+the same length as <code>responses_LME</code>. In the latter case the order of elements must correspond to the
+order of elements in <code>responses_LME</code>.</p></td>
     </tr>
     <tr>
       <th>individual_id</th>
@@ -220,7 +220,7 @@ which contains the event status (where 0=censoring, 1=event of interest, if ther
 in the risk set at each of the landmark times x_L.</p>
     <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
 
-    <p>This function finds the risk set for each of landmark times in x_L. This means that each of the individuals has a LME value for all fixed_effects at the landmark time and
+    <p>This function finds the risk set for each of landmark times in x_L. This means that each of the individuals has a LME value for all predictors_LME at the landmark time and
 has not experienced an event up to (and including) the landmark time.</p>
     <h2 class="hasAnchor" id="author"><a class="anchor" href="#author"></a>Author</h2>
 

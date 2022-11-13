@@ -249,7 +249,7 @@ please see <code><a href='get_model_assessment.html'>?get_model_assessment</a></
 
     <p>Firstly, this function selects the individuals in the risk set at the landmark time <code>x_L</code>.
 Specifically, the individuals in the risk set are those that have entered the study before the landmark time <code>x_L</code>
-(there is at least one observation for each of the <code>fixed_effects</code> and <code>random_effects</code> on or before <code>x_L</code>) and
+(there is at least one observation for each of the <code>predictors_LME</code> and <code>random_effects</code> on or before <code>x_L</code>) and
 exited the study after the landmark age (<code>event_time</code>
 is greater than <code>x_L</code>).</p>
 <p>Secondly, if the option to use cross validation
