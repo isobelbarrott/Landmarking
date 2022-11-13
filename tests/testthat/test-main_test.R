@@ -32,11 +32,11 @@ data_model_landmark_LME <-
     x_hor = c(65),
     cross_validation_df =
       cross_validation_list,
-    fixed_effects = c("ethnicity", "smoking", "diabetes"),
-    fixed_effects_time =
+    predictors_LME = c("ethnicity", "smoking", "diabetes"),
+    predictors_LME_time =
       "response_time_sbp_stnd",
-    random_effects = c("sbp_stnd", "tchdl_stnd"),
-    random_effects_time = c("response_time_sbp_stnd", "response_time_tchdl_stnd"),
+    responses_LME = c("sbp_stnd", "tchdl_stnd"),
+    responses_LME_time = c("response_time_sbp_stnd", "response_time_tchdl_stnd"),
     individual_id = "id",
     standardise_time = TRUE,
     lme_control = nlme::lmeControl(maxIter = 100, msMaxIter = 100),
