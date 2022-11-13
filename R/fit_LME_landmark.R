@@ -767,6 +767,7 @@ fit_LME_landmark <- function(data_long,
                                     event_time=event_time,
                                     event_status=event_status)
 
+
   #Add cross-validation folds
   if (cross_validation_df_add == TRUE) {
     for (x_l in x_L){
@@ -796,8 +797,8 @@ fit_LME_landmark <- function(data_long,
     x_h <- x_hor[i]
 
     data_long <- data_long_x_L[[as.character(x_l)]]
+    message("Fitting longitudinal submodel, landmark age ", x_l)
 
-    print(paste0("Fitting longitudinal submodel, landmark age ", x_l))
     data_model_longitudinal <-
       fit_LME_longitudinal(
         data_long = data_long,
@@ -821,7 +822,7 @@ fit_LME_landmark <- function(data_long,
           individual_id,
         lme_control = lme_control
       )
-    print(paste0("Complete, landmark age ", x_l))
+    message("Complete, landmark age ", x_l)
 
     data_events <-
       dplyr::distinct(data_long[, c(individual_id, event_status, event_time)])
@@ -830,7 +831,7 @@ fit_LME_landmark <- function(data_long,
                        data_events,
                        by = individual_id)
 
-    print(paste0("Fitting survival submodel, landmark age ", x_l))
+    message("Fitting survival submodel, landmark age ", x_l)
 
     if (random_slope_survival) {
       responses_LME <- c(responses_LME, paste0(responses_LME, "_slope"))
@@ -852,7 +853,7 @@ fit_LME_landmark <- function(data_long,
                        data_model_survival$data_survival[,c(individual_id,"event_prediction")],
                        by = individual_id)
 
-    print(paste0("Complete, landmark age ", x_l))
+    message("Complete, landmark age ", x_l)
 
     prediction_error <-
       get_model_assessment(
