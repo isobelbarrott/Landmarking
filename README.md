@@ -59,5 +59,5 @@ predict(object=data_model_landmark_LOCF,x_L=40,x_hor=45,newdata=newdata)
 
 <!-- badges: start -->
 
-[![R-CMD-check](https://github.com/isobelbarrott/Landmarking/workflows/R-CMD-check/badge.svg)](https://github.com/isobelbarrott/Landmarking/actions)
+[![R-CMD-check](https://github.com/isobelbarrott/Landmarking/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/isobelbarrott/Landmarking/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
