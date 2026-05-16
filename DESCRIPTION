@@ -1,6 +1,6 @@
 Package: Landmarking
 Title: Analysis using Landmark Models
-Version: 1.0.2
+Version: 1.0.1
 Authors@R: c(
     person(given = "Isobel",
            family = "Barrott",
@@ -52,8 +52,8 @@ Suggests:
     JM
 VignetteBuilder: knitr
 Depends: 
-    R (>= 2.10)
+    R (>= 3.5.0)
 Roxygen: list(markdown = TRUE)
-URL: https://github.com/isobelbarrott/Landmarking/
+URL: https://github.com/isobelbarrott/Landmarking/, https://github.com/isobelbarrott/Landmarking
 BugReports: https://github.com/isobelbarrott/Landmarking/issues
 Config/testthat/edition: 3
