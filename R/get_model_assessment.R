@@ -99,11 +99,11 @@ get_model_assessment <-
       }
     }
 
-    if (!(inherits(x_hor,"numeric"))) {
+    if (!(is.numeric(x_hor))) {
       stop("x_hor should be numeric")
     }
     if (!is.na(b)) {
-      if (!(inherits(b,"numeric"))) {
+      if (!(is.numeric(b))) {
         stop("b should be numeric")
       }
       standard_error <- TRUE

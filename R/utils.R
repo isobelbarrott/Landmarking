@@ -16,3 +16,17 @@ return_LOCF_by_variable <- function(data_long,
     data_var[!duplicated(data_var[[individual_id]]),]
   return(data_var[, c(individual_id, var)])
 }
+
+# Return an argument used to fit a landmark model. Models fitted with
+# Landmarking >= 1.0.3 store their resolved arguments in `args`; for older
+# objects fall back to evaluating the stored call.
+get_landmark_arg <- function(landmark_model, name, default = NULL) {
+  if (!is.null(landmark_model$args) && name %in% names(landmark_model$args)) {
+    return(landmark_model$args[[name]])
+  }
+  value <- landmark_model$call[[name]]
+  if (is.null(value)) {
+    return(default)
+  }
+  eval(value)
+}

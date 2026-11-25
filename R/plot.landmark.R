@@ -42,23 +42,23 @@ plot.landmark <- function(x, x_L, n, x_lims, y_lims, ...) {
   if (!inherits(x,"landmark")) {
     stop("x must have class 'landmark'")
   }
-  if (!inherits(x_L,"numeric")) {
+  if (!is.numeric(x_L)) {
     stop("x_L should be numeric")
   }
-  if (!inherits(n,"numeric")) {
+  if (!is.numeric(n)) {
     stop("n must have class numeric")
   }
   if (!(as.character(x_L) %in% names(x))) {
     stop("x_L must be the name of an element in 'x'")
   }
   x <- x[[as.character(x_L)]]
-  event_status <- x$call$event_status
+  event_status <- get_landmark_arg(x, "event_status")
 
   strata <- survival::strata
   actual <- c()
   predicted <- c()
   data_survival <- x$data
-  event_time <- x$call$event_time
+  event_time <- get_landmark_arg(x, "event_time")
   data_survival[["event_time"]] <- data_survival[[event_time]]
   events <- unique(x[["data"]][[event_status]])
 

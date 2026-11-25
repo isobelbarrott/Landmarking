@@ -46,7 +46,7 @@ fit_survival_model <- function(data,
   if (!(inherits(data,"data.frame"))) {
     stop("data should be a dataframe")
   }
-  if (!(inherits(x_hor,"numeric"))) {
+  if (!(is.numeric(x_hor))) {
     stop("x_hor should be numeric")
   }
   for (col in c(covariates,

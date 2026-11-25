@@ -35,7 +35,7 @@ add_cv_number <- function(data_long, individual_id, k, seed = 1) {
   if(any(is.na(data_long[[individual_id]]))){
     stop(individual_id, " contains NA values")
   }
-  if (!(inherits(k,"numeric"))) {
+  if (!(is.numeric(k))) {
     stop("k should have class numeric")
   }
   ids <- data_long[[individual_id]]
