@@ -44,18 +44,30 @@ data_model_landmark_LME <-
     event_status = "event_status",
     survival_submodel = "cause_specific"
   )
-save_file <- function(code) {
-  path <- tempfile(fileext = ".RDS")
-  saveRDS(code,file = path)
-  path
+# Compare predictions and performance metrics against reference values from
+# the original release. Whole-object RDS snapshots were not reproducible: the
+# riskRegression::CSC fit serialises differently on every run, even with the
+# same data and seed. A small tolerance allows for numerical differences
+# between nlme/riskRegression versions.
+reference <- readRDS(test_path("fixtures", "main_test_reference.rds"))
+
+expect_matches_reference <- function(model, ref) {
+  expect_setequal(names(model), names(ref))
+  for (x_l in names(ref)) {
+    fitted <- model[[x_l]]$data
+    idx <- match(ref[[x_l]]$id, as.character(fitted$id))
+    expect_false(anyNA(idx))
+    expect_equal(fitted$event_prediction[idx], ref[[x_l]]$event_prediction, tolerance = 1e-3)
+    expect_equal(unlist(model[[x_l]]$prediction_error), ref[[x_l]]$prediction_error, tolerance = 1e-3)
+  }
 }
 
 test_that("fitting landmark (LOCF)", {
-  expect_snapshot_file(save_file(
-    data_model_landmark_LOCF), "out_data_model_landmark_LOCF.RDS",cran = FALSE)
+  skip_on_cran()
+  expect_matches_reference(data_model_landmark_LOCF, reference$LOCF)
 })
 
 test_that("fitting landmark (LME)", {
-  expect_snapshot_file(save_file(
-    data_model_landmark_LME), "out_data_model_landmark_LME.RDS",cran = FALSE)
+  skip_on_cran()
+  expect_matches_reference(data_model_landmark_LME, reference$LME)
 })
