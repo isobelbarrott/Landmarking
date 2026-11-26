@@ -175,9 +175,12 @@ predict.landmark <- function(object, x_L, x_hor, newdata, cv_fold = NA, ...) {
     data_LME<-data_LME[data_LME$response_time<=x_L,]
     data_LME$predict <- 0
     data_longitudinal <- dplyr::bind_rows(data_LOCF, data_LME)
-    #Drop unused factor levels (e.g. ids not in newdata) so that mixoutsamp
-    #does not try to compute random effects for individuals with no data
-    data_longitudinal <- droplevels(data_longitudinal)
+    #Drop unused levels of the id column only (e.g. ids not in newdata), so
+    #that mixoutsamp does not try to compute random effects for individuals
+    #with no data. Covariate factors must keep the levels used to fit the
+    #model, otherwise model.matrix() fails for small newdata.
+    data_longitudinal[[individual_id]] <-
+      droplevels(as.factor(data_longitudinal[[individual_id]]))
 
     mean_response_time <-
       object[[as.character(x_L)]]$model_LME_standardise_time$mean_response_time

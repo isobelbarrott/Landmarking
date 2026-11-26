@@ -12,7 +12,9 @@
 
 * Missing cross-validation folds are now detected at every landmark age, not only the last.
 
-* Add tests for argument handling, cross-validation folds, the `standard_cox` and `fine_gray` submodels, and `predict()`.
+* Add tests for argument handling, cross-validation folds, the `standard_cox` and `fine_gray` submodels, and `predict()` (including for a single new individual).
+
+* Replace the RDS snapshot tests with numerical checks of predictions and prediction error against reference values.
 
 # Landmarking 1.0.2
 

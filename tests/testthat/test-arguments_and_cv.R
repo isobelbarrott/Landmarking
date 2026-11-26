@@ -193,3 +193,46 @@ test_that("plot() works when arguments were passed as variables", {
   m <- fit_in_function()
   expect_s3_class(plot(m, x_L = 60, n = 5), "ggplot")
 })
+
+# A new individual, as in the how_to_use vignette: character/numeric
+# covariates rather than factors, and only one ethnicity present
+new_individual <- data.frame(
+  id = c("3001", "3001", "3001"),
+  response_time_sbp_stnd = c(57, 58, 59),
+  smoking = c(0, 0, 0),
+  diabetes = c(0, 0, 0),
+  ethnicity = c("Indian", "Indian", "Indian"),
+  sbp_stnd = c(0.45, 0.87, 0.85),
+  tchdl_stnd = c(-0.7, 0.24, 0.3),
+  response_time_tchdl_stnd = c(57, 58, 59)
+)
+
+# The same individual alongside 50 individuals from the risk set
+with_others <- function(new_individual) {
+  others <- risk_set_60[risk_set_60$id %in% unique(risk_set_60$id)[1:50], names(new_individual)]
+  others[] <- lapply(others, function(x) if (is.factor(x)) as.character(x) else x)
+  others$smoking <- as.numeric(others$smoking)
+  others$diabetes <- as.numeric(others$diabetes)
+  rbind(new_individual, others)
+}
+
+expect_same_alone_and_with_others <- function(model) {
+  pred_alone <- quietly(predict(model, x_L = 60, x_hor = 64, newdata = new_individual))
+  pred_group <- quietly(predict(model, x_L = 60, x_hor = 64, newdata = with_others(new_individual)))
+  expect_equal(nrow(pred_alone), 1)
+  p <- pred_alone$event_prediction
+  expect_true(p > 0 && p < 1)
+  expect_equal(p, pred_group$event_prediction[as.character(pred_group$id) == "3001"])
+}
+
+test_that("predict() works for a single new individual (LOCF)", {
+  m <- fit_locf(data_long = data_repeat_outcomes, x_L = 60, x_hor = 65,
+                covariates = covs, covariates_time = cov_times,
+                survival_submodel = "cause_specific")
+  expect_same_alone_and_with_others(m)
+})
+
+test_that("predict() works for a single new individual (LME)", {
+  m <- fit_lme(data_repeat_outcomes)
+  expect_same_alone_and_with_others(m)
+})
