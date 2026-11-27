@@ -161,6 +161,7 @@ find_LME_risk_set <- function(data_long,
 #' @param random_slope_longitudinal Boolean indicating whether to include a random slope in the LME model. See Details section of `fit_LME_longitudinal` for more information.
 #' @param random_slope_survival Boolean indicating whether to include the random slope estimate from the LME model
 #' as a covariate in the survival submodel. See Details section of `fit_LME_longitudinal` for more information.
+#' If `standardise_time = TRUE`, the slopes are on the standardised time scale, i.e. per standard deviation of the response times.
 #' @param include_data_after_x_L Boolean indicating whether to include all longitudinal data, including data after the landmark age `x_L`,
 #' in the model development dataset. See Details section of `fit_LME_longitudinal` for more information.
 #' @param lme_control Object created using `nlme::lmeControl()`, which will be passed to the `control` argument of the `lme` function
@@ -313,6 +314,14 @@ fit_LME_longitudinal <- function(data_long,
   data_long[[individual_id]] <-
     as.factor(data_long[[individual_id]])
 
+  #Convert character predictors to factors so that every cross-validation
+  #fold (and predict()) uses the same levels as the full data
+  for (predictor_LME in predictors_LME) {
+    if (is.character(data_long[[predictor_LME]])) {
+      data_long[[predictor_LME]] <- factor(data_long[[predictor_LME]])
+    }
+  }
+
   data_LOCF <- data_long
   data_LME <- data_long
 
@@ -330,6 +339,18 @@ fit_LME_longitudinal <- function(data_long,
       )
     })
   data_LOCF <- Reduce(merge, LOCF_values_by_variable)
+
+  n_without_LOCF <-
+    length(unique(data_long[[individual_id]])) - length(unique(data_LOCF[[individual_id]]))
+  if (n_without_LOCF >= 1) {
+    warning(
+      n_without_LOCF,
+      " individuals have been removed from the survival submodel at landmark age ",
+      x_L,
+      " as they do not have an observation of each of responses_LME on or before the landmark age",
+      " (their measurements are still used to fit the LME model)"
+    )
+  }
 
   data_LOCF <-
     dplyr::left_join(data_LOCF, unique(data_long[c(individual_id, cv_name)]), by =
@@ -461,7 +482,11 @@ fit_LME_longitudinal <- function(data_long,
     lapply(cv_numbers, function(cv_number) {
       data_LME_model_val_cv <-
         data_LME_model_val[which(data_LME_model_val[[cv_name]] == cv_number),]
-      data_LME_model_val_cv <- droplevels(data_LME_model_val_cv)
+      #Drop unused levels of the id column only. Covariate factors must keep
+      #all their levels, otherwise model.matrix() returns fewer columns than
+      #the fitted model when a fold has no individuals in a category
+      data_LME_model_val_cv[[individual_id]] <-
+        droplevels(as.factor(data_LME_model_val_cv[[individual_id]]))
       model_LME_cv <- model_LME[[as.character(cv_number)]]
       response_predictions <-
         which(data_LME_model_val_cv$predict == 1)
@@ -561,9 +586,9 @@ fit_LME_longitudinal <- function(data_long,
 #' @param include_data_after_x_L Boolean indicating whether to include all longitudinal data, including data after the landmark age `x_L`,
 #' in the model development dataset. See Details section of `fit_LME_longitudinal` for more information.
 #' @param random_slope_longitudinal Boolean indicating whether to include a random slope in the LME model. See Details section of `fit_LME_longitudinal` for more information.
-#' @param random_slope_survival Boolean indicating whether to include the random slope estimate from the LME model.
-#' See Details section of `fit_LME_longitudinal` for more information.
+#' @param random_slope_survival Boolean indicating whether to include the random slope estimate from the LME model
 #' as a covariate in the survival submodel. See Details section of `fit_LME_longitudinal` for more information.
+#' If `standardise_time = TRUE`, the slopes are on the standardised time scale, i.e. per standard deviation of the response times.
 #' @param lme_control Object created using `nlme::lmeControl()`, which will be passed to the `control` argument of the `lme`
 #' function
 #' @template b
@@ -598,7 +623,8 @@ fit_LME_longitudinal <- function(data_long,
 #' Specifically, the individuals in the risk set are those that have entered the study before the landmark time \code{x_L}
 #' (there is at least one observation for each of the \code{predictors_LME} and \code{responses_LME} on or before \code{x_L}) and
 #' exited the study after the landmark age (\code{event_time}
-#' is greater than \code{x_L}).
+#' is greater than \code{x_L}). Individuals without an observation of each of the \code{responses_LME} on or before
+#' \code{x_L} are excluded from the survival submodel with a warning, but their measurements are still used to fit the LME model.
 #'
 #' Secondly, if the option to use cross validation
 #' is selected (using either parameter `k` or `cross_validation_df`), then an extra column `cross_validation_number` is added with the
@@ -735,6 +761,9 @@ fit_LME_landmark <- function(data_long,
   if (length(x_L) != length(x_hor)) {
     stop("Length of x_L should be the same as length of x_hor")
   }
+  if (is.numeric(x_L) && is.numeric(x_hor) && any(x_hor <= x_L)) {
+    stop("x_hor should be greater than x_L")
+  }
 
   if (!(is.data.frame(data_long) ||
         is.list(data_long))) {
@@ -793,6 +822,13 @@ fit_LME_landmark <- function(data_long,
         dplyr::left_join(x, dplyr::distinct(data_long_x_L_cv[, c(individual_id, "cross_validation_number")]), by =
                            individual_id)
       }
+    )
+  }
+
+  if (is.na(cv_name)) {
+    message(
+      "No cross-validation was used (neither k nor cross_validation_df was given), ",
+      "so prediction_error is the in-sample (apparent) performance, which is likely to be optimistic"
     )
   }
 

@@ -47,7 +47,8 @@ and dividing by the standard deviation. See Details section of \code{fit_LME_lon
 \item{random_slope_longitudinal}{Boolean indicating whether to include a random slope in the LME model. See Details section of \code{fit_LME_longitudinal} for more information.}
 
 \item{random_slope_survival}{Boolean indicating whether to include the random slope estimate from the LME model
-as a covariate in the survival submodel. See Details section of \code{fit_LME_longitudinal} for more information.}
+as a covariate in the survival submodel. See Details section of \code{fit_LME_longitudinal} for more information.
+If \code{standardise_time = TRUE}, the slopes are on the standardised time scale, i.e. per standard deviation of the response times.}
 
 \item{include_data_after_x_L}{Boolean indicating whether to include all longitudinal data, including data after the landmark age \code{x_L},
 in the model development dataset. See Details section of \code{fit_LME_longitudinal} for more information.}

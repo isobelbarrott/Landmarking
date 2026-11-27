@@ -1,3 +1,6 @@
+# Fitting these models takes several minutes, so skip this file on CRAN
+skip_on_cran()
+
 set.seed(1)
 data(data_repeat_outcomes)
 data_repeat_outcomes <-

@@ -13,7 +13,8 @@ add_cv_number(data_long, individual_id, k, seed = 1)
 
 \item{k}{Integer specifying the number of folds for cross-validation.}
 
-\item{seed}{The value of the seed (default is 1)}
+\item{seed}{The value of the seed (default is 1). The seed is used only for assigning
+the folds: the global random number generator state is restored afterwards.}
 }
 \value{
 Data frame \code{data_long} updated to contain a new column \code{cross_validation_number}

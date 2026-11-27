@@ -58,6 +58,9 @@ predict.landmark <- function(object, x_L, x_hor, newdata, cv_fold = NA, ...) {
   if (!(is.numeric(x_hor))) {
     stop("x_hor should have class numeric")
   }
+  if (x_hor <= x_L) {
+    stop("x_hor should be greater than x_L")
+  }
 
   model_longitudinal <- object[[as.character(x_L)]]$model_longitudinal
 

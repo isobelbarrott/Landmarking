@@ -52,9 +52,9 @@ order of elements in \code{responses_LME}.}
 
 \item{random_slope_longitudinal}{Boolean indicating whether to include a random slope in the LME model. See Details section of \code{fit_LME_longitudinal} for more information.}
 
-\item{random_slope_survival}{Boolean indicating whether to include the random slope estimate from the LME model.
-See Details section of \code{fit_LME_longitudinal} for more information.
-as a covariate in the survival submodel. See Details section of \code{fit_LME_longitudinal} for more information.}
+\item{random_slope_survival}{Boolean indicating whether to include the random slope estimate from the LME model
+as a covariate in the survival submodel. See Details section of \code{fit_LME_longitudinal} for more information.
+If \code{standardise_time = TRUE}, the slopes are on the standardised time scale, i.e. per standard deviation of the response times.}
 
 \item{include_data_after_x_L}{Boolean indicating whether to include all longitudinal data, including data after the landmark age \code{x_L},
 in the model development dataset. See Details section of \code{fit_LME_longitudinal} for more information.}
@@ -87,7 +87,9 @@ use. Three options: the standard Cox model i.e. no competing risks (\code{"stand
 the cause-specific regression model (\code{"cause_specific"}), or the Fine Gray
 regression model (\code{"fine_gray"})}
 
-\item{b}{Integer specifying the number of bootstrap samples to take when calculating standard error of c-index and Brier score}
+\item{b}{Integer specifying the number of bootstrap samples to take when calculating standard error of c-index and Brier score.
+The bootstrap resamples the individuals used to assess performance while holding the fitted models and their predictions fixed,
+so the standard errors do not include the uncertainty from fitting the models. Use \code{set.seed()} beforehand for reproducible standard errors.}
 }
 \value{
 List containing containing information about the landmark model at each of the landmark times.
@@ -125,7 +127,8 @@ Firstly, this function selects the individuals in the risk set at the landmark t
 Specifically, the individuals in the risk set are those that have entered the study before the landmark time \code{x_L}
 (there is at least one observation for each of the \code{predictors_LME} and \code{responses_LME} on or before \code{x_L}) and
 exited the study after the landmark age (\code{event_time}
-is greater than \code{x_L}).
+is greater than \code{x_L}). Individuals without an observation of each of the \code{responses_LME} on or before
+\code{x_L} are excluded from the survival submodel with a warning, but their measurements are still used to fit the LME model.
 
 Secondly, if the option to use cross validation
 is selected (using either parameter \code{k} or \code{cross_validation_df}), then an extra column \code{cross_validation_number} is added with the

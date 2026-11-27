@@ -410,6 +410,9 @@ fit_LOCF_landmark <- function(data_long,
   if (length(x_L) != length(x_hor)) {
     stop("Length of x_L should be the same as length of x_hor")
   }
+  if (is.numeric(x_L) && is.numeric(x_hor) && any(x_hor <= x_L)) {
+    stop("x_hor should be greater than x_L")
+  }
   if (!(is.data.frame(data_long) ||
         is.list(data_long))) {
     stop("data_long should be a list or data.frame")
@@ -464,6 +467,13 @@ fit_LOCF_landmark <- function(data_long,
         dplyr::left_join(x, dplyr::distinct(data_long_x_L_cv[, c(individual_id, "cross_validation_number")]), by =
                            individual_id)
       })
+  }
+
+  if (is.na(cv_name)) {
+    message(
+      "No cross-validation was used (neither k nor cross_validation_df was given), ",
+      "so prediction_error is the in-sample (apparent) performance, which is likely to be optimistic"
+    )
   }
 
   #Store the resolved arguments so that predict() and plot() do not need to
