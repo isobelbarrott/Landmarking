@@ -1,4 +1,4 @@
-# Landmarking (development version)
+# Landmarking 1.1.0
 
 ## Changes that affect results
 
