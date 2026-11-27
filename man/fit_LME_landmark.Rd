@@ -38,7 +38,8 @@ Each data frame contains repeat measurements data and time-to-event data in long
 which correspond to the predictor variables in the LME model}
 
 \item{responses_LME}{Vector of character strings specifying the column names in \code{data_long}
-which correspond to the response variables in the LME model}
+which correspond to the response variables in the LME model. Values may be missing (\code{NA}), for example when the
+responses are measured at different times; missing values are ignored.}
 
 \item{predictors_LME_time}{Vector of character strings specifying the column names in \code{data_long}
 which contains the time at which the predictor variables were recorded.
@@ -48,7 +49,7 @@ In the latter case the order of elements must correspond to the order of element
 \item{responses_LME_time}{Vector of character strings specifying the column names in \code{data_long}
 which contain the times at which response variables were recorded. This should either be length 1 or
 the same length as \code{responses_LME}. In the latter case the order of elements must correspond to the
-order of elements in \code{responses_LME}.}
+order of elements in \code{responses_LME}. A time may be missing when the corresponding response is missing.}
 
 \item{random_slope_longitudinal}{Boolean indicating whether to include a random slope in the LME model. See Details section of \code{fit_LME_longitudinal} for more information.}
 
@@ -57,7 +58,12 @@ as a covariate in the survival submodel. See Details section of \code{fit_LME_lo
 If \code{standardise_time = TRUE}, the slopes are on the standardised time scale, i.e. per standard deviation of the response times.}
 
 \item{include_data_after_x_L}{Boolean indicating whether to include all longitudinal data, including data after the landmark age \code{x_L},
-in the model development dataset. See Details section of \code{fit_LME_longitudinal} for more information.}
+in the model development dataset (default \code{TRUE}). Using measurements after the landmark age can improve the estimates of the
+LME model, but it conditions on individuals remaining under observation after the landmark age, and how often individuals are
+measured may itself be related to their outcome. With cross-validation, only the measurements of individuals in the training folds
+are used to fit the LME model, so the measurements after the landmark age of the individuals being predicted are never used;
+comparing the cross-validated performance with \code{include_data_after_x_L = FALSE} shows whether using these data improves the predictions.
+See Details section of \code{fit_LME_longitudinal} for more information.}
 
 \item{individual_id}{Character string specifying the column name in \code{data_long} which contains the individual identifiers}
 
@@ -87,14 +93,13 @@ use. Three options: the standard Cox model i.e. no competing risks (\code{"stand
 the cause-specific regression model (\code{"cause_specific"}), or the Fine Gray
 regression model (\code{"fine_gray"})}
 
-\item{b}{Integer specifying the number of bootstrap samples to take when calculating standard error of c-index and Brier score.
-The bootstrap resamples the individuals used to assess performance while holding the fitted models and their predictions fixed,
-so the standard errors do not include the uncertainty from fitting the models. Use \code{set.seed()} beforehand for reproducible standard errors.}
+\item{b}{No longer used (deprecated in Landmarking 1.1.0). Standard errors of the AUC and Brier score are now
+calculated from the influence function with \code{riskRegression::Score()} rather than by bootstrapping; a warning is given if \code{b} is supplied.}
 }
 \value{
 List containing containing information about the landmark model at each of the landmark times.
 Each element of this list is named the corresponding landmark time, and is itself a list containing elements:
-\code{data}, \code{model_longitudinal}, \code{model_LME}, \code{model_LME_standardise_time}, \code{model_survival}, and \code{prediction_error}.
+\code{data}, \code{model_longitudinal}, \code{model_LME}, \code{model_LME_standardise_time}, \code{model_survival}, \code{prediction_error}, and \code{x_hor}.
 
 \code{data} has one row for each individual in the risk set at \code{x_L} and
 contains the value of the \code{predictors_LME} using the LOCF approach and predicted values of the
@@ -110,14 +115,18 @@ the \code{lme} function from package \code{nlme}. For a model using cross-valida
 element in the list corresponds to a different cross-validation fold.
 
 \code{model_LME_standardise_time} contains a list of two objects \code{mean_response_time} and \code{sd_response_time} if the parameter \code{standardise_time=TRUE} is used. This
-is the mean and standard deviation use to normalise times when fitting the LME model.
+is the mean and standard deviation used to normalise times when fitting the LME model. For a model using cross-validation, it contains
+a list of these for each cross-validation fold.
 
 \code{model_survival} contains the outputs from
 the survival submodel functions, including the estimated parameters of the model. For a model using cross-validation,
 \code{model_survival} will contain a list of outputs with each
 element in the list corresponding to a different cross-validation fold.
 
-\code{prediction_error} contains a list indicating the c-index and Brier score at time \code{x_hor} and their standard errors if parameter \code{b} is used.
+\code{prediction_error} contains a list with the time-dependent AUC, the Brier score and their standard errors, and the index of prediction accuracy (IPA),
+at time \code{x_hor}. See \code{?get_model_assessment} for details.
+
+\code{x_hor} is the horizon time used to fit the model. \code{predict} does not predict beyond this time.
 }
 \description{
 This function performs the two-stage landmarking analysis.
@@ -139,12 +148,19 @@ If cross-validation is not selected then the landmark model is
 fit to the entire group of individuals in the risk set (this is both the training and test dataset).
 
 Thirdly, the landmark model is then fit to each of the training datasets. There are two parts to fitting the landmark model: using the longitudinal data and using the survival data.
-Using the longitudinal data is the first stage and is performed using \code{fit_LME_longitudinal}. See \code{?fit_LME_longitudinal} more for information about this function.
-Using the survival data is the second stage and is performed using \code{fit_survival_model}. This function censors the
-individuals at the time horizon \code{x_L} and fits the survival model. See \code{?fit_survival_model} more for information about this function.
+Using the longitudinal data is the first stage, in which an LME model is fitted and used to predict the values of the \code{responses_LME} at the landmark age.
+See \code{?fit_LME_longitudinal} more for information about this stage. Using the survival data is the second stage, in which the
+individuals are censored at the time horizon \code{x_hor} and the survival model is fitted. See \code{?fit_survival_model} more for information about this stage.
+
+With cross-validation, both stages are nested within each fold: for each fold, the LME model is fitted to the other folds (with time
+standardised using their measurements) and used to predict the values of the \code{responses_LME} at the landmark age for every individual,
+from their measurements up to the landmark age. The survival model is then fitted to the individuals in the other folds and used to predict
+the risk for the individuals in the fold. So no data from a fold are used to fit the models that predict it.
+In versions of Landmarking before 1.1.0, the survival model for a fold was trained on predictions from LME models that had been fitted
+using data from that fold, which could make the cross-validated performance optimistic.
 
 Fourthly, the performance of the model is then assessed on the set of predictions
-from the entire set of individuals in the risk set by calculating Brier score and C-index.
+from the entire set of individuals in the risk set by calculating the time-dependent AUC, Brier score and index of prediction accuracy.
 This is performed using \code{get_model_assessment}. See \code{?get_model_assessment} more for information about this function.
 }
 \examples{

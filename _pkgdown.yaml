@@ -17,6 +17,7 @@ reference:
       - '`fit_LME_longitudinal`'
       - '`fit_survival_model`'
       - '`get_model_assessment`'
+      - '`get_calibration`'
       - '`predict.landmark`'
       - '`plot.landmark`'
       - '`mixoutsamp`'

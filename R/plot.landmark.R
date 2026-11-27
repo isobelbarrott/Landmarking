@@ -1,20 +1,27 @@
 #' Create a calibration plot
 #'
-#' Creates a calibration plot for the landmark model fitted by `fit_LME_landmark_model` or `fit_LOCF_landmark_model`.
+#' Creates a calibration plot for the landmark model fitted by `fit_LME_landmark` or `fit_LOCF_landmark`.
 #' This function plots the observed frequencies of the event of interest against the predicted probabilities of the event of interest.
 #'
-#' @param x Object inheriting the class `landmark`, this should be the output from either `fit_LME_landmark_model` or `fit_LOCF_landmark_model`. It should contain a list
+#' @param x Object inheriting the class `landmark`, this should be the output from either `fit_LME_landmark` or `fit_LOCF_landmark`. It should contain a list
 #' of landmark models corresponding to different landmark times `x_L`.
 #' @param x_L Numeric specifying the landmark time. This indicates which landmark model in `x` to use.
-#' @param n Numeric specifying the number of bins to use.
+#' @param n Numeric specifying the number of bins to use (for `type = "binned"`).
 #' @param x_lims Vector of length 2 specifying the limits of the x axes
 #' @param y_lims Vector of length 2 specifying the limits of the y axes
-#' @param \dots Arguments passed to `ggplot2::labs` to modify axis, legend, and plot labels
+#' @param type Character string specifying the type of calibration plot: `"binned"` (the default) or `"smooth"`.
+#' @param span Numeric specifying the span of the loess smoother (for `type = "smooth"`, default 0.75).
+#' @param \dots Arguments passed to `ggplot2::geom_point` (for `type = "binned"`) or `ggplot2::geom_line` (for `type = "smooth"`)
 #' @return Calibration plot showing the value of predicted probabilities against observed frequencies, with a `y=x` line.
-#' @details This function bins the predicted probabilities of the event of interest into `n` bins. The event of interest is the event with
+#' @details With `type = "binned"`, this function bins the predicted probabilities of the event of interest into `n` bins. The event of interest is the event with
 #' `event_status=1` when fitting the landmark model. For each of the `n` sets of individuals, the Aalen-Johansen estimator is fit to that set
 #' and used to calculate the risk of an event at the horizon time. The predictions (from the landmark model) and the observed frequencies
 #' (from the Aalen-Johansen estimator) are plotted against each other. For a perfect prediction model, the points will be plotted along the y=x line.
+#' The plot depends on the choice of `n`.
+#'
+#' With `type = "smooth"`, the plot shows a smooth calibration curve estimated with pseudo-observations, without grouping the
+#' predictions, and the integrated calibration index (ICI), E50 and E90 are given in the subtitle. The tick marks along the x axis show
+#' the distribution of the predicted risks. See `get_calibration` for details and for the values of the curve and metrics.
 #' @examples
 #' library(Landmarking)
 #' data(data_repeat_outcomes)
@@ -35,21 +42,52 @@
 #'   )
 #'  plot(x=data_model_landmark_LOCF,x_L=60,n=5)
 #'  plot(x=data_model_landmark_LOCF,x_L=61,n=5)
+#'  plot(x=data_model_landmark_LOCF,x_L=60,type="smooth")
 #' @export
 
 
-plot.landmark <- function(x, x_L, n, x_lims, y_lims, ...) {
+plot.landmark <- function(x, x_L, n, x_lims, y_lims, type = c("binned", "smooth"), span = 0.75, ...) {
   if (!inherits(x,"landmark")) {
     stop("x must have class 'landmark'")
   }
   if (!is.numeric(x_L)) {
     stop("x_L should be numeric")
   }
-  if (!is.numeric(n)) {
-    stop("n must have class numeric")
-  }
+  type <- match.arg(type)
   if (!(as.character(x_L) %in% names(x))) {
     stop("x_L must be the name of an element in 'x'")
+  }
+  if (missing(x_lims)) {
+    x_lims <- c(0, 1)
+  }
+  if (missing(y_lims)) {
+    y_lims <- c(0, 1)
+  }
+
+  if (type == "smooth") {
+    calibration <- get_calibration(x = x, x_L = x_L, span = span)
+    observed <- predicted <- NULL # columns used in ggplot2::aes()
+    data_predictions <- data.frame(predicted = x[[as.character(x_L)]]$data$event_prediction)
+    return(
+      ggplot2::ggplot(calibration$curve, ggplot2::aes(x = predicted, y = observed)) +
+        ggplot2::geom_line(...) +
+        ggplot2::geom_abline(intercept = 0,
+                             slope = 1,
+                             linetype = "dashed") +
+        ggplot2::geom_rug(data = data_predictions,
+                          mapping = ggplot2::aes(x = predicted),
+                          inherit.aes = FALSE,
+                          sides = "b",
+                          alpha = 0.1) +
+        ggplot2::scale_x_continuous(limits = c(x_lims[1], x_lims[2])) +
+        ggplot2::scale_y_continuous(limits = c(y_lims[1], y_lims[2])) +
+        ggplot2::labs(subtitle = sprintf("ICI = %.3f, E50 = %.3f, E90 = %.3f",
+                                         calibration$ICI, calibration$E50, calibration$E90))
+    )
+  }
+
+  if (missing(n) || !is.numeric(n)) {
+    stop("n must have class numeric")
   }
   x <- x[[as.character(x_L)]]
   event_status <- get_landmark_arg(x, "event_status")
@@ -106,13 +144,6 @@ plot.landmark <- function(x, x_L, n, x_lims, y_lims, ...) {
     predicted <- c(predicted, mean(data_i[, "event_prediction"]))
   }
   calibration_plot_df <- data.frame(actual, predicted)
-
-  if (missing(x_lims)) {
-    x_lims <- c(0, 1)
-  }
-  if (missing(y_lims)) {
-    y_lims <- c(0, 1)
-  }
 
   ggplot2::ggplot(calibration_plot_df, ggplot2::aes(x = predicted, y = actual)) +
     ggplot2::geom_point(...) + ggplot2::geom_line()  +

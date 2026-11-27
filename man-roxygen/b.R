@@ -1,3 +1,2 @@
-#' @param b  Integer specifying the number of bootstrap samples to take when calculating standard error of c-index and Brier score.
-#' The bootstrap resamples the individuals used to assess performance while holding the fitted models and their predictions fixed,
-#' so the standard errors do not include the uncertainty from fitting the models. Use \code{set.seed()} beforehand for reproducible standard errors.
+#' @param b No longer used (deprecated in Landmarking 1.1.0). Standard errors of the AUC and Brier score are now
+#' calculated from the influence function with `riskRegression::Score()` rather than by bootstrapping; a warning is given if `b` is supplied.

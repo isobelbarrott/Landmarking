@@ -98,6 +98,9 @@ find_LME_risk_set <- function(data_long,
     x_h <- x_hor[i]
 
     data_long_x_l <- data_long[[as.character(x_l)]]
+    #Responses may be missing (e.g. when each response is measured at
+    #different times), but not the other columns
+    columns_NA_allowed <- setdiff(c(responses_LME, responses_LME_time), predictors_LME_time)
     for (col in c(predictors_LME,
                   predictors_LME_time,
                   responses_LME,
@@ -108,8 +111,13 @@ find_LME_risk_set <- function(data_long,
       if (!(col %in% names(data_long_x_l))) {
         stop(col, " is not a column name in data_long")
       }
-      if(any(is.na(data_long_x_l[[col]]))){
+      if(!(col %in% columns_NA_allowed) && any(is.na(data_long_x_l[[col]]))){
         stop(col, " contains NA values")
+      }
+    }
+    for (j in seq_along(responses_LME)) {
+      if (any(!is.na(data_long_x_l[[responses_LME[j]]]) & is.na(data_long_x_l[[responses_LME_time[j]]]))) {
+        stop(responses_LME[j], " has observations with a missing time in ", responses_LME_time[j])
       }
     }
 
@@ -163,14 +171,20 @@ find_LME_risk_set <- function(data_long,
 #' as a covariate in the survival submodel. See Details section of `fit_LME_longitudinal` for more information.
 #' If `standardise_time = TRUE`, the slopes are on the standardised time scale, i.e. per standard deviation of the response times.
 #' @param include_data_after_x_L Boolean indicating whether to include all longitudinal data, including data after the landmark age `x_L`,
-#' in the model development dataset. See Details section of `fit_LME_longitudinal` for more information.
+#' in the model development dataset (default `TRUE`). Using measurements after the landmark age can improve the estimates of the
+#' LME model, but it conditions on individuals remaining under observation after the landmark age, and how often individuals are
+#' measured may itself be related to their outcome. With cross-validation, only the measurements of individuals in the training folds
+#' are used to fit the LME model, so the measurements after the landmark age of the individuals being predicted are never used;
+#' comparing the cross-validated performance with `include_data_after_x_L = FALSE` shows whether using these data improves the predictions.
+#' See Details section of `fit_LME_longitudinal` for more information.
 #' @param lme_control Object created using `nlme::lmeControl()`, which will be passed to the `control` argument of the `lme` function
 #' @return List containing elements:
 #' `data_longitudinal`, `model_longitudinal`, `model_LME`, and `model_LME_standardise_time`.
 #'
 #' `data_longitudinal` has one row for each individual in the risk set at `x_L` and
 #' contains the value of the covariates at the landmark time `x_L` of the `predictors_LME` using the LOCF model and
-#' `responses_LME` using the LME model.
+#' `responses_LME` using the LME model. For a model using cross-validation, the values for the individuals in each fold
+#' come from the LME model fitted to the other folds.
 #'
 #' `model_longitudinal` indicates that the LME approach is used.
 #'
@@ -180,7 +194,8 @@ find_LME_risk_set <- function(data_long,
 #' element in the list corresponds to a different cross-validation fold.
 #'
 #' `model_LME_standardise_time` contains a list of two objects `mean_response_time` and `sd_response_time` if the parameter `standardise_time=TRUE` is used. This
-#' is the mean and standard deviation used to normalise times when fitting the LME model.
+#' is the mean and standard deviation used to normalise times when fitting the LME model. For a model using cross-validation, it contains
+#' a list of these for each cross-validation fold, as time is standardised using the measurements of the individuals used to fit the LME model in that fold.
 #'
 #' @details For an individual \eqn{i}, the LME model can be written as
 #'
@@ -245,6 +260,87 @@ fit_LME_longitudinal <- function(data_long,
                                  individual_id,
                                  lme_control = nlme::lmeControl()) {
   call <- match.call()
+
+  prepared <- prepare_LME_data(
+    data_long = data_long,
+    x_L = x_L,
+    predictors_LME = predictors_LME,
+    responses_LME = responses_LME,
+    predictors_LME_time = predictors_LME_time,
+    responses_LME_time = responses_LME_time,
+    random_slope_longitudinal = random_slope_longitudinal,
+    cv_name = cv_name,
+    individual_id = individual_id
+  )
+  data_long <- prepared$data_long
+  cv_name <- prepared$cv_name
+  data_LOCF <- prepared$data_LOCF
+
+  #For each fold, fit the LME model to the other folds and calculate the
+  #BLUPs for the individuals in the fold (out-of-fold predictions)
+  cv_numbers <- unique(data_long[[cv_name]])
+  folds <- lapply(cv_numbers, function(cv_number) {
+    if (length(cv_numbers) > 1) {
+      train_ids <- unique(data_long[[individual_id]][data_long[[cv_name]] != cv_number])
+      predict_ids <- data_LOCF[[individual_id]][data_LOCF[[cv_name]] == cv_number]
+    } else {
+      train_ids <- unique(data_long[[individual_id]])
+      predict_ids <- data_LOCF[[individual_id]]
+    }
+    fit_LME_fold(
+      prepared = prepared,
+      train_ids = train_ids,
+      predict_ids = predict_ids,
+      standardise_time = standardise_time,
+      include_data_after_x_L = include_data_after_x_L,
+      random_slope_survival = random_slope_survival,
+      lme_control = lme_control
+    )
+  })
+  names(folds) <- cv_numbers
+
+  data_LME <- order_LME_data(
+    do.call("rbind", lapply(folds, `[[`, "data")),
+    data_long = data_long,
+    individual_id = individual_id
+  )
+  model_LME <- lapply(folds, `[[`, "model")
+  model_LME_standardise_time <- lapply(folds, `[[`, "standardise_time")
+
+  if (length(cv_numbers) == 1) {
+    model_LME <- model_LME[[1]]
+    model_LME_standardise_time <- model_LME_standardise_time[[1]]
+  }
+  if (length(unique(data_long[[cv_name]])) == 1) {
+    data_LME[[cv_name]] <- NULL
+  }
+
+  return(
+    list(
+      data_longitudinal = data_LME,
+      model_longitudinal = "LME",
+      call = call,
+      model_LME = model_LME,
+      model_LME_standardise_time = model_LME_standardise_time
+    )
+  )
+}
+
+# Check the data for an LME landmark model and put it into the forms needed
+# to fit the LME model: the LOCF values at the landmark age (one row per
+# individual, for individuals with an observation of every predictor and
+# response on or before x_L) and the responses in long format (one row per
+# observed measurement). Missing values in the responses are dropped, so each
+# response can be measured at different times.
+prepare_LME_data <- function(data_long,
+                             x_L,
+                             predictors_LME,
+                             responses_LME,
+                             predictors_LME_time,
+                             responses_LME_time,
+                             random_slope_longitudinal,
+                             cv_name,
+                             individual_id) {
   if (!(is.data.frame(data_long))) {
     stop("data_long should be a dataframe")
   }
@@ -297,6 +393,12 @@ fit_LME_longitudinal <- function(data_long,
       rep(responses_LME_time, times = length(responses_LME))
   }
 
+  for (i in seq_along(responses_LME)) {
+    if (any(!is.na(data_long[[responses_LME[i]]]) & is.na(data_long[[responses_LME_time[i]]]))) {
+      stop(responses_LME[i], " has observations with a missing time in ", responses_LME_time[i])
+    }
+  }
+
   if (dim(
     return_ids_with_LOCF(
       data_long = data_long,
@@ -322,14 +424,11 @@ fit_LME_longitudinal <- function(data_long,
     }
   }
 
-  data_LOCF <- data_long
-  data_LME <- data_long
-
   #Pick out LOCF for each variable
   LOCF_values_by_variable <-
     lapply(1:length(c(predictors_LME, responses_LME)), function(x) {
       return_LOCF_by_variable(
-        data_long = data_LOCF,
+        data_long = data_long,
         i = x,
         covariates = c(predictors_LME, responses_LME),
         covariates_time = c(predictors_LME_time, responses_LME_time),
@@ -356,47 +455,28 @@ fit_LME_longitudinal <- function(data_long,
     dplyr::left_join(data_LOCF, unique(data_long[c(individual_id, cv_name)]), by =
                        individual_id)
 
-  #Create validation and development dataset
+  #Responses in long format: one row per measurement
   response_type <-
     Reduce(c, lapply(responses_LME, function(i) {
-      rep(i, dim(data_LME)[1])
+      rep(i, dim(data_long)[1])
     }))
   response <-
     as.numeric(Reduce(c, lapply(1:length(responses_LME), function(i) {
-      data_LME[, responses_LME[i]]
+      data_long[, responses_LME[i]]
     })))
   response_time <-
     as.numeric(Reduce(c, lapply(1:length(responses_LME), function(i) {
-      data_LME[, responses_LME_time[i]]
+      data_long[, responses_LME_time[i]]
     })))
   data_predictors_LME <-
     do.call("rbind", replicate(
       n = length(responses_LME),
-      data_LME[, c(individual_id, predictors_LME, cv_name)],
+      data_long[, c(individual_id, predictors_LME, cv_name)],
       simplify = FALSE
     ))
   data_LME <-
     data.frame(data_predictors_LME, response_type, response, response_time)
-
-  #Standardise response time
-  if (standardise_time == TRUE) {
-    mean_response_time <- mean(data_LME$response_time, na.rm = TRUE)
-    sd_response_time <- stats::sd(data_LME$response_time, na.rm = TRUE)
-  } else{
-    mean_response_time <- 0
-    sd_response_time <- 1
-  }
-  data_LME$response_time <-
-    (data_LME$response_time - mean_response_time) / sd_response_time
-  x_L <- (x_L - mean_response_time) / sd_response_time
-  standardise_time <-
-    list(mean_response_time = mean_response_time,
-         sd_response_time = sd_response_time)
-
-  data_LME_model_val <- data_LME[data_LME$response_time <= x_L, ] #validation set
-  data_LME_model_dev <- data_LME[!is.na(data_LME$response), ] #development set
-
-  if (include_data_after_x_L==FALSE){data_LME_model_dev <- data_LME_model_dev[data_LME_model_dev$response_time <= x_L, ]}
+  data_LME <- data_LME[!is.na(data_LME$response) & !is.na(data_LME$response_time), ]
 
   if (length(responses_LME) == 1){
     formula_weights <- NULL
@@ -435,27 +515,72 @@ fit_LME_longitudinal <- function(data_long,
     ), collapse = "+"))
   }
 
-  cv_numbers <- unique(data_LME_model_dev[[cv_name]])
-  model_LME <- lapply(cv_numbers, function(cv_number) {
-    if (length(cv_numbers) > 1) {
-      data_dev_cv <-
-        data_LME_model_dev[data_LME_model_dev[[cv_name]] != cv_number, ]
-    }
-    if (length(cv_numbers) == 1) {
-      data_dev_cv <- data_LME_model_dev
-    }
-    model_LME_cv <- nlme::lme(
-      fixed = formula_fixed,
-      random = formula_random,
-      data = data_dev_cv,
-      weights = formula_weights,
-      control = lme_control
-    )
-    model_LME_cv$call$fixed <- formula_fixed
-    model_LME_cv
-  })
-  names(model_LME) <- cv_numbers
+  list(
+    data_long = data_long,
+    data_LOCF = data_LOCF,
+    data_LME = data_LME,
+    formula_fixed = formula_fixed,
+    formula_random = formula_random,
+    formula_weights = formula_weights,
+    x_L = x_L,
+    cv_name = cv_name,
+    individual_id = individual_id,
+    predictors_LME = predictors_LME,
+    responses_LME = responses_LME
+  )
+}
 
+# Fit the LME model to the measurements of the individuals in train_ids, with
+# response time standardised using those measurements only. Then calculate,
+# from that model, the BLUPs at the landmark age (and the slopes, if
+# random_slope_survival is TRUE) for the individuals in predict_ids, using
+# their measurements on or before the landmark age.
+fit_LME_fold <- function(prepared,
+                         train_ids,
+                         predict_ids,
+                         standardise_time,
+                         include_data_after_x_L,
+                         random_slope_survival,
+                         lme_control) {
+  individual_id <- prepared$individual_id
+  predictors_LME <- prepared$predictors_LME
+  responses_LME <- prepared$responses_LME
+  cv_name <- prepared$cv_name
+  data_LME <- prepared$data_LME
+  train_rows <- data_LME[[individual_id]] %in% train_ids
+
+  #Standardise response time
+  if (standardise_time == TRUE) {
+    mean_response_time <- mean(data_LME$response_time[train_rows])
+    sd_response_time <- stats::sd(data_LME$response_time[train_rows])
+  } else{
+    mean_response_time <- 0
+    sd_response_time <- 1
+  }
+  data_LME$response_time <-
+    (data_LME$response_time - mean_response_time) / sd_response_time
+  x_L <- (prepared$x_L - mean_response_time) / sd_response_time
+  standardise_time <-
+    list(mean_response_time = mean_response_time,
+         sd_response_time = sd_response_time)
+
+  #Development set
+  data_LME_model_dev <- data_LME[train_rows, ]
+  if (include_data_after_x_L == FALSE) {
+    data_LME_model_dev <- data_LME_model_dev[data_LME_model_dev$response_time <= x_L, ]
+  }
+  model_LME <- nlme::lme(
+    fixed = prepared$formula_fixed,
+    random = prepared$formula_random,
+    data = data_LME_model_dev,
+    weights = prepared$formula_weights,
+    control = lme_control
+  )
+  model_LME$call$fixed <- prepared$formula_fixed
+
+  #Validation set: a row to predict at the landmark age for each response,
+  #and the measurements up to the landmark age, for each individual to predict
+  data_LOCF <- prepared$data_LOCF[prepared$data_LOCF[[individual_id]] %in% predict_ids, ]
   response_type <-
     Reduce(c, lapply(responses_LME, function(i) {
       rep(i, dim(data_LOCF)[1])
@@ -474,93 +599,76 @@ fit_LME_longitudinal <- function(data_long,
                response,
                response_time,
                predict = 1)
+  data_LME_model_val <-
+    data_LME[data_LME$response_time <= x_L & data_LME[[individual_id]] %in% predict_ids, ]
   data_LME_model_val$predict <- 0
   data_LME_model_val <-
     dplyr::bind_rows(data_LOCF_model_val, data_LME_model_val)
+  #Drop unused levels of the id column only. Covariate factors must keep
+  #all their levels, otherwise model.matrix() returns fewer columns than
+  #the fitted model when a fold has no individuals in a category
+  data_LME_model_val[[individual_id]] <-
+    droplevels(as.factor(data_LME_model_val[[individual_id]]))
+  response_predictions <-
+    which(data_LME_model_val$predict == 1)
 
-  data_LME <-
-    lapply(cv_numbers, function(cv_number) {
-      data_LME_model_val_cv <-
-        data_LME_model_val[which(data_LME_model_val[[cv_name]] == cv_number),]
-      #Drop unused levels of the id column only. Covariate factors must keep
-      #all their levels, otherwise model.matrix() returns fewer columns than
-      #the fitted model when a fold has no individuals in a category
-      data_LME_model_val_cv[[individual_id]] <-
-        droplevels(as.factor(data_LME_model_val_cv[[individual_id]]))
-      model_LME_cv <- model_LME[[as.character(cv_number)]]
-      response_predictions <-
-        which(data_LME_model_val_cv$predict == 1)
+  mixoutsamp_LME_model_val <-
+    mixoutsamp(model = model_LME,
+               newdata = data_LME_model_val)
 
-      mixoutsamp_LME_model_val_cv <-
-        mixoutsamp(model = model_LME_cv,
-                   newdata = data_LME_model_val_cv)
+  data_LME_model_val <-
+    mixoutsamp_LME_model_val$preddata[response_predictions,][, c(individual_id,
+                                                                 predictors_LME,
+                                                                 cv_name,
+                                                                 "response_type",
+                                                                 "fitted")]
+  data_LME_model_val <-
+    stats::reshape(
+      data_LME_model_val,
+      timevar = "response_type",
+      idvar = c(individual_id, predictors_LME, cv_name),
+      direction = "wide"
+    )
 
-      data_LME_model_val_cv <-
-        mixoutsamp_LME_model_val_cv$preddata[response_predictions,][, c(individual_id,
-                                                                        predictors_LME,
-                                                                        cv_name,
-                                                                        "response_type",
-                                                                        "fitted")]
-      data_LME_model_val_cv <-
-        stats::reshape(
-          data_LME_model_val_cv,
-          timevar = "response_type",
-          idvar = c(individual_id, predictors_LME, cv_name),
-          direction = "wide"
-        )
+  data_LME_model_val<-dplyr::rename_with(data_LME_model_val,~responses_LME[which(paste0("fitted.",responses_LME)==.x)],.cols=paste0("fitted.",responses_LME))
 
-      data_LME_model_val_cv<-dplyr::rename_with(data_LME_model_val_cv,~responses_LME[which(paste0("fitted.",responses_LME)==.x)],.cols=paste0("fitted.",responses_LME))
+  if (random_slope_survival == TRUE) {
+    if (length(responses_LME)==1){
+      slopes_df<-mixoutsamp_LME_model_val$random[,c(individual_id,"reffresponse_time")]
+      slopes_df["reffresponse_time"]<-slopes_df["reffresponse_time"]+model_LME$coefficients$fixed["response_time"]
 
-      if (random_slope_survival == TRUE) {
-        if (length(responses_LME)==1){
-          slopes_df<-mixoutsamp_LME_model_val_cv$random[,c(individual_id,"reffresponse_time")]
-          slopes_df["reffresponse_time"]<-slopes_df["reffresponse_time"]+model_LME_cv$coefficients$fixed["response_time"]
-
-        }
-        if (length(responses_LME)>1){
-          slopes_df<-mixoutsamp_LME_model_val_cv$random[,c(individual_id,paste0("reffresponse_type",responses_LME,":response_time"))]
-          responses_LME_dummy<-paste0("response_type",responses_LME,":response_time")
-          responses_LME_dummy[1]<-"response_time"
-          for (i in 1:length(responses_LME)){
-            slopes_df[,paste0("reffresponse_type",responses_LME[i],":response_time")]<-
-               slopes_df[,paste0("reffresponse_type",responses_LME[i],":response_time")]+model_LME_cv$coefficients$fixed[responses_LME_dummy[1]]
-            if(i!=1){slopes_df[,paste0("reffresponse_type",responses_LME[i],":response_time")]<-
-              slopes_df[,paste0("reffresponse_type",responses_LME[i],":response_time")]+model_LME_cv$coefficients$fixed[responses_LME_dummy[i]]}
-          }
-        }
-      names(slopes_df)<-c(individual_id,paste0(responses_LME,"_slope"))
-      data_LME_model_val_cv <- dplyr::left_join(data_LME_model_val_cv,
-                                                slopes_df,
-                                                by = individual_id)
+    }
+    if (length(responses_LME)>1){
+      slopes_df<-mixoutsamp_LME_model_val$random[,c(individual_id,paste0("reffresponse_type",responses_LME,":response_time"))]
+      responses_LME_dummy<-paste0("response_type",responses_LME,":response_time")
+      responses_LME_dummy[1]<-"response_time"
+      for (i in 1:length(responses_LME)){
+        slopes_df[,paste0("reffresponse_type",responses_LME[i],":response_time")]<-
+          slopes_df[,paste0("reffresponse_type",responses_LME[i],":response_time")]+model_LME$coefficients$fixed[responses_LME_dummy[1]]
+        if(i!=1){slopes_df[,paste0("reffresponse_type",responses_LME[i],":response_time")]<-
+          slopes_df[,paste0("reffresponse_type",responses_LME[i],":response_time")]+model_LME$coefficients$fixed[responses_LME_dummy[i]]}
       }
+    }
+    names(slopes_df)<-c(individual_id,paste0(responses_LME,"_slope"))
+    data_LME_model_val <- dplyr::left_join(data_LME_model_val,
+                                           slopes_df,
+                                           by = individual_id)
+  }
 
-      data_LME_model_val_cv[[as.character(cv_name)]] <- cv_number
-      data_LME_model_val_cv
-    })
-  data_LME <- do.call("rbind", data_LME)
+  list(data = data_LME_model_val,
+       model = model_LME,
+       standardise_time = standardise_time)
+}
 
+# Order the rows of the BLUP data by the order of the individuals in
+# data_long, and the columns by the order of the columns in data_long
+order_LME_data <- function(data_LME, data_long, individual_id) {
   data_LME <-
     data_LME[match(unique(data_long[[individual_id]][data_long[[individual_id]] %in% data_LME[[individual_id]]]), data_LME[[individual_id]]), ]
   data_LME <-
     data_LME[, order(match(names(data_LME), names(data_long)))]
   rownames(data_LME) <- NULL
-
-  if (length(cv_numbers) == 1) {
-    model_LME <- model_LME[[1]]
-  }
-  if (length(unique(data_long[[cv_name]])) == 1) {
-    data_LME[[cv_name]] <- NULL
-  }
-
-  return(
-    list(
-      data_longitudinal = data_LME,
-      model_longitudinal = "LME",
-      call = call,
-      model_LME = model_LME,
-      model_LME_standardise_time = standardise_time
-    )
-  )
+  data_LME
 }
 
 
@@ -584,7 +692,12 @@ fit_LME_longitudinal <- function(data_long,
 #' @template predictors_LME_time
 #' @template responses_LME_time
 #' @param include_data_after_x_L Boolean indicating whether to include all longitudinal data, including data after the landmark age `x_L`,
-#' in the model development dataset. See Details section of `fit_LME_longitudinal` for more information.
+#' in the model development dataset (default `TRUE`). Using measurements after the landmark age can improve the estimates of the
+#' LME model, but it conditions on individuals remaining under observation after the landmark age, and how often individuals are
+#' measured may itself be related to their outcome. With cross-validation, only the measurements of individuals in the training folds
+#' are used to fit the LME model, so the measurements after the landmark age of the individuals being predicted are never used;
+#' comparing the cross-validated performance with `include_data_after_x_L = FALSE` shows whether using these data improves the predictions.
+#' See Details section of `fit_LME_longitudinal` for more information.
 #' @param random_slope_longitudinal Boolean indicating whether to include a random slope in the LME model. See Details section of `fit_LME_longitudinal` for more information.
 #' @param random_slope_survival Boolean indicating whether to include the random slope estimate from the LME model
 #' as a covariate in the survival submodel. See Details section of `fit_LME_longitudinal` for more information.
@@ -595,7 +708,7 @@ fit_LME_longitudinal <- function(data_long,
 #' @template survival_submodel
 #' @return List containing containing information about the landmark model at each of the landmark times.
 #' Each element of this list is named the corresponding landmark time, and is itself a list containing elements:
-#' `data`, `model_longitudinal`, `model_LME`, `model_LME_standardise_time`, `model_survival`, and `prediction_error`.
+#' `data`, `model_longitudinal`, `model_LME`, `model_LME_standardise_time`, `model_survival`, `prediction_error`, and `x_hor`.
 #'
 #' `data` has one row for each individual in the risk set at `x_L` and
 #' contains the value of the `predictors_LME` using the LOCF approach and predicted values of the
@@ -611,14 +724,18 @@ fit_LME_longitudinal <- function(data_long,
 #' element in the list corresponds to a different cross-validation fold.
 #'
 #' `model_LME_standardise_time` contains a list of two objects `mean_response_time` and `sd_response_time` if the parameter `standardise_time=TRUE` is used. This
-#' is the mean and standard deviation use to normalise times when fitting the LME model.
+#' is the mean and standard deviation used to normalise times when fitting the LME model. For a model using cross-validation, it contains
+#' a list of these for each cross-validation fold.
 #'
 #' `model_survival` contains the outputs from
 #' the survival submodel functions, including the estimated parameters of the model. For a model using cross-validation,
 #' `model_survival` will contain a list of outputs with each
 #' element in the list corresponding to a different cross-validation fold.
 #'
-#' `prediction_error` contains a list indicating the c-index and Brier score at time `x_hor` and their standard errors if parameter `b` is used.
+#' `prediction_error` contains a list with the time-dependent AUC, the Brier score and their standard errors, and the index of prediction accuracy (IPA),
+#' at time `x_hor`. See `?get_model_assessment` for details.
+#'
+#' `x_hor` is the horizon time used to fit the model. `predict` does not predict beyond this time.
 #' @details Firstly, this function selects the individuals in the risk set at the landmark time \code{x_L}.
 #' Specifically, the individuals in the risk set are those that have entered the study before the landmark time \code{x_L}
 #' (there is at least one observation for each of the \code{predictors_LME} and \code{responses_LME} on or before \code{x_L}) and
@@ -635,12 +752,19 @@ fit_LME_longitudinal <- function(data_long,
 #' fit to the entire group of individuals in the risk set (this is both the training and test dataset).
 #'
 #' Thirdly, the landmark model is then fit to each of the training datasets. There are two parts to fitting the landmark model: using the longitudinal data and using the survival data.
-#' Using the longitudinal data is the first stage and is performed using `fit_LME_longitudinal`. See `?fit_LME_longitudinal` more for information about this function.
-#' Using the survival data is the second stage and is performed using `fit_survival_model`. This function censors the
-#' individuals at the time horizon `x_L` and fits the survival model. See `?fit_survival_model` more for information about this function.
+#' Using the longitudinal data is the first stage, in which an LME model is fitted and used to predict the values of the \code{responses_LME} at the landmark age.
+#' See `?fit_LME_longitudinal` more for information about this stage. Using the survival data is the second stage, in which the
+#' individuals are censored at the time horizon `x_hor` and the survival model is fitted. See `?fit_survival_model` more for information about this stage.
+#'
+#' With cross-validation, both stages are nested within each fold: for each fold, the LME model is fitted to the other folds (with time
+#' standardised using their measurements) and used to predict the values of the \code{responses_LME} at the landmark age for every individual,
+#' from their measurements up to the landmark age. The survival model is then fitted to the individuals in the other folds and used to predict
+#' the risk for the individuals in the fold. So no data from a fold are used to fit the models that predict it.
+#' In versions of Landmarking before 1.1.0, the survival model for a fold was trained on predictions from LME models that had been fitted
+#' using data from that fold, which could make the cross-validated performance optimistic.
 #'
 #' Fourthly, the performance of the model is then assessed on the set of predictions
-#' from the entire set of individuals in the risk set by calculating Brier score and C-index.
+#' from the entire set of individuals in the risk set by calculating the time-dependent AUC, Brier score and index of prediction accuracy.
 #' This is performed using `get_model_assessment`. See `?get_model_assessment` more for information about this function.
 #'
 #' @author Isobel Barrott \email{isobel.barrott@@gmail.com}
@@ -781,8 +905,8 @@ fit_LME_landmark <- function(data_long,
     }
   }
 
-  if (missing(b)) {
-    b <- NA
+  if (!missing(b)) {
+    warn_b_deprecated(b)
   }
   #Find risk set
   data_long_x_L<-find_LME_risk_set(data_long=data_long,
@@ -854,82 +978,137 @@ fit_LME_landmark <- function(data_long,
     x_h <- x_hor[i]
 
     data_long <- data_long_x_L[[as.character(x_l)]]
-    message("Fitting longitudinal submodel, landmark age ", x_l)
-
-    data_model_longitudinal <-
-      fit_LME_longitudinal(
-        data_long = data_long,
-        x_L = x_l,
-        predictors_LME =
-          predictors_LME,
-        responses_LME =
-          responses_LME,
-        predictors_LME_time =
-          predictors_LME_time,
-        responses_LME_time =
-          responses_LME_time,
-        random_slope_longitudinal = random_slope_longitudinal,
-        random_slope_survival =
-          random_slope_survival,
-        include_data_after_x_L=include_data_after_x_L,
-        standardise_time =
-          standardise_time,
-        cv_name = cv_name,
-        individual_id =
-          individual_id,
-        lme_control = lme_control
-      )
-    message("Complete, landmark age ", x_l)
-
     data_events <-
       dplyr::distinct(data_long[, c(individual_id, event_status, event_time)])
-    data_longitudinal <-
-      dplyr::left_join(data_model_longitudinal$data_longitudinal,
-                       data_events,
-                       by = individual_id)
-
-    message("Fitting survival submodel, landmark age ", x_l)
-
+    covariates_survival <- c(predictors_LME, responses_LME)
     if (random_slope_survival) {
-      responses_LME <- c(responses_LME, paste0(responses_LME, "_slope"))
-
+      covariates_survival <- c(covariates_survival, paste0(responses_LME, "_slope"))
     }
-    data_model_survival <- fit_survival_model(
-      data = data_longitudinal,
-      individual_id = individual_id,
+
+    prepared <- prepare_LME_data(
+      data_long = data_long,
+      x_L = x_l,
+      predictors_LME = predictors_LME,
+      responses_LME = responses_LME,
+      predictors_LME_time = predictors_LME_time,
+      responses_LME_time = responses_LME_time,
+      random_slope_longitudinal = random_slope_longitudinal,
       cv_name = cv_name,
-      covariates = c(predictors_LME, responses_LME),
-      event_time = event_time,
-      event_status = event_status,
-      survival_submodel = survival_submodel,
-      x_hor = x_h
+      individual_id = individual_id
     )
+    data_long_x_l <- prepared$data_long
+    cv_name_x_l <- prepared$cv_name
+    all_ids <- unique(data_long_x_l[[individual_id]])
+    predict_ids <- prepared$data_LOCF[[individual_id]]
+    cv_numbers <- unique(data_long_x_l[[cv_name_x_l]])
 
-    data_events <-
-      dplyr::left_join(data_events,
-                       data_model_survival$data_survival[,c(individual_id,"event_prediction")],
-                       by = individual_id)
+    if (length(cv_numbers) == 1) {
+      #No cross-validation: both submodels are fitted to all individuals
+      message("Fitting longitudinal submodel, landmark age ", x_l)
+      fold <- fit_LME_fold(
+        prepared = prepared,
+        train_ids = all_ids,
+        predict_ids = predict_ids,
+        standardise_time = standardise_time,
+        include_data_after_x_L = include_data_after_x_L,
+        random_slope_survival = random_slope_survival,
+        lme_control = lme_control
+      )
+      message("Complete, landmark age ", x_l)
+      data_longitudinal <- dplyr::left_join(
+        order_LME_data(fold$data, data_long = data_long_x_l, individual_id = individual_id),
+        data_events,
+        by = individual_id
+      )
+      data_longitudinal[[cv_name_x_l]] <- NULL
 
-    message("Complete, landmark age ", x_l)
+      message("Fitting survival submodel, landmark age ", x_l)
+      data_model_survival <- fit_survival_model_folds(
+        data = data_longitudinal,
+        individual_id = individual_id,
+        cv_name = NA,
+        covariates = covariates_survival,
+        event_time = event_time,
+        event_status = event_status,
+        survival_submodel = survival_submodel,
+        x_hor = x_h
+      )
+      message("Complete, landmark age ", x_l)
+      data_survival <- data_model_survival$data_survival
+      model_survival <- data_model_survival$model_survival
+      model_LME <- fold$model
+      model_LME_standardise_time <- fold$standardise_time
+    } else {
+      #Nested cross-validation: for each fold, the LME model is fitted to the
+      #other folds and gives the covariates (BLUPs) of every individual, then
+      #the survival model is fitted to the other folds and predicts the fold.
+      #So no data from the fold are used to fit the models that predict it.
+      message("Fitting longitudinal and survival submodels in each cross-validation fold, landmark age ", x_l)
+      folds <- lapply(cv_numbers, function(cv_number) {
+        train_ids <-
+          unique(data_long_x_l[[individual_id]][data_long_x_l[[cv_name_x_l]] != cv_number])
+        fold <- fit_LME_fold(
+          prepared = prepared,
+          train_ids = train_ids,
+          predict_ids = predict_ids,
+          standardise_time = standardise_time,
+          include_data_after_x_L = include_data_after_x_L,
+          random_slope_survival = random_slope_survival,
+          lme_control = lme_control
+        )
+        data_fold <- dplyr::left_join(
+          order_LME_data(fold$data, data_long = data_long_x_l, individual_id = individual_id),
+          data_events,
+          by = individual_id
+        )
+        survival_fold <- fit_survival_model_folds(
+          data = data_fold,
+          individual_id = individual_id,
+          cv_name = cv_name_x_l,
+          covariates = covariates_survival,
+          event_time = event_time,
+          event_status = event_status,
+          survival_submodel = survival_submodel,
+          x_hor = x_h,
+          folds_to_predict = cv_number
+        )
+        list(
+          data_survival = survival_fold$data_survival,
+          model_survival = survival_fold$model_survival[[1]],
+          model_LME = fold$model,
+          standardise_time = fold$standardise_time
+        )
+      })
+      names(folds) <- cv_numbers
+      message("Complete, landmark age ", x_l)
+
+      data_survival <- do.call("rbind", lapply(folds, `[[`, "data_survival"))
+      data_survival <-
+        data_survival[order(match(data_survival[[individual_id]], all_ids)), ]
+      rownames(data_survival) <- NULL
+      model_survival <- lapply(folds, `[[`, "model_survival")
+      model_LME <- lapply(folds, `[[`, "model_LME")
+      model_LME_standardise_time <- lapply(folds, `[[`, "standardise_time")
+    }
 
     prediction_error <-
       get_model_assessment(
-        data = data_model_survival$data_survival,
+        data = data_survival,
         individual_id = individual_id,
         event_prediction = "event_prediction",
         event_status = event_status,
         event_time = event_time,
-        x_hor =  x_h,
-        b = b
+        x_hor =  x_h
       )
 
     list(
-      data = data_model_survival$data_survival,
-      model_longitudinal = data_model_longitudinal$model_longitudinal,
-      model_LME = data_model_longitudinal$model_LME,
-      model_LME_standardise_time = data_model_longitudinal$model_LME_standardise_time,
-      model_survival = data_model_survival$model_survival,
+      data = data_survival,
+      model_longitudinal = "LME",
+      model_LME = model_LME,
+      model_LME_standardise_time = model_LME_standardise_time,
+      model_survival = model_survival,
       prediction_error = prediction_error,
+      x_hor = x_h,
       call = call,
       args = args
     )

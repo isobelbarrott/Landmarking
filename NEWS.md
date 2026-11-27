@@ -1,5 +1,27 @@
 # Landmarking (development version)
 
+## Changes that affect results
+
+* Performance is now assessed with `riskRegression::Score()`. `prediction_error` contains the time-dependent AUC, the Brier score, their standard errors (from the influence function) and the index of prediction accuracy (IPA, a scaled Brier score). The C-index has been removed, as it is not a proper measure for evaluating predicted risks at a fixed time, and package `pec` is no longer used. Code that reads `prediction_error$c_index` needs updating.
+
+* The Brier score was too low in earlier versions. It was calculated on follow-up censored at the horizon, so individuals who were event-free at the horizon were treated as censored before it. For the example data at landmark age 60, the Brier score is now 0.138 rather than 0.111 for the LOCF model, and 0.114 rather than 0.088 for the LME model (with the same predictions). The C-index was not affected.
+
+* Cross-validation for LME models (`fit_LME_landmark()` with `k` or `cross_validation_df`) is now fully nested. For each fold, the LME model and the survival model are both fitted to the other folds only, and time is standardised using the other folds' measurements. Previously, the survival model for a fold was trained on values predicted by LME models that had been fitted with that fold's data (including its measurements after the landmark age when `include_data_after_x_L = TRUE`), which could make cross-validated performance optimistic. For the example data at landmark age 60 the difference is small (AUC 0.778 before and 0.782 now, with the corrected metrics). `model_LME_standardise_time` now has one element per fold. LOCF models, and LME models fitted without cross-validation, give the same results as before.
+
+* `b` is deprecated: standard errors no longer use the bootstrap, and supplying `b` gives a warning.
+
+## New features
+
+* `plot()` has a new option `type = "smooth"`, which draws a smooth calibration curve estimated with pseudo-observations and gives the integrated calibration index (ICI), E50 and E90. The new function `get_calibration()` returns the curve and these metrics. The binned plot is still the default.
+
+* `responses_LME` may contain missing values, for example when each response is measured at different times.
+
+* `predict()` gives an error if `x_hor` is beyond the horizon the model was fitted with, or if `cv_fold` is not given for a model fitted with cross-validation. Fitted models store their horizon in `x_hor`.
+
+* The documentation of `include_data_after_x_L` explains the trade-off of using measurements after the landmark age. The default is unchanged.
+
+## Bug fixes and other changes
+
 * Fix `fit_LME_landmark()` and `predict()` failing when `individual_id` is not `"id"` and random slopes are used in the survival submodel.
 
 * Accept integer values for `x_L`, `x_hor`, `k`, `b` and `n` (e.g. `x_L = 60:61`).

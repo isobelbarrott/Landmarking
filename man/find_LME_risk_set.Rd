@@ -33,12 +33,13 @@ This should either be length 1 or the same length as \code{predictors_LME}.
 In the latter case the order of elements must correspond to the order of elements in \code{predictors_LME}.}
 
 \item{responses_LME}{Vector of character strings specifying the column names in \code{data_long}
-which correspond to the response variables in the LME model}
+which correspond to the response variables in the LME model. Values may be missing (\code{NA}), for example when the
+responses are measured at different times; missing values are ignored.}
 
 \item{responses_LME_time}{Vector of character strings specifying the column names in \code{data_long}
 which contain the times at which response variables were recorded. This should either be length 1 or
 the same length as \code{responses_LME}. In the latter case the order of elements must correspond to the
-order of elements in \code{responses_LME}.}
+order of elements in \code{responses_LME}. A time may be missing when the corresponding response is missing.}
 
 \item{individual_id}{Character string specifying the column name in \code{data_long} which contains the individual identifiers}
 

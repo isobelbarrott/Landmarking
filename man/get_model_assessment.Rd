@@ -2,7 +2,7 @@
 % Please edit documentation in R/get_model_assessment.R
 \name{get_model_assessment}
 \alias{get_model_assessment}
-\title{Compute C-index and Brier score}
+\title{Compute the time-dependent AUC, Brier score and index of prediction accuracy}
 \usage{
 get_model_assessment(
   data,
@@ -22,45 +22,49 @@ there should be one row for each individual}
 
 \item{event_prediction}{Character string specifying the column name in \code{data} containing the predicted probability of the event of interest}
 
-\item{event_status}{Character string specifying the column name in \code{data} which contains the event status (where 0=censoring, 1=event of interest, if there are competing events these are labelled 2 or above). Events at time \code{x_hor} should be labelled censored.}
+\item{event_status}{Character string specifying the column name in \code{data} which contains the event status (where 0=censoring, 1=event of interest, if there are competing events these are labelled 2 or above).}
 
-\item{event_time}{Character string specifying the column name in \code{data} which contains the event time.}
+\item{event_time}{Character string specifying the column name in \code{data} which contains the event time. Follow-up
+may be censored at \code{x_hor}: individuals without an event on or before \code{x_hor} are treated as event-free at \code{x_hor}.}
 
 \item{x_hor}{Numeric specifying the horizon time(s)}
 
-\item{b}{Integer specifying the number of bootstrap samples to take when calculating standard error of c-index and Brier score.
-The bootstrap resamples the individuals used to assess performance while holding the fitted models and their predictions fixed,
-so the standard errors do not include the uncertainty from fitting the models. Use \code{set.seed()} beforehand for reproducible standard errors.}
+\item{b}{No longer used (deprecated in Landmarking 1.1.0). Standard errors of the AUC and Brier score are now
+calculated from the influence function with \code{riskRegression::Score()} rather than by bootstrapping; a warning is given if \code{b} is supplied.}
 }
 \value{
-List containing C-index, Brier score and their standard errors
+List containing the AUC (\code{auc}) and its standard error (\code{auc_standard_error}), the Brier score (\code{brier_score})
+and its standard error (\code{brier_score_standard_error}), and the index of prediction accuracy (\code{ipa}).
 }
 \description{
-Performs model assessment by computing the C-index and Brier score at time \code{x_hor}. There is the option
-to calculate their standard errors using bootstraping.
+Performs model assessment by computing the time-dependent area under the ROC curve (AUC),
+the Brier score and the index of prediction accuracy (IPA) at time \code{x_hor}, with standard errors
+for the AUC and Brier score.
 }
 \details{
 There are two factors in assessing the performance of a prediction model; its
-discrimination and its calibration. The c-index is a commonly used metric which assesses
-discrimination, this refers to the ability of the model to separate individuals into
-those that will have an event and those that will not. The c-index at a horizon time \code{x_hor}
-looks at the pairs of individuals where one individual has the event at a time T and the other has not had the event at time T.
-It is calculated as the proportion of these pairs where their relative risk prediction agrees with the
-actual outcomes for the two individuals. This is extended to the competing risks case
-by comparing individuals where one had the event of interest at time T and the other individual either
-did not experience the event before this time T or experienced a competing event.
+discrimination and its calibration. Discrimination refers to the ability of the model to separate individuals into
+those that will have the event of interest by time \code{x_hor} and those that will not. It is assessed with the
+time-dependent AUC at \code{x_hor}: the probability that an individual who has the event of interest by \code{x_hor} (a case)
+has a higher predicted risk than an individual who does not (a control). With competing risks, individuals who have a competing
+event by \code{x_hor} are controls. The AUC is used rather than the C-index because the C-index is not a proper measure
+for evaluating predicted risks at a fixed time (Blanche, Kattan and Gerds, 2019).
 
-The Brier score gives an indication of the calibration of a model (and its discrimination to an extent), this refers to the agreement between the risk prediction and
-the outcome. The Brier score is calculated as the average mean squared error of the predicted risk and the event outcome (where
-an event is 1 and not experiencing the event is 0). This is extended to the competing risks case by including the competing risk events as
-not experiencing the event.
+The Brier score is the mean squared difference between the predicted risk and the event outcome by \code{x_hor} (where
+an event of interest is 1 and not experiencing the event, including having a competing event, is 0). It reflects both calibration and
+discrimination. The index of prediction accuracy (IPA) is the scaled Brier score, 1 - (Brier score of the model / Brier score
+of the null model), where the null model predicts the same risk (the Kaplan-Meier or Aalen-Johansen estimate) for everyone.
+Higher values are better; values below 0 indicate the model predicts worse than the null model.
 
-For both the c-index and Brier score calculations, inverse probability censoring weighting (IPCW) is used to create weights
-which account for the occurrence of censoring. The censoring model assumes for this function is the Kaplan Meier model, i.e. censoring occurs
-independently of covariates.
+Inverse probability of censoring weighting (IPCW) is used to account for censoring, with a Kaplan-Meier model for censoring,
+i.e. censoring is assumed to occur independently of covariates. The standard errors are based on the influence function
+(Blanche et al., 2015) and treat the predicted risks as fixed, so they do not include the uncertainty from fitting the model.
 
-The c-index is calculated using the \code{cindex} function in package \code{pec}. The Brier score is calculated using
-\code{pec} function in package \code{pec}.
+The metrics are calculated using the \code{Score} function in package \code{riskRegression}.
+
+In versions of Landmarking before 1.1.0, this function reported the C-index and Brier score, calculated with package \code{pec}
+on follow-up censored at \code{x_hor}. Individuals who were event-free at \code{x_hor} were then treated as censored before \code{x_hor},
+which made the Brier score too low.
 }
 \examples{
 \dontrun{
@@ -86,8 +90,18 @@ get_model_assessment(data = data_model_landmark_LOCF[["60"]]$data,
   event_prediction = "event_prediction",
   event_status = "event_status",
   event_time = "event_time",
-  x_hor = 65,
-  b = 100)}
+  x_hor = 65)}
+}
+\references{
+Blanche P, Kattan MW, Gerds TA (2019). The c-index is not proper for the evaluation of t-year predicted risks.
+Biostatistics, 20(2), 347-357.
+
+Blanche P, Proust-Lima C, Loubere L, Berr C, Dartigues JF, Jacqmin-Gadda H (2015). Quantifying and comparing dynamic
+predictive accuracy of joint models for longitudinal marker and time-to-event in presence of censoring and competing risks.
+Biometrics, 71(1), 102-113.
+
+Kattan MW, Gerds TA (2018). The index of prediction accuracy: an intuitive measure useful for evaluating risk prediction models.
+Diagnostic and Prognostic Research, 2, 7.
 }
 \author{
 Isobel Barrott \email{isobel.barrott@gmail.com}

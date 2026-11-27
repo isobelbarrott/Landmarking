@@ -12,12 +12,13 @@ of landmark models corresponding to different landmark times \code{x_L}.}
 
 \item{x_L}{Numeric specifying the landmark time. This indicates which landmark model in \code{object} to use.}
 
-\item{x_hor}{Numeric specifying the horizon time. The function assesses the risk of event before this time.}
+\item{x_hor}{Numeric specifying the horizon time. The function assesses the risk of event before this time. It should not be greater than
+the horizon time used to fit the landmark model, as the model has no information about the risk after that time.}
 
 \item{newdata}{Data frame containing new data to return the risk prediction of the event of interest. The data should be in in long format
 and the columns must contain the covariates and time variables that are used to fit the model.
 For the LME model this the variables \code{predictors_LME}, \code{responses_LME}, \code{predictors_LME_time}, and
-\code{responses_LME_time}. For the LOCF model this is \code{covariates} and \code{covariates_time}.}
+\code{responses_LME_time} (the responses may be missing). For the LOCF model this is \code{covariates} and \code{covariates_time}.}
 
 \item{cv_fold}{If cross validation is used to fit \code{fit_LME_landmark} or \code{fit_LOCF_landmark}, then the cross validation fold to use when making risk predictions needs to be specified.}
 

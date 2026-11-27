@@ -267,7 +267,7 @@ fit_LOCF_longitudinal <- function(data_long,
 #' @template survival_submodel
 #' @return List containing containing information about the landmark model at each of the landmark times.
 #' Each element of this list is named the corresponding landmark time, and is itself a list containing elements:
-#' `data`, `model_longitudinal`, `model_survival`, and `prediction_error`.
+#' `data`, `model_longitudinal`, `model_survival`, `prediction_error`, and `x_hor`.
 #'
 #' `data`  has one row for each individual in the risk set at `x_L` and
 #' contains the value of the `covariates` at the landmark time `x_L` using the LOCF approach. It also includes the predicted
@@ -281,9 +281,11 @@ fit_LOCF_longitudinal <- function(data_long,
 #' element in the list corresponding to a different cross-validation fold. For more information on how the survival model is fitted
 #' please see `?fit_survival_model` which is a function used within `fit_LOCF_landmark`.
 #'
-#' `prediction_error` contains a list indicating the c-index and Brier score at time `x_hor` and their standard errors if parameter `b` is used.
-#' For more information on how the prediction error is calculated
+#' `prediction_error` contains a list with the time-dependent AUC, the Brier score and their standard errors, and the index of prediction accuracy (IPA),
+#' at time `x_hor`. For more information on how the prediction error is calculated
 #' please see `?get_model_assessment` which is the function used to do this within `fit_LOCF_landmark`.
+#'
+#' `x_hor` is the horizon time used to fit the model. `predict` does not predict beyond this time.
 #'
 #' @details Firstly, this function selects the individuals in the risk set at the landmark time \code{x_L}.
 #' Specifically, the individuals in the risk set are those that have entered the study before the landmark time \code{x_L}
@@ -305,7 +307,7 @@ fit_LOCF_longitudinal <- function(data_long,
 #' individuals at the time horizon `x_L` and fits the survival model. Using the survival data is the second stage and is performed using `fit_survival_model`. See `?fit_survival_model` more for information about this function.
 #'
 #' Fourthly, the performance of the model is then assessed on the set of predictions
-#' from the entire set of individuals in the risk set by calculating Brier score and C-index.
+#' from the entire set of individuals in the risk set by calculating the time-dependent AUC, Brier score and index of prediction accuracy.
 #' This is performed using `get_model_assessment`. See `?get_model_assessment` more for information about this function.
 #'
 #' @author Isobel Barrott \email{isobel.barrott@@gmail.com}
@@ -429,8 +431,8 @@ fit_LOCF_landmark <- function(data_long,
     }
   }
 
-  if (missing(b)) {
-    b <- NA
+  if (!missing(b)) {
+    warn_b_deprecated(b)
   }
   #Find risk set
   data_long_x_L<-find_LOCF_risk_set(data_long=data_long,
@@ -541,8 +543,7 @@ fit_LOCF_landmark <- function(data_long,
         event_prediction = "event_prediction",
         event_status = event_status,
         event_time = event_time,
-        x_hor = x_h,
-        b = b
+        x_hor = x_h
       )
 
     list(
@@ -550,6 +551,7 @@ fit_LOCF_landmark <- function(data_long,
       model_longitudinal = data_model_longitudinal$model_longitudinal,
       model_survival = data_model_survival$model_survival,
       prediction_error = prediction_error,
+      x_hor = x_h,
       call = call,
       args = args
     )

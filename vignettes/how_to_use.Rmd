@@ -112,7 +112,7 @@ Printing the object that has been outputted returns a list of datasets correspon
 data_model_landmark_LOCF
 ```
 
-The output also contains the prediction error for the model, which is assessed using the Brier score and C-index. The standard error for these estimates can be calculated by setting parameter `b` to the desired number of bootstrap samples. 
+The output also contains the prediction error for the model at the horizon time: the time-dependent AUC, which assesses discrimination, the Brier score, and their standard errors, and the index of prediction accuracy (IPA), which scales the Brier score against a model that predicts the same risk for everyone. As cross-validation was used, these are calculated from out-of-fold predictions. For more information see `?get_model_assessment`.
 
 ```{r 14}
 data_model_landmark_LOCF[["60"]]$prediction_error
@@ -125,6 +125,12 @@ In order to assess the performance of the model, there is also the `plot` method
 plot(x = data_model_landmark_LOCF, x_L = 60, n = 5)
 ```
 
+The binned plot depends on the number of bins `n`. A smooth calibration curve, which does not group the predictions, can be drawn instead using `type = "smooth"`. The subtitle shows the integrated calibration index (ICI), E50 and E90, which summarise the absolute differences between the predicted and observed risks; these values are also returned by `get_calibration`.
+
+```{r 21}
+plot(x = data_model_landmark_LOCF, x_L = 60, type = "smooth")
+```
+
 Now we can move on to fitting the landmark model using the LME longitudinal submodel.  For more information about this function, see the Details section of the `fit_LME_landmark_model` documentation. The variables standardised systolic blood pressure (SBP) and standardised total cholesterol to high density lipoprotein (HDL) ratio are continuous and repeatedly measured and so these are included as responses in an LME model.  
 
 The second issue which was mentioned previously is related to cross-validation. In particular we wish to perform k-fold cross-validation using exactly the same folds for both LOCF and LME models to ensure a fair comparison. To do this we use the parameter `cross_validation_df` which uses a list of data frames that indicate which fold each individual belongs to. We create this list using the output of `fit_LOCF_landmark_model`.
@@ -135,7 +141,7 @@ cross_validation_list <- lapply(data_model_landmark_LOCF, "[[", i = 1)
 
 There are a couple of computational considerations to highlight about fitting the LME model. The parameter `lme_control` can be altered in order to change the  default values of parameters (such as maximum number of iterations) for the algorithm which fits the LME model. Also setting `standardise_time = TRUE` standardises the values of the time variable and this helps fitting the LME model (see `?fit_LME_landmark_model`).
 
-We fit the LME landmark model in a similar way to the LOCF landmark model, but with a few extra parameters. Fitting the LME model can take some time so here we only use landmark age 60 for demonstration purposes. 
+We fit the LME landmark model in a similar way to the LOCF landmark model, but with a few extra parameters. Fitting the LME model can take some time so here we only use landmark age 60 for demonstration purposes. With cross-validation, the cross-validation is nested: for each fold, both the LME model and the survival model are fitted to the other folds only. By default the LME model uses all the measurements of these individuals, including those after the landmark age (`include_data_after_x_L = TRUE`), but only the measurements up to the landmark age are used to predict the values for an individual at the landmark age.
 
 ```{r 16}
 data_model_landmark_LME <-
@@ -160,14 +166,14 @@ data_model_landmark_LME <-
   )
 ```
 
-Comparing the prediction error for the landmarking with LOCF and LME, we can see a slight improvement when the LME model is used.
+Comparing the prediction error for the landmark models with LOCF and LME, which use the same cross-validation folds, the LME model has a higher AUC and IPA and a lower Brier score at landmark age 60. To test the difference, both sets of predictions can be passed to `riskRegression::Score()`, which compares them on the same individuals.
 
 ```{r 17}
 data_model_landmark_LOCF[["60"]]$prediction_error
 data_model_landmark_LME[["60"]]$prediction_error
 ```
 
-Finally, suppose that we wish to predict the risk of the event of interest for a new patient. We need to create a data frame that contains records of all the covariates that were used to form the landmark model. As cross-validation was used, it is necessary to specify which cross-validation fold to use in the prediction. It is possible to predict the risk of the event of interest at any time before the horizon time.
+Finally, suppose that we wish to predict the risk of the event of interest for a new patient. We need to create a data frame that contains records of all the covariates that were used to form the landmark model. As cross-validation was used, it is necessary to specify which cross-validation fold to use in the prediction. It is possible to predict the risk of the event of interest at any time up to the horizon time, but not beyond it.
 
 ```{r 18}
 newdata <-

@@ -41,6 +41,33 @@ fit_survival_model <- function(data,
                                event_status,
                                survival_submodel = c("standard_cox", "cause_specific", "fine_gray"),
                                x_hor) {
+  survival_submodel <- match.arg(survival_submodel)
+  fit_survival_model_folds(
+    data = data,
+    individual_id = individual_id,
+    cv_name = cv_name,
+    covariates = covariates,
+    event_time = event_time,
+    event_status = event_status,
+    survival_submodel = survival_submodel,
+    x_hor = x_hor
+  )
+}
+
+# Fit the survival submodel and predict for each cross-validation fold in
+# folds_to_predict (all folds by default): the model for fold f is fitted to
+# the individuals in the other folds and predicts the individuals in fold f.
+# Used by fit_LME_landmark() for nested cross-validation, where the data for
+# each fold come from that fold's own LME model.
+fit_survival_model_folds <- function(data,
+                                     individual_id,
+                                     cv_name = NA,
+                                     covariates,
+                                     event_time,
+                                     event_status,
+                                     survival_submodel,
+                                     x_hor,
+                                     folds_to_predict = NULL) {
   #Checks
   #####
   if (!(inherits(data,"data.frame"))) {
@@ -72,7 +99,7 @@ fit_survival_model <- function(data,
 
   if(is.na(cv_name)){data[["cross_validation_number"]]<-1;cv_name<-"cross_validation_number"}
 
-  survival_submodel <- match.arg(survival_submodel)
+  survival_submodel <- match.arg(survival_submodel, c("standard_cox", "cause_specific", "fine_gray"))
 
   if(!is.null(levels(data[[event_status]]))){
     data[[event_status]]<-as.numeric(levels(data[[event_status]]))[data[[event_status]]]
@@ -96,8 +123,9 @@ fit_survival_model <- function(data,
   if(is.na(cv_name)){data[["cross_validation_number"]]<-1;cv_name<-"cross_validation_number"}
 
     cv_numbers <- unique(data[[cv_name]])
-    model <- as.list(cv_numbers)
-    names(model) <- cv_numbers
+    if (is.null(folds_to_predict)) {
+      folds_to_predict <- cv_numbers
+    }
     Surv<-survival::Surv
 
     #Censor at the time horizon
@@ -106,7 +134,7 @@ fit_survival_model <- function(data,
     data[[event_time]][data[[event_time]] > x_hor] <-
       x_hor
 
-    data_cv <- lapply(cv_numbers, function(cv_number) {
+    data_cv <- lapply(folds_to_predict, function(cv_number) {
 
       if (length(cv_numbers)==1) {
         data_test <- data
@@ -176,7 +204,7 @@ fit_survival_model <- function(data,
     data_survival <-
       data.frame(Reduce(dplyr::bind_rows, lapply(data_cv, `[[`, 1)))
     model_survival <- lapply(data_cv, `[[`, 2)
-    names(model_survival)<-cv_numbers
+    names(model_survival)<-folds_to_predict
     if (length(cv_numbers)==1) {
       model_survival<-model_survival[[1]]
     }
