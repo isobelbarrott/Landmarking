@@ -1,11 +1,10 @@
-pandoc: 2.11.4
-pkgdown: 1.6.1.9001
-pkgdown_sha: ce9781a15c7ea07df9fb17a11295ba4abec0b54b
+pandoc: '3.10'
+pkgdown: 2.2.1
+pkgdown_sha: ~
 articles:
   how_to_use: how_to_use.html
   Landmarking: Landmarking.html
-last_built: 2022-11-13T11:30Z
+last_built: 2026-11-27T10:53Z
 urls:
   reference: https://isobelbarrott.github.io/Landmarking/reference
   article: https://isobelbarrott.github.io/Landmarking/articles
-
