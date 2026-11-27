@@ -29,7 +29,8 @@ fit_LME_longitudinal(
 which correspond to the predictor variables in the LME model}
 
 \item{responses_LME}{Vector of character strings specifying the column names in \code{data_long}
-which correspond to the response variables in the LME model}
+which correspond to the response variables in the LME model. Values may be missing (\code{NA}), for example when the
+responses are measured at different times; missing values are ignored.}
 
 \item{predictors_LME_time}{Vector of character strings specifying the column names in \code{data_long}
 which contains the time at which the predictor variables were recorded.
@@ -39,7 +40,7 @@ In the latter case the order of elements must correspond to the order of element
 \item{responses_LME_time}{Vector of character strings specifying the column names in \code{data_long}
 which contain the times at which response variables were recorded. This should either be length 1 or
 the same length as \code{responses_LME}. In the latter case the order of elements must correspond to the
-order of elements in \code{responses_LME}.}
+order of elements in \code{responses_LME}. A time may be missing when the corresponding response is missing.}
 
 \item{standardise_time}{Boolean indicating whether to standardise the time variable in the LME model by subtracting the mean
 and dividing by the standard deviation. See Details section of \code{fit_LME_longitudinal} for more information.}
@@ -51,7 +52,12 @@ as a covariate in the survival submodel. See Details section of \code{fit_LME_lo
 If \code{standardise_time = TRUE}, the slopes are on the standardised time scale, i.e. per standard deviation of the response times.}
 
 \item{include_data_after_x_L}{Boolean indicating whether to include all longitudinal data, including data after the landmark age \code{x_L},
-in the model development dataset. See Details section of \code{fit_LME_longitudinal} for more information.}
+in the model development dataset (default \code{TRUE}). Using measurements after the landmark age can improve the estimates of the
+LME model, but it conditions on individuals remaining under observation after the landmark age, and how often individuals are
+measured may itself be related to their outcome. With cross-validation, only the measurements of individuals in the training folds
+are used to fit the LME model, so the measurements after the landmark age of the individuals being predicted are never used;
+comparing the cross-validated performance with \code{include_data_after_x_L = FALSE} shows whether using these data improves the predictions.
+See Details section of \code{fit_LME_longitudinal} for more information.}
 
 \item{cv_name}{Character string specifying the column name in \code{data_long} that indicates cross-validation fold}
 
@@ -65,7 +71,8 @@ List containing elements:
 
 \code{data_longitudinal} has one row for each individual in the risk set at \code{x_L} and
 contains the value of the covariates at the landmark time \code{x_L} of the \code{predictors_LME} using the LOCF model and
-\code{responses_LME} using the LME model.
+\code{responses_LME} using the LME model. For a model using cross-validation, the values for the individuals in each fold
+come from the LME model fitted to the other folds.
 
 \code{model_longitudinal} indicates that the LME approach is used.
 
@@ -75,7 +82,8 @@ the \code{lme} function from package \code{nlme}. For a model using cross-valida
 element in the list corresponds to a different cross-validation fold.
 
 \code{model_LME_standardise_time} contains a list of two objects \code{mean_response_time} and \code{sd_response_time} if the parameter \code{standardise_time=TRUE} is used. This
-is the mean and standard deviation used to normalise times when fitting the LME model.
+is the mean and standard deviation used to normalise times when fitting the LME model. For a model using cross-validation, it contains
+a list of these for each cross-validation fold, as time is standardised using the measurements of the individuals used to fit the LME model in that fold.
 }
 \description{
 This function is a helper function for \code{fit_LME_landmark}.

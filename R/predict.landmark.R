@@ -6,11 +6,12 @@
 #' @param object Object inheriting the class `landmark`, this should be the output from either `fit_LME_landmark` or `fit_LOCF_landmark`. It should contain a list
 #' of landmark models corresponding to different landmark times `x_L`.
 #' @param x_L 	Numeric specifying the landmark time. This indicates which landmark model in `object` to use.
-#' @param x_hor Numeric specifying the horizon time. The function assesses the risk of event before this time.
+#' @param x_hor Numeric specifying the horizon time. The function assesses the risk of event before this time. It should not be greater than
+#' the horizon time used to fit the landmark model, as the model has no information about the risk after that time.
 #' @param newdata Data frame containing new data to return the risk prediction of the event of interest. The data should be in in long format
 #' and the columns must contain the covariates and time variables that are used to fit the model.
 #' For the LME model this the variables `predictors_LME`, `responses_LME`, `predictors_LME_time`, and
-#' `responses_LME_time`. For the LOCF model this is `covariates` and `covariates_time`.
+#' `responses_LME_time` (the responses may be missing). For the LOCF model this is `covariates` and `covariates_time`.
 #' @param cv_fold If cross validation is used to fit `fit_LME_landmark` or `fit_LOCF_landmark`, then the cross validation fold to use when making risk predictions needs to be specified.
 #' @param \dots Arguments passed on to `riskRegression::predictRisk`
 #' @return Data frame `newdata` updated to contained a new column `event_prediction`
@@ -61,6 +62,21 @@ predict.landmark <- function(object, x_L, x_hor, newdata, cv_fold = NA, ...) {
   if (x_hor <= x_L) {
     stop("x_hor should be greater than x_L")
   }
+  x_hor_fitted <- object[[as.character(x_L)]]$x_hor
+  if (!is.null(x_hor_fitted) && x_hor > x_hor_fitted) {
+    stop("x_hor should not be greater than the horizon the model was fitted with (",
+         x_hor_fitted, "), as the model has no information about risk after that time")
+  }
+  model_survival_x_L <- object[[as.character(x_L)]]$model_survival
+  fitted_with_cv <- !inherits(model_survival_x_L, c("CauseSpecificCox", "FGR", "coxph")) &&
+    is.list(model_survival_x_L)
+  if (fitted_with_cv && is.na(cv_fold)) {
+    stop("The model was fitted with cross-validation, so cv_fold should specify which fold's model to use (one of: ",
+         paste(sort(names(model_survival_x_L)), collapse = ", "), ")")
+  }
+  if (!is.na(cv_fold) && !(as.character(cv_fold) %in% names(model_survival_x_L))) {
+    stop("cv_fold should be one of the cross-validation folds used to fit the model")
+  }
 
   model_longitudinal <- object[[as.character(x_L)]]$model_longitudinal
 
@@ -109,12 +125,16 @@ predict.landmark <- function(object, x_L, x_hor, newdata, cv_fold = NA, ...) {
     if (!is.na(cv_fold)) {
       model_LME <-
         object[[as.character(x_L)]]$model_LME[[as.character(cv_fold)]]
-      model_LME_standardise_time <-
-        object[[as.character(x_L)]]$model_LME_standardise_time[[as.character(cv_fold)]]
     }else{
       model_LME <- object[[as.character(x_L)]]$model_LME
+    }
+    #Models fitted with cross-validation in Landmarking >= 1.1.0 standardise
+    #time separately in each fold; other models use one standardisation
+    model_LME_standardise_time <-
+      object[[as.character(x_L)]]$model_LME_standardise_time
+    if (is.null(model_LME_standardise_time$mean_response_time)) {
       model_LME_standardise_time <-
-        object[[as.character(x_L)]]$model_LME_standardise_time
+        model_LME_standardise_time[[as.character(cv_fold)]]
     }
 
     data_model_longitudinal <-
@@ -175,7 +195,10 @@ predict.landmark <- function(object, x_L, x_hor, newdata, cv_fold = NA, ...) {
                  response_type,
                  response,
                  response_time)
-    data_LME<-data_LME[data_LME$response_time<=x_L,]
+    #Use the observed measurements on or before the landmark age (responses
+    #may be missing, e.g. when each response is measured at different times)
+    data_LME <- data_LME[!is.na(data_LME$response) & !is.na(data_LME$response_time), ]
+    data_LME <- data_LME[data_LME$response_time <= x_L, ]
     data_LME$predict <- 0
     data_longitudinal <- dplyr::bind_rows(data_LOCF, data_LME)
     #Drop unused levels of the id column only (e.g. ids not in newdata), so
@@ -185,10 +208,8 @@ predict.landmark <- function(object, x_L, x_hor, newdata, cv_fold = NA, ...) {
     data_longitudinal[[individual_id]] <-
       droplevels(as.factor(data_longitudinal[[individual_id]]))
 
-    mean_response_time <-
-      object[[as.character(x_L)]]$model_LME_standardise_time$mean_response_time
-    sd_response_time <-
-      object[[as.character(x_L)]]$model_LME_standardise_time$sd_response_time
+    mean_response_time <- model_LME_standardise_time$mean_response_time
+    sd_response_time <- model_LME_standardise_time$sd_response_time
     data_longitudinal$response_time <-
       (data_longitudinal$response_time - mean_response_time) / sd_response_time
 

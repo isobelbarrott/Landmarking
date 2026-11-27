@@ -8,6 +8,16 @@ cov_times <- c(rep("response_time_sbp_stnd", 4), "response_time_tchdl_stnd")
 
 quietly <- function(expr) suppressWarnings(suppressMessages(expr))
 
+# Hide messages and warnings other than the deprecation warning for b
+quietly_except_b <- function(expr) {
+  withCallingHandlers(
+    suppressMessages(expr),
+    warning = function(w) {
+      if (!grepl("b is no longer used", conditionMessage(w))) invokeRestart("muffleWarning")
+    }
+  )
+}
+
 fit_locf <- function(...) {
   quietly(fit_LOCF_landmark(
     individual_id = "id",
@@ -58,15 +68,15 @@ expect_same_predictions <- function(pred, fitted, individual_id = "id") {
   expect_equal(pred$event_prediction[idx], fitted$event_prediction, tolerance = 1e-8)
 }
 
-test_that("integer x_L, x_hor, k and b are accepted and match doubles", {
+test_that("integer x_L, x_hor and k are accepted and match doubles", {
   m_int <- fit_locf(data_long = data_repeat_outcomes, x_L = 60L, x_hor = 65L,
-                    covariates = covs, covariates_time = cov_times, k = 5L, b = 3L,
+                    covariates = covs, covariates_time = cov_times, k = 5L,
                     survival_submodel = "cause_specific")
   m_dbl <- fit_locf(data_long = data_repeat_outcomes, x_L = 60, x_hor = 65,
                     covariates = covs, covariates_time = cov_times, k = 5,
                     survival_submodel = "cause_specific")
   expect_equal(m_int[["60"]]$data$event_prediction, m_dbl[["60"]]$data$event_prediction)
-  expect_true(is.numeric(m_int[["60"]]$prediction_error$c_index_standard_error))
+  expect_true(is.numeric(m_int[["60"]]$prediction_error$auc_standard_error))
 })
 
 test_that("an individual_id other than 'id' works with random slopes (two responses)", {
@@ -167,7 +177,7 @@ test_that("standard_cox submodel fits and predict() reproduces the fit", {
                 survival_submodel = "standard_cox")
   p <- m[["60"]]$data$event_prediction
   expect_true(all(p >= 0 & p <= 1))
-  expect_true(m[["60"]]$prediction_error$c_index > 0.5)
+  expect_true(m[["60"]]$prediction_error$auc > 0.5)
 
   newdata <- data_cox[data_cox$id %in% risk_set_60$id, ]
   pred <- quietly(predict(m, x_L = 60, x_hor = 65, newdata = newdata))
@@ -370,4 +380,169 @@ test_that("LME model warns about individuals without all responses by the landma
   expect_equal(m_chr[["60"]]$data$event_prediction, m[["60"]]$data$event_prediction,
                tolerance = 1e-6)
   expect_same_alone_and_with_others(m_chr)
+})
+
+test_that("prediction_error reports AUC, Brier score and IPA, and b is deprecated", {
+  expect_warning(
+    m <- quietly_except_b(fit_LOCF_landmark(
+      data_long = data_repeat_outcomes, x_L = 60, x_hor = 65,
+      covariates = covs, covariates_time = cov_times, k = 5, b = 10,
+      individual_id = "id", event_time = "event_time", event_status = "event_status",
+      survival_submodel = "cause_specific"
+    )),
+    "b is no longer used"
+  )
+  pe <- m[["60"]]$prediction_error
+  expect_named(pe, c("auc", "auc_standard_error", "brier_score", "brier_score_standard_error", "ipa"))
+  expect_true(pe$auc > 0.5 && pe$auc < 1)
+  expect_true(pe$brier_score > 0 && pe$brier_score < 1)
+  expect_true(pe$auc_standard_error > 0 && pe$brier_score_standard_error > 0)
+  expect_true(pe$ipa < 1)
+
+  # The stored follow-up is censored at the horizon. The metrics must be the
+  # same as with the full follow-up: individuals event-free at the horizon
+  # must count as event-free, not as censored before it
+  d <- m[["60"]]$data
+  expect_true(any(d$event_time == 65 & d$event_status == 0))
+  events <- data_repeat_outcomes[!duplicated(data_repeat_outcomes$id), c("id", "event_time", "event_status")]
+  d_full <- d
+  d_full$event_time <- events$event_time[match(d$id, events$id)]
+  d_full$event_status <- as.numeric(as.character(events$event_status[match(d$id, events$id)]))
+  expect_gt(max(d_full$event_time), 65)
+  pe_full <- get_model_assessment(data = d_full, individual_id = "id", event_prediction = "event_prediction",
+                                  event_status = "event_status", event_time = "event_time", x_hor = 65)
+  expect_equal(pe, pe_full)
+
+  expect_warning(
+    get_model_assessment(data = d, individual_id = "id", event_prediction = "event_prediction",
+                         event_status = "event_status", event_time = "event_time", x_hor = 65, b = 10),
+    "b is no longer used"
+  )
+})
+
+test_that("predict() does not predict beyond the fitted horizon and needs cv_fold for cross-validated models", {
+  m <- fit_locf(data_long = data_repeat_outcomes, x_L = 60, x_hor = 65,
+                covariates = covs, covariates_time = cov_times, k = 5,
+                survival_submodel = "cause_specific")
+  expect_error(predict(m, x_L = 60, x_hor = 66, newdata = new_individual, cv_fold = 1),
+               "should not be greater than the horizon the model was fitted with")
+  expect_error(predict(m, x_L = 60, x_hor = 64, newdata = new_individual),
+               "cv_fold should specify")
+  expect_error(predict(m, x_L = 60, x_hor = 64, newdata = new_individual, cv_fold = 6),
+               "cv_fold should be one of")
+  p <- quietly(predict(m, x_L = 60, x_hor = 65, newdata = new_individual, cv_fold = 1))
+  expect_true(p$event_prediction > 0 && p$event_prediction < 1)
+})
+
+test_that("smooth calibration: get_calibration() and plot(type = 'smooth')", {
+  m <- fit_locf(data_long = data_repeat_outcomes, x_L = 60, x_hor = 65,
+                covariates = covs, covariates_time = cov_times, k = 5,
+                survival_submodel = "cause_specific")
+  calibration <- get_calibration(m, x_L = 60)
+  expect_named(calibration, c("curve", "ICI", "E50", "E90"))
+  expect_equal(nrow(calibration$curve), 100)
+  expect_true(all(calibration$curve$observed >= 0 & calibration$curve$observed <= 1))
+  expect_true(calibration$ICI >= 0 && calibration$E50 <= calibration$E90)
+  p <- plot(m, x_L = 60, type = "smooth")
+  expect_s3_class(p, "ggplot")
+  expect_match(p$labels$subtitle, "^ICI = ")
+  expect_error(plot(m, x_L = 60), "n must have class numeric")
+
+  # With simulated outcomes, a calibrated model has a small ICI and a
+  # miscalibrated one a large ICI (no censoring before the horizon here)
+  set.seed(11)
+  n <- 4000
+  risk <- stats::runif(n, 0.02, 0.4)
+  event <- stats::runif(n) < risk
+  competing <- !event & stats::runif(n) < 0.1
+  time <- ifelse(event | competing, stats::runif(n, 0, 5), 6)
+  status <- ifelse(event, 1, ifelse(competing, 2, 0))
+  calibrated <- get_smooth_calibration(risk, time, status, x_hor = 5)
+  miscalibrated <- get_smooth_calibration(pmin(2 * risk, 1), time, status, x_hor = 5)
+  expect_lt(calibrated$ICI, 0.02)
+  expect_gt(miscalibrated$ICI, 0.1)
+})
+
+test_that("nested cross-validation: a fold's predictions do not depend on its own data after the landmark", {
+  skip_on_cran() # slow: fits LME models
+  individuals <- unique(data_repeat_outcomes$id)
+  set.seed(7)
+  cv_df <- data.frame(id = individuals,
+                      cross_validation_number = sample(1:3, length(individuals), replace = TRUE))
+  m <- fit_lme(data_repeat_outcomes, cross_validation_df = cv_df)
+
+  # Change the measurements (values and times) of fold 1 after the landmark age
+  d <- data_repeat_outcomes
+  fold_1 <- d$id %in% cv_df$id[cv_df$cross_validation_number == 1]
+  after_sbp <- fold_1 & d$response_time_sbp_stnd > 60
+  after_tchdl <- fold_1 & d$response_time_tchdl_stnd > 60
+  d$sbp_stnd[after_sbp] <- d$sbp_stnd[after_sbp] + 1
+  d$response_time_sbp_stnd[after_sbp] <- d$response_time_sbp_stnd[after_sbp] + 0.5
+  d$tchdl_stnd[after_tchdl] <- d$tchdl_stnd[after_tchdl] - 1
+  d$response_time_tchdl_stnd[after_tchdl] <- d$response_time_tchdl_stnd[after_tchdl] + 0.5
+  m_changed <- fit_lme(d, cross_validation_df = cv_df)
+
+  original <- m[["60"]]$data
+  changed <- m_changed[["60"]]$data
+  changed <- changed[match(original$id, changed$id), ]
+  in_fold_1 <- original$cross_validation_number == 1
+  # Fold 1 is predicted by models fitted to folds 2 and 3 only
+  expect_equal(changed$event_prediction[in_fold_1], original$event_prediction[in_fold_1])
+  # Folds 2 and 3 use fold 1's data (including after the landmark) for training
+  expect_false(isTRUE(all.equal(changed$event_prediction[!in_fold_1], original$event_prediction[!in_fold_1])))
+  # Time is standardised separately in each fold
+  expect_named(m[["60"]]$model_LME_standardise_time, names(m[["60"]]$model_LME))
+  expect_true(quietly(predict(m, x_L = 60, x_hor = 65, newdata = new_individual, cv_fold = 2))$event_prediction > 0)
+})
+
+test_that("missing values in responses_LME", {
+  skip_on_cran() # slow: fits LME models
+  # Splitting each row into one row per response, with the other response
+  # missing, gives the same measurements and so the same model (both data
+  # sets are sorted the same way, so the results are identical rather than
+  # equal up to the convergence tolerance of the LME fit)
+  d <- data_repeat_outcomes
+  d$visit_time <- d$response_time_sbp_stnd
+  d <- d[order(d$id, d$visit_time), ]
+  d_sbp <- d
+  d_sbp$tchdl_stnd <- NA
+  d_sbp$response_time_tchdl_stnd <- NA
+  d_tchdl <- d
+  d_tchdl$sbp_stnd <- NA
+  d_tchdl$response_time_sbp_stnd <- NA
+  d_split <- rbind(d_sbp, d_tchdl)
+  d_split <- d_split[order(d_split$id, d_split$visit_time), ]
+
+  fit_visit <- function(data) {
+    quietly(fit_LME_landmark(
+      data_long = data, x_L = 60, x_hor = 65,
+      predictors_LME = c("ethnicity", "smoking", "diabetes"),
+      predictors_LME_time = "visit_time",
+      responses_LME = c("sbp_stnd", "tchdl_stnd"),
+      responses_LME_time = c("response_time_sbp_stnd", "response_time_tchdl_stnd"),
+      individual_id = "id", standardise_time = TRUE,
+      lme_control = nlme::lmeControl(maxIter = 100, msMaxIter = 100),
+      event_time = "event_time", event_status = "event_status",
+      survival_submodel = "cause_specific"
+    ))
+  }
+  m <- fit_visit(d)
+  m_split <- fit_visit(d_split)
+  expect_equal(nrow(m_split[["60"]]$data), nrow(m[["60"]]$data))
+  idx <- match(as.character(m[["60"]]$data$id), as.character(m_split[["60"]]$data$id))
+  expect_false(anyNA(idx))
+  expect_equal(m_split[["60"]]$data$event_prediction[idx], m[["60"]]$data$event_prediction)
+
+  # predict() also ignores missing responses
+  new_split <- rbind(transform(new_individual, tchdl_stnd = NA, response_time_tchdl_stnd = NA),
+                     transform(new_individual, sbp_stnd = NA, response_time_sbp_stnd = NA))
+  new_split$visit_time <- c(new_individual$response_time_sbp_stnd, new_individual$response_time_sbp_stnd)
+  new_individual_visit <- transform(new_individual, visit_time = response_time_sbp_stnd)
+  expect_equal(quietly(predict(m_split, x_L = 60, x_hor = 64, newdata = new_split))$event_prediction,
+               quietly(predict(m, x_L = 60, x_hor = 64, newdata = new_individual_visit))$event_prediction)
+
+  # A response recorded without its time is an error
+  d_bad <- d
+  d_bad$response_time_tchdl_stnd[1] <- NA
+  expect_error(fit_visit(d_bad), "tchdl_stnd has observations with a missing time")
 })

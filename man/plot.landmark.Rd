@@ -4,34 +4,43 @@
 \alias{plot.landmark}
 \title{Create a calibration plot}
 \usage{
-\method{plot}{landmark}(x, x_L, n, x_lims, y_lims, ...)
+\method{plot}{landmark}(x, x_L, n, x_lims, y_lims, type = c("binned", "smooth"), span = 0.75, ...)
 }
 \arguments{
-\item{x}{Object inheriting the class \code{landmark}, this should be the output from either \code{fit_LME_landmark_model} or \code{fit_LOCF_landmark_model}. It should contain a list
+\item{x}{Object inheriting the class \code{landmark}, this should be the output from either \code{fit_LME_landmark} or \code{fit_LOCF_landmark}. It should contain a list
 of landmark models corresponding to different landmark times \code{x_L}.}
 
 \item{x_L}{Numeric specifying the landmark time. This indicates which landmark model in \code{x} to use.}
 
-\item{n}{Numeric specifying the number of bins to use.}
+\item{n}{Numeric specifying the number of bins to use (for \code{type = "binned"}).}
 
 \item{x_lims}{Vector of length 2 specifying the limits of the x axes}
 
 \item{y_lims}{Vector of length 2 specifying the limits of the y axes}
 
-\item{\dots}{Arguments passed to \code{ggplot2::labs} to modify axis, legend, and plot labels}
+\item{type}{Character string specifying the type of calibration plot: \code{"binned"} (the default) or \code{"smooth"}.}
+
+\item{span}{Numeric specifying the span of the loess smoother (for \code{type = "smooth"}, default 0.75).}
+
+\item{\dots}{Arguments passed to \code{ggplot2::geom_point} (for \code{type = "binned"}) or \code{ggplot2::geom_line} (for \code{type = "smooth"})}
 }
 \value{
 Calibration plot showing the value of predicted probabilities against observed frequencies, with a \code{y=x} line.
 }
 \description{
-Creates a calibration plot for the landmark model fitted by \code{fit_LME_landmark_model} or \code{fit_LOCF_landmark_model}.
+Creates a calibration plot for the landmark model fitted by \code{fit_LME_landmark} or \code{fit_LOCF_landmark}.
 This function plots the observed frequencies of the event of interest against the predicted probabilities of the event of interest.
 }
 \details{
-This function bins the predicted probabilities of the event of interest into \code{n} bins. The event of interest is the event with
+With \code{type = "binned"}, this function bins the predicted probabilities of the event of interest into \code{n} bins. The event of interest is the event with
 \code{event_status=1} when fitting the landmark model. For each of the \code{n} sets of individuals, the Aalen-Johansen estimator is fit to that set
 and used to calculate the risk of an event at the horizon time. The predictions (from the landmark model) and the observed frequencies
 (from the Aalen-Johansen estimator) are plotted against each other. For a perfect prediction model, the points will be plotted along the y=x line.
+The plot depends on the choice of \code{n}.
+
+With \code{type = "smooth"}, the plot shows a smooth calibration curve estimated with pseudo-observations, without grouping the
+predictions, and the integrated calibration index (ICI), E50 and E90 are given in the subtitle. The tick marks along the x axis show
+the distribution of the predicted risks. See \code{get_calibration} for details and for the values of the curve and metrics.
 }
 \examples{
 library(Landmarking)
@@ -53,4 +62,5 @@ data_model_landmark_LOCF <-
   )
  plot(x=data_model_landmark_LOCF,x_L=60,n=5)
  plot(x=data_model_landmark_LOCF,x_L=61,n=5)
+ plot(x=data_model_landmark_LOCF,x_L=60,type="smooth")
 }

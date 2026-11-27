@@ -1,40 +1,54 @@
-#' Compute C-index and Brier score
+#' Compute the time-dependent AUC, Brier score and index of prediction accuracy
 #'
-#' Performs model assessment by computing the C-index and Brier score at time `x_hor`. There is the option
-#' to calculate their standard errors using bootstraping.
+#' Performs model assessment by computing the time-dependent area under the ROC curve (AUC),
+#' the Brier score and the index of prediction accuracy (IPA) at time `x_hor`, with standard errors
+#' for the AUC and Brier score.
 #'
 #' @param data Data frame containing survival outcomes and the event predictions from the model,
 #' there should be one row for each individual
-#' @param event_status Character string specifying the column name in `data` which contains the event status (where 0=censoring, 1=event of interest, if there are competing events these are labelled 2 or above). Events at time `x_hor` should be labelled censored.
-#' @param event_time Character string specifying the column name in `data` which contains the event time.
+#' @param event_status Character string specifying the column name in `data` which contains the event status (where 0=censoring, 1=event of interest, if there are competing events these are labelled 2 or above).
+#' @param event_time Character string specifying the column name in `data` which contains the event time. Follow-up
+#' may be censored at `x_hor`: individuals without an event on or before `x_hor` are treated as event-free at `x_hor`.
 #' @template x_hor
 #' @param individual_id  Character string specifying the column name in `data` which contains the individual identifiers
 #' @template event_prediction
 #' @template b
-#' @return List containing C-index, Brier score and their standard errors
+#' @return List containing the AUC (`auc`) and its standard error (`auc_standard_error`), the Brier score (`brier_score`)
+#' and its standard error (`brier_score_standard_error`), and the index of prediction accuracy (`ipa`).
 #' @details There are two factors in assessing the performance of a prediction model; its
-#' discrimination and its calibration. The c-index is a commonly used metric which assesses
-#' discrimination, this refers to the ability of the model to separate individuals into
-#' those that will have an event and those that will not. The c-index at a horizon time `x_hor`
-#' looks at the pairs of individuals where one individual has the event at a time T and the other has not had the event at time T.
-#' It is calculated as the proportion of these pairs where their relative risk prediction agrees with the
-#' actual outcomes for the two individuals. This is extended to the competing risks case
-#' by comparing individuals where one had the event of interest at time T and the other individual either
-#' did not experience the event before this time T or experienced a competing event.
+#' discrimination and its calibration. Discrimination refers to the ability of the model to separate individuals into
+#' those that will have the event of interest by time `x_hor` and those that will not. It is assessed with the
+#' time-dependent AUC at `x_hor`: the probability that an individual who has the event of interest by `x_hor` (a case)
+#' has a higher predicted risk than an individual who does not (a control). With competing risks, individuals who have a competing
+#' event by `x_hor` are controls. The AUC is used rather than the C-index because the C-index is not a proper measure
+#' for evaluating predicted risks at a fixed time (Blanche, Kattan and Gerds, 2019).
 #'
-#' The Brier score gives an indication of the calibration of a model (and its discrimination to an extent), this refers to the agreement between the risk prediction and
-#' the outcome. The Brier score is calculated as the average mean squared error of the predicted risk and the event outcome (where
-#' an event is 1 and not experiencing the event is 0). This is extended to the competing risks case by including the competing risk events as
-#' not experiencing the event.
+#' The Brier score is the mean squared difference between the predicted risk and the event outcome by `x_hor` (where
+#' an event of interest is 1 and not experiencing the event, including having a competing event, is 0). It reflects both calibration and
+#' discrimination. The index of prediction accuracy (IPA) is the scaled Brier score, 1 - (Brier score of the model / Brier score
+#' of the null model), where the null model predicts the same risk (the Kaplan-Meier or Aalen-Johansen estimate) for everyone.
+#' Higher values are better; values below 0 indicate the model predicts worse than the null model.
 #'
-#' For both the c-index and Brier score calculations, inverse probability censoring weighting (IPCW) is used to create weights
-#' which account for the occurrence of censoring. The censoring model assumes for this function is the Kaplan Meier model, i.e. censoring occurs
-#' independently of covariates.
+#' Inverse probability of censoring weighting (IPCW) is used to account for censoring, with a Kaplan-Meier model for censoring,
+#' i.e. censoring is assumed to occur independently of covariates. The standard errors are based on the influence function
+#' (Blanche et al., 2015) and treat the predicted risks as fixed, so they do not include the uncertainty from fitting the model.
 #'
-#' The c-index is calculated using the `cindex` function in package `pec`. The Brier score is calculated using
-#' `pec` function in package `pec`.
+#' The metrics are calculated using the `Score` function in package `riskRegression`.
 #'
+#' In versions of Landmarking before 1.1.0, this function reported the C-index and Brier score, calculated with package `pec`
+#' on follow-up censored at `x_hor`. Individuals who were event-free at `x_hor` were then treated as censored before `x_hor`,
+#' which made the Brier score too low.
 #'
+#' @references
+#' Blanche P, Kattan MW, Gerds TA (2019). The c-index is not proper for the evaluation of t-year predicted risks.
+#' Biostatistics, 20(2), 347-357.
+#'
+#' Blanche P, Proust-Lima C, Loubere L, Berr C, Dartigues JF, Jacqmin-Gadda H (2015). Quantifying and comparing dynamic
+#' predictive accuracy of joint models for longitudinal marker and time-to-event in presence of censoring and competing risks.
+#' Biometrics, 71(1), 102-113.
+#'
+#' Kattan MW, Gerds TA (2018). The index of prediction accuracy: an intuitive measure useful for evaluating risk prediction models.
+#' Diagnostic and Prognostic Research, 2, 7.
 #' @author Isobel Barrott \email{isobel.barrott@@gmail.com}
 #' @examples \dontrun{
 #' library(Landmarking)
@@ -59,11 +73,8 @@
 #'   event_prediction = "event_prediction",
 #'   event_status = "event_status",
 #'   event_time = "event_time",
-#'   x_hor = 65,
-#'   b = 100)}
+#'   x_hor = 65)}
 #' @export
-
-
 get_model_assessment <-
   function(data,
            individual_id,
@@ -102,177 +113,63 @@ get_model_assessment <-
     if (!(is.numeric(x_hor))) {
       stop("x_hor should be numeric")
     }
-    if (!is.na(b)) {
-      if (!(is.numeric(b))) {
-        stop("b should be numeric")
-      }
-      standard_error <- TRUE
-    }
-    else{
-      standard_error <- FALSE
+    if (!missing(b)) {
+      warn_b_deprecated(b)
     }
     if (length(unique(data[[individual_id]])) != dim(data)[1]) {
       stop("There should be one row for each individual in data")
     }
 
-    n <- dim(data)[1]
+    status <- data[[event_status]]
+    if (!is.null(levels(status))) {
+      status <- as.numeric(levels(status))[status]
+    }
+    data_score <- data.frame(event_time = data[[event_time]],
+                             event_status = status)
+
+    #Individuals without an event on or before x_hor are event-free at x_hor.
+    #When follow-up has been censored at x_hor their event time equals x_hor,
+    #which Score() would treat as censored before x_hor, so move them just
+    #past the horizon. This does not change the censoring weights before x_hor.
+    event_free_at_x_hor <-
+      data_score$event_time >= x_hor & data_score$event_status == 0
+    data_score$event_time[event_free_at_x_hor] <- x_hor + 1
+
     Hist <- prodlim::Hist
-    Surv <- survival::Surv
-
-    data[["event_time"]] <- data[[event_time]]
-    data[["event_status"]] <- data[[event_status]]
-    data[["event_prediction"]] <- data[[event_prediction]]
-
-    if (setequal(data[[event_status]],0:1)){ # survival probabilities are needed for the non-competing risks model
-      data[["event_prediction"]] <- 1 - data[["event_prediction"]]
-    }
-
-    c_index <-
-      pec::cindex(
-        object = matrix(data[["event_prediction"]]),
-        formula = Hist(event_time, event_status) ~ 1,
-        cause = 1,
-        data = data,
-        cens.model = "marginal",
-        splitMethod = "none",
-        B = 0,
-        exact = FALSE,
-        verbose = FALSE,
-        eval.times = x_hor
-      )$AppCindex$matrix
-
-    if (standard_error == TRUE) {
-      rho_hat_star <-
-        unlist(lapply(1:b, function(i) {
-          c_index_bootstrap(
-            n = n,
-            data = data,
-            event_prediction =
-              event_prediction,
-            event_time =
-              event_time,
-            event_status =
-              event_status,
-            x_hor =
-              x_hor
-          )
-        }))
-      c_index_error <-
-        sqrt((1 / (b - 1)) * (sum((
-          rho_hat_star - mean(rho_hat_star)
-        ) ^ 2)))
-    }
-
-    brier_score <-
-      pec::pec(
-        object = matrix(cbind(0, data[["event_prediction"]]), ncol =
-                          2),
-        formula = Hist(event_time, event_status) ~ 1,
-        cause = 1,
-        data = data,
-        cens.model = "marginal",
-        splitMethod = "none",
-        B = 0,
-        exact = FALSE,
-        verbose = FALSE,
-        reference = FALSE,
-        times = x_hor
-      )$AppErr$matrix[2]
-
-    if (standard_error == TRUE) {
-      rho_hat_star <-
-        unlist(lapply(1:b, function(i) {
-          brier_bootstrap(
-            n = n,
-            data = data,
-            event_prediction =
-              event_prediction,
-            event_time =
-              event_time,
-            event_status =
-              event_status,
-            x_hor =
-              x_hor
-          )
-        }))
-      brier_score_error <-
-        sqrt((1 / (b - 1)) * (sum((
-          rho_hat_star - mean(rho_hat_star)
-        ) ^ 2)))
-
-
-    }
-
-
-    if (standard_error == FALSE) {
-      c_index_error <- NA
-      brier_score_error <- NA
-    }
+    score <- riskRegression::Score(
+      object = list(landmark_model = matrix(data[[event_prediction]], ncol = 1)),
+      formula = Hist(event_time, event_status) ~ 1,
+      data = data_score,
+      times = x_hor,
+      cause = 1,
+      metrics = c("auc", "brier"),
+      summary = "ipa",
+      null.model = TRUE,
+      se.fit = TRUE,
+      cens.model = "km",
+      progress.bar = NULL
+    )
+    auc <- as.data.frame(score$AUC$score)
+    auc <- auc[auc$model == "landmark_model", ]
+    brier <- as.data.frame(score$Brier$score)
+    brier <- brier[brier$model == "landmark_model", ]
 
     return(
       list(
-        c_index = c_index,
-        c_index_standard_error = c_index_error,
-        brier_score = brier_score,
-        brier_score_standard_error = brier_score_error
+        auc = auc$AUC,
+        auc_standard_error = auc$se,
+        brier_score = brier$Brier,
+        brier_score_standard_error = brier$se,
+        ipa = brier$IPA
       )
     )
   }
 
-c_index_bootstrap <-
-  function(n,
-           data,
-           event_prediction,
-           event_time,
-           event_status,
-           x_hor) {
-    bootstrap_sample <- sample(n, replace = TRUE)
-    Hist <- prodlim::Hist
-    Surv <- survival::Surv
-
-    data[["event_time"]] <- data[[event_time]]
-    data[["event_status"]] <- data[[event_status]]
-    data[["event_prediction"]] <- data[[event_prediction]]
-
-    pec::cindex(
-      object = matrix(data[["event_prediction"]][bootstrap_sample]),
-      formula = Hist(event_time, event_status) ~ 1,
-      cause = 1,
-      data = data[bootstrap_sample, ],
-      cens.model = "marginal",
-      splitMethod = "none",
-      B = 0,
-      exact = FALSE,
-      verbose = FALSE,
-      eval.times = x_hor
-    )$AppCindex$matrix
+# Warn that the bootstrap argument b is no longer used (Landmarking >= 1.1.0)
+warn_b_deprecated <- function(b) {
+  if (!is.null(b) && !all(is.na(b))) {
+    warning("b is no longer used: standard errors are now calculated with ",
+            "riskRegression::Score() (see help(get_model_assessment))",
+            call. = FALSE)
   }
-
-brier_bootstrap <-
-  function(n,
-           data,
-           event_prediction,
-           event_time,
-           event_status,
-           x_hor) {
-    bootstrap_sample <- sample(n, replace = TRUE)
-
-    data[["event_time"]] <- data[[event_time]]
-    data[["event_status"]] <- data[[event_status]]
-    data[["event_prediction"]] <- data[[event_prediction]]
-
-    pec::pec(
-      object = matrix(cbind(0, data[["event_prediction"]][bootstrap_sample]), ncol =
-                        2),
-      formula = Hist(event_time, event_status) ~ 1,
-      cause = 1,
-      data = data[bootstrap_sample, ],
-      cens.model = "marginal",
-      splitMethod = "none",
-      B = 0,
-      exact = FALSE,
-      verbose = FALSE,
-      reference = FALSE,
-      times = x_hor
-    )$AppErr$matrix[2]
-  }
+}
