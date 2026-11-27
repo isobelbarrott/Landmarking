@@ -77,7 +77,7 @@ For a model using cross-validation, \code{model_survival} contains a list of out
 element in the list corresponding to a different cross-validation fold. For more information on how the survival model is fitted
 please see \code{?fit_survival_model} which is a function used within \code{fit_LOCF_landmark}.
 
-\code{prediction_error} contains a list with the time-dependent AUC, the Brier score and their standard errors, and the index of prediction accuracy (IPA),
+\code{prediction_error} contains a list with the time-dependent AUC and the Brier score, and their standard errors,
 at time \code{x_hor}. For more information on how the prediction error is calculated
 please see \code{?get_model_assessment} which is the function used to do this within \code{fit_LOCF_landmark}.
 
@@ -107,7 +107,7 @@ This function censors the
 individuals at the time horizon \code{x_L} and fits the survival model. Using the survival data is the second stage and is performed using \code{fit_survival_model}. See \code{?fit_survival_model} more for information about this function.
 
 Fourthly, the performance of the model is then assessed on the set of predictions
-from the entire set of individuals in the risk set by calculating the time-dependent AUC, Brier score and index of prediction accuracy.
+from the entire set of individuals in the risk set by calculating the time-dependent AUC and Brier score.
 This is performed using \code{get_model_assessment}. See \code{?get_model_assessment} more for information about this function.
 }
 \examples{

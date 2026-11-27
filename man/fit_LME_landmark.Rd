@@ -123,7 +123,7 @@ the survival submodel functions, including the estimated parameters of the model
 \code{model_survival} will contain a list of outputs with each
 element in the list corresponding to a different cross-validation fold.
 
-\code{prediction_error} contains a list with the time-dependent AUC, the Brier score and their standard errors, and the index of prediction accuracy (IPA),
+\code{prediction_error} contains a list with the time-dependent AUC and the Brier score, and their standard errors,
 at time \code{x_hor}. See \code{?get_model_assessment} for details.
 
 \code{x_hor} is the horizon time used to fit the model. \code{predict} does not predict beyond this time.
@@ -160,7 +160,7 @@ In versions of Landmarking before 1.1.0, the survival model for a fold was train
 using data from that fold, which could make the cross-validated performance optimistic.
 
 Fourthly, the performance of the model is then assessed on the set of predictions
-from the entire set of individuals in the risk set by calculating the time-dependent AUC, Brier score and index of prediction accuracy.
+from the entire set of individuals in the risk set by calculating the time-dependent AUC and Brier score.
 This is performed using \code{get_model_assessment}. See \code{?get_model_assessment} more for information about this function.
 }
 \examples{

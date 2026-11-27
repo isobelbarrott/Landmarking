@@ -48,8 +48,8 @@ data_model_landmark_LME <-
     survival_submodel = "cause_specific"
   )
 # Compare predictions and performance metrics against reference values from
-# Landmarking 1.1.0 (nested cross-validation for the LME model; AUC, Brier
-# score and IPA from riskRegression::Score()). The LOCF predictions are the
+# Landmarking 1.1.0 (nested cross-validation for the LME model; AUC and
+# Brier score from riskRegression::Score()). The LOCF predictions are the
 # same as in the original release. Whole-object RDS snapshots were not
 # reproducible: the riskRegression::CSC fit serialises differently on every
 # run, even with the same data and seed. A small tolerance allows for

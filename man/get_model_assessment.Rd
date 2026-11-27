@@ -2,7 +2,7 @@
 % Please edit documentation in R/get_model_assessment.R
 \name{get_model_assessment}
 \alias{get_model_assessment}
-\title{Compute the time-dependent AUC, Brier score and index of prediction accuracy}
+\title{Compute the time-dependent AUC and Brier score}
 \usage{
 get_model_assessment(
   data,
@@ -34,12 +34,11 @@ calculated from the influence function with \code{riskRegression::Score()} rathe
 }
 \value{
 List containing the AUC (\code{auc}) and its standard error (\code{auc_standard_error}), the Brier score (\code{brier_score})
-and its standard error (\code{brier_score_standard_error}), and the index of prediction accuracy (\code{ipa}).
+and its standard error (\code{brier_score_standard_error}).
 }
 \description{
-Performs model assessment by computing the time-dependent area under the ROC curve (AUC),
-the Brier score and the index of prediction accuracy (IPA) at time \code{x_hor}, with standard errors
-for the AUC and Brier score.
+Performs model assessment by computing the time-dependent area under the ROC curve (AUC)
+and the Brier score at time \code{x_hor}, with their standard errors.
 }
 \details{
 There are two factors in assessing the performance of a prediction model; its
@@ -52,9 +51,7 @@ for evaluating predicted risks at a fixed time (Blanche, Kattan and Gerds, 2019)
 
 The Brier score is the mean squared difference between the predicted risk and the event outcome by \code{x_hor} (where
 an event of interest is 1 and not experiencing the event, including having a competing event, is 0). It reflects both calibration and
-discrimination. The index of prediction accuracy (IPA) is the scaled Brier score, 1 - (Brier score of the model / Brier score
-of the null model), where the null model predicts the same risk (the Kaplan-Meier or Aalen-Johansen estimate) for everyone.
-Higher values are better; values below 0 indicate the model predicts worse than the null model.
+discrimination. Lower values are better.
 
 Inverse probability of censoring weighting (IPCW) is used to account for censoring, with a Kaplan-Meier model for censoring,
 i.e. censoring is assumed to occur independently of covariates. The standard errors are based on the influence function
@@ -99,9 +96,6 @@ Biostatistics, 20(2), 347-357.
 Blanche P, Proust-Lima C, Loubere L, Berr C, Dartigues JF, Jacqmin-Gadda H (2015). Quantifying and comparing dynamic
 predictive accuracy of joint models for longitudinal marker and time-to-event in presence of censoring and competing risks.
 Biometrics, 71(1), 102-113.
-
-Kattan MW, Gerds TA (2018). The index of prediction accuracy: an intuitive measure useful for evaluating risk prediction models.
-Diagnostic and Prognostic Research, 2, 7.
 }
 \author{
 Isobel Barrott \email{isobel.barrott@gmail.com}
