@@ -302,7 +302,10 @@ to each of the datasets that correspond to a landmark age
 <code>x_L</code> (with the <code>cross_validation_number</code> added).
 If the parameters <code>k</code> or <code>cross_validation_df</code> are
 used, then the landmark model is formed using the training dataset and
-applied to the test dataset.</p>
+applied to the test dataset. For the LME model, both steps are nested
+within each cross-validation fold: the LME model and the survival model
+that predict the individuals in a fold are both fitted to the other
+folds only, so no data from the fold are used to fit them.</p>
 <p>In the third step, function <code>fit_LOCF_longitudinal</code> or
 <code>fit_LME_longitudinal</code> is used. The function
 <code>fit_LOCF_longitudinal</code> extracts the LOCF value for each of
@@ -311,12 +314,18 @@ including) time <code>x_L</code>. On the other hand, the function
 <code>fit_LME_longitudinal</code> fits a multivariate linear mixed
 effects model (with unstructured covariance) to the training dataset.
 The model contains a random intercept and random slope (if
-<code>random_slope_longitudinal=TRUE</code>). Once this model is fitted,
-the BLUP estimates of the response variables (and slopes if
-<code>random_slope_survival=TRUE</code> is used) are calculated for the
-test dataset. These values, along with the LOCF value for each of the
-covariates in <code>predictors_LME</code>, are used as the covariates in
-the survival model. For more information see
+<code>random_slope_longitudinal=TRUE</code>). By default it uses all the
+measurements of the training individuals, including those after the
+landmark age (<code>include_data_after_x_L=TRUE</code>); see
+<code><a href="../reference/fit_LME_landmark.html">help(fit_LME_landmark)</a></code> for the trade-off. The responses may
+be missing at some times, for example when each response is measured at
+different visits. Once this model is fitted, the BLUP estimates of the
+response variables (and slopes if
+<code>random_slope_survival=TRUE</code> is used) at the landmark age are
+calculated from the measurements up to the landmark age. These values,
+along with the LOCF value for each of the covariates in
+<code>predictors_LME</code>, are used as the covariates in the survival
+model. For more information see
 <code><a href="../reference/fit_LME_longitudinal.html">help(fit_LME_longitudinal)</a></code>.</p>
 <p>Fitting the survival model is performed using
 <code>fit_survival_model</code>. This function censors the individuals
@@ -325,14 +334,19 @@ submodel specified in the function arguments. There are three choices
 for this model (standard Cox model, Fine Gray model, and cause-specific
 model). For more information see
 <code><a href="../reference/fit_survival_model.html">help(fit_survival_model)</a></code>.</p>
-<p>In the fifth step, the performance of the model is assessed using
-c-index and Brier score. If the parameter <code>b</code> is defined,
-then the bootstrap estimates of the c-index and Brier score are
-calculated as well. For both the c-index and Brier score calculations,
-inverse probability censoring weighting (IPCW) is used to create weights
-which account for the occurrence of censoring. The censoring model
-assumes for this function is the Kaplan Meier model, i.e. censoring
-occurs independently of covariates.</p>
+<p>In the fifth step, the performance of the model is assessed at the
+horizon time <code>x_hor</code> using the time-dependent area under the
+ROC curve (AUC), the Brier score and the index of prediction accuracy
+(IPA, a scaled Brier score), with standard errors for the AUC and Brier
+score, using the function <code>Score</code> from package
+<code>riskRegression</code>. Inverse probability of censoring weighting
+(IPCW) is used to account for censoring, with a Kaplan-Meier model for
+censoring, i.e. censoring occurs independently of covariates.
+Calibration can be assessed with the <code>plot</code> method, either
+binned or as a smooth calibration curve summarised by the integrated
+calibration index (ICI), E50 and E90 (see
+<code><a href="../reference/get_calibration.html">help(get_calibration)</a></code>). For more information see
+<code><a href="../reference/get_model_assessment.html">help(get_model_assessment)</a></code>.</p>
 </div>
   </div>
 

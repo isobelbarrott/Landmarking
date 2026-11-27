@@ -70,6 +70,22 @@
 
     <div class="section level2">
 <h2 class="page-header" data-toc-text="development version" id="landmarking-development-version">Landmarking (development version)<a class="anchor" aria-label="anchor" href="#landmarking-development-version"></a></h2>
+<div class="section level3">
+<h3 id="changes-that-affect-results-development-version">Changes that affect results<a class="anchor" aria-label="anchor" href="#changes-that-affect-results-development-version"></a></h3>
+<ul><li><p>Performance is now assessed with <code><a href="https://rdrr.io/pkg/riskRegression/man/Score.html" class="external-link">riskRegression::Score()</a></code>. <code>prediction_error</code> contains the time-dependent AUC, the Brier score, their standard errors (from the influence function) and the index of prediction accuracy (IPA, a scaled Brier score). The C-index has been removed, as it is not a proper measure for evaluating predicted risks at a fixed time, and package <code>pec</code> is no longer used. Code that reads <code>prediction_error$c_index</code> needs updating.</p></li>
+<li><p>The Brier score was too low in earlier versions. It was calculated on follow-up censored at the horizon, so individuals who were event-free at the horizon were treated as censored before it. For the example data at landmark age 60, the Brier score is now 0.138 rather than 0.111 for the LOCF model, and 0.114 rather than 0.088 for the LME model (with the same predictions). The C-index was not affected.</p></li>
+<li><p>Cross-validation for LME models (<code><a href="../reference/fit_LME_landmark.html">fit_LME_landmark()</a></code> with <code>k</code> or <code>cross_validation_df</code>) is now fully nested. For each fold, the LME model and the survival model are both fitted to the other folds only, and time is standardised using the other folds’ measurements. Previously, the survival model for a fold was trained on values predicted by LME models that had been fitted with that fold’s data (including its measurements after the landmark age when <code>include_data_after_x_L = TRUE</code>), which could make cross-validated performance optimistic. For the example data at landmark age 60 the difference is small (AUC 0.778 before and 0.782 now, with the corrected metrics). <code>model_LME_standardise_time</code> now has one element per fold. LOCF models, and LME models fitted without cross-validation, give the same results as before.</p></li>
+<li><p><code>b</code> is deprecated: standard errors no longer use the bootstrap, and supplying <code>b</code> gives a warning.</p></li>
+</ul></div>
+<div class="section level3">
+<h3 id="new-features-development-version">New features<a class="anchor" aria-label="anchor" href="#new-features-development-version"></a></h3>
+<ul><li><p><code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> has a new option <code>type = "smooth"</code>, which draws a smooth calibration curve estimated with pseudo-observations and gives the integrated calibration index (ICI), E50 and E90. The new function <code><a href="../reference/get_calibration.html">get_calibration()</a></code> returns the curve and these metrics. The binned plot is still the default.</p></li>
+<li><p><code>responses_LME</code> may contain missing values, for example when each response is measured at different times.</p></li>
+<li><p><code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> gives an error if <code>x_hor</code> is beyond the horizon the model was fitted with, or if <code>cv_fold</code> is not given for a model fitted with cross-validation. Fitted models store their horizon in <code>x_hor</code>.</p></li>
+<li><p>The documentation of <code>include_data_after_x_L</code> explains the trade-off of using measurements after the landmark age. The default is unchanged.</p></li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-and-other-changes-development-version">Bug fixes and other changes<a class="anchor" aria-label="anchor" href="#bug-fixes-and-other-changes-development-version"></a></h3>
 <ul><li><p>Fix <code><a href="../reference/fit_LME_landmark.html">fit_LME_landmark()</a></code> and <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> failing when <code>individual_id</code> is not <code>"id"</code> and random slopes are used in the survival submodel.</p></li>
 <li><p>Accept integer values for <code>x_L</code>, <code>x_hor</code>, <code>k</code>, <code>b</code> and <code>n</code> (e.g. <code>x_L = 60:61</code>).</p></li>
 <li><p>Fitted landmark models now store their resolved arguments in <code>args</code>. <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> and <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> use these instead of re-evaluating the original call, which failed when arguments were passed as variables. Models fitted with earlier versions still work.</p></li>
@@ -89,6 +105,7 @@
 <li><p>Documentation: bootstrap standard errors hold the fitted models fixed; <code><a href="../reference/return_ids_with_LOCF.html">return_ids_with_LOCF()</a></code> includes measurements at <code>x_L</code>; the random slopes are per standard deviation of time when <code>standardise_time = TRUE</code>.</p></li>
 <li><p>Put the <code>NEWS.md</code> sections in order.</p></li>
 </ul></div>
+</div>
     <div class="section level2">
 <h2 class="page-header" data-toc-text="1.0.2" id="landmarking-102">Landmarking 1.0.2<small>2026-05-16</small><a class="anchor" aria-label="anchor" href="#landmarking-102"></a></h2>
 <ul><li><p>Change argument names in fit_LME_longitudinal() for clarity</p></li>

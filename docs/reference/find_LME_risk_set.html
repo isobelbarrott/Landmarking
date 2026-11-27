@@ -118,14 +118,15 @@ In the latter case the order of elements must correspond to the order of element
 
 <dt id="arg-responses-lme">responses_LME<a class="anchor" aria-label="anchor" href="#arg-responses-lme"></a></dt>
 <dd><p>Vector of character strings specifying the column names in <code>data_long</code>
-which correspond to the response variables in the LME model</p></dd>
+which correspond to the response variables in the LME model. Values may be missing (<code>NA</code>), for example when the
+responses are measured at different times; missing values are ignored.</p></dd>
 
 
 <dt id="arg-responses-lme-time">responses_LME_time<a class="anchor" aria-label="anchor" href="#arg-responses-lme-time"></a></dt>
 <dd><p>Vector of character strings specifying the column names in <code>data_long</code>
 which contain the times at which response variables were recorded. This should either be length 1 or
 the same length as <code>responses_LME</code>. In the latter case the order of elements must correspond to the
-order of elements in <code>responses_LME</code>.</p></dd>
+order of elements in <code>responses_LME</code>. A time may be missing when the corresponding response is missing.</p></dd>
 
 
 <dt id="arg-individual-id">individual_id<a class="anchor" aria-label="anchor" href="#arg-individual-id"></a></dt>

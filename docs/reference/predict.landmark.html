@@ -94,14 +94,15 @@ of landmark models corresponding to different landmark times <code>x_L</code>.</
 
 
 <dt id="arg-x-hor">x_hor<a class="anchor" aria-label="anchor" href="#arg-x-hor"></a></dt>
-<dd><p>Numeric specifying the horizon time. The function assesses the risk of event before this time.</p></dd>
+<dd><p>Numeric specifying the horizon time. The function assesses the risk of event before this time. It should not be greater than
+the horizon time used to fit the landmark model, as the model has no information about the risk after that time.</p></dd>
 
 
 <dt id="arg-newdata">newdata<a class="anchor" aria-label="anchor" href="#arg-newdata"></a></dt>
 <dd><p>Data frame containing new data to return the risk prediction of the event of interest. The data should be in in long format
 and the columns must contain the covariates and time variables that are used to fit the model.
 For the LME model this the variables <code>predictors_LME</code>, <code>responses_LME</code>, <code>predictors_LME_time</code>, and
-<code>responses_LME_time</code>. For the LOCF model this is <code>covariates</code> and <code>covariates_time</code>.</p></dd>
+<code>responses_LME_time</code> (the responses may be missing). For the LOCF model this is <code>covariates</code> and <code>covariates_time</code>.</p></dd>
 
 
 <dt id="arg-cv-fold">cv_fold<a class="anchor" aria-label="anchor" href="#arg-cv-fold"></a></dt>
