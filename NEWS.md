@@ -1,3 +1,21 @@
+# Landmarking (development version)
+
+* Fix `fit_LME_landmark()` and `predict()` failing when `individual_id` is not `"id"` and random slopes are used in the survival submodel.
+
+* Accept integer values for `x_L`, `x_hor`, `k`, `b` and `n` (e.g. `x_L = 60:61`).
+
+* Fitted landmark models now store their resolved arguments in `args`. `predict()` and `plot()` use these instead of re-evaluating the original call, which failed when arguments were passed as variables. Models fitted with earlier versions still work.
+
+* Fix `predict()` for LME models when `newdata` has unused factor levels in the `individual_id` column.
+
+* A single `cross_validation_df` data frame can now be used with several landmark ages, and may be in long format.
+
+* Missing cross-validation folds are now detected at every landmark age, not only the last.
+
+* Add tests for argument handling, cross-validation folds, the `standard_cox` and `fine_gray` submodels, and `predict()` (including for a single new individual).
+
+* Replace the RDS snapshot tests with numerical checks of predictions and prediction error against reference values.
+
 # Landmarking 1.0.2
 
 # Landmarking 1.0.0

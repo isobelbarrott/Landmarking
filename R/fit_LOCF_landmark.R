@@ -60,10 +60,10 @@ find_LOCF_risk_set <- function(data_long,
     stop("event_status should have class character")
   }
 
-  if (!(inherits(x_L,"numeric"))) {
+  if (!(is.numeric(x_L))) {
      stop("'x_L' should be numeric")
   }
-  if (!(inherits(x_hor,"numeric"))) {
+  if (!(is.numeric(x_hor))) {
      stop("'x_hor' should be numeric")
   }
 
@@ -159,7 +159,7 @@ fit_LOCF_longitudinal <- function(data_long,
   if (!(inherits(data_long,"data.frame"))) {
     stop("data_long should be a data frame")
   }
-  if (!(inherits(x_L,"numeric"))) {
+  if (!(is.numeric(x_L))) {
     stop("'x_L' should be numeric")
   }
 
@@ -382,7 +382,7 @@ fit_LOCF_landmark <- function(data_long,
       if (any(duplicated(dplyr::distinct(cross_validation_df[, c(individual_id, "cross_validation_number")])[, individual_id]))) {
         stop("Cross validation folds should be the same for the same individual")
       }
-      cross_validation_df<-list(cross_validation_df)
+      cross_validation_df <- rep(list(cross_validation_df), length(x_L))
       names(cross_validation_df)<-x_L
     }
     else{
@@ -442,10 +442,14 @@ fit_LOCF_landmark <- function(data_long,
   #Add cross-validation folds
   if (cross_validation_df_add == TRUE) {
     for (x_l in x_L){
-      data_long_x_L[[as.character(x_l)]]<-
-        dplyr::left_join(data_long_x_L[[as.character(x_l)]], cross_validation_df[[as.character(x_l)]][,c(individual_id,"cross_validation_number")],by=individual_id)
+      cv_folds_x_l <-
+        dplyr::distinct(cross_validation_df[[as.character(x_l)]][, c(individual_id, "cross_validation_number")])
+      data_long_x_L[[as.character(x_l)]] <-
+        dplyr::left_join(data_long_x_L[[as.character(x_l)]], cv_folds_x_l, by = individual_id)
+      if (any(is.na(data_long_x_L[[as.character(x_l)]][, "cross_validation_number"]))) {
+        stop("Cross validation number not defined for all in individual_id at landmark age ", x_l)
+      }
     }
-    if(any(is.na(data_long_x_L[[as.character(x_l)]][,"cross_validation_number"]))){stop("Cross validation number not defined for all in individual_id")}
   }
 
   if (k_add == TRUE) {
@@ -461,6 +465,17 @@ fit_LOCF_landmark <- function(data_long,
                            individual_id)
       })
   }
+
+  #Store the resolved arguments so that predict() and plot() do not need to
+  #re-evaluate the call (which fails if the arguments were passed as variables)
+  args <- list(
+    covariates = covariates,
+    covariates_time = covariates_time,
+    individual_id = individual_id,
+    event_time = event_time,
+    event_status = event_status,
+    survival_submodel = survival_submodel
+  )
 
   #Fit each landmark model
   out <- lapply(1:length(x_L), function(i) {
@@ -525,7 +540,8 @@ fit_LOCF_landmark <- function(data_long,
       model_longitudinal = data_model_longitudinal$model_longitudinal,
       model_survival = data_model_survival$model_survival,
       prediction_error = prediction_error,
-      call = call
+      call = call,
+      args = args
     )
   })
   names(out) <- x_L

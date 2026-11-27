@@ -70,7 +70,7 @@ return_ids_with_LOCF <-
     if (length(covariates_time) == 1) {
       covariates_time <- rep(covariates_time, times = length(covariates))
     }
-    if (!(inherits(x_L,"numeric"))) {
+    if (!(is.numeric(x_L))) {
       stop("x_L should have class numeric")
     }
 
