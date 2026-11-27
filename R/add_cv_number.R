@@ -5,7 +5,8 @@
 #' @param data_long Data frame in long format i.e. there may be more than one row per individual
 #' @template individual_id
 #' @param k Integer specifying the number of folds for cross-validation.
-#' @param seed The value of the seed (default is 1)
+#' @param seed The value of the seed (default is 1). The seed is used only for assigning
+#' the folds: the global random number generator state is restored afterwards.
 #' @return Data frame `data_long` updated to contain a new column `cross_validation_number`
 #' indicating the fold to which the individual has been assigned.
 #' @author Isobel Barrott \email{isobel.barrott@@gmail.com}
@@ -21,6 +22,18 @@
 
 
 add_cv_number <- function(data_long, individual_id, k, seed = 1) {
+  #Use the seed for assigning folds without changing the global random
+  #number generator state
+  old_seed <- get0(".Random.seed", envir = globalenv(), inherits = FALSE)
+  on.exit({
+    if (is.null(old_seed)) {
+      if (exists(".Random.seed", envir = globalenv(), inherits = FALSE)) {
+        rm(".Random.seed", envir = globalenv())
+      }
+    } else {
+      assign(".Random.seed", old_seed, envir = globalenv())
+    }
+  }, add = TRUE)
   set.seed(seed)
   if (!(inherits(data_long,"data.frame"))) {
     stop("data_long should be a data frame")

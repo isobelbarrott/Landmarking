@@ -39,7 +39,7 @@ This function selects these individuals and removes the other rows.
 }
 \details{
 Individuals have a LOCF if there is a non-\code{NA} entry for each of the covariates in
-\code{covariates} up until (not including) time \code{x_L}.
+\code{covariates} up to and including time \code{x_L}.
 }
 \examples{
 library(Landmarking)

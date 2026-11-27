@@ -5,7 +5,7 @@
 #' This function selects these individuals and removes the other rows.
 #'
 #' @details Individuals have a LOCF if there is a non-`NA` entry for each of the covariates in
-#' `covariates` up until (not including) time `x_L`.
+#' `covariates` up to and including time `x_L`.
 #'
 #' @param data_long Data frame with repeated measurements data in long format
 #' @template individual_id

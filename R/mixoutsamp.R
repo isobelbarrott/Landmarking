@@ -58,7 +58,7 @@ mixoutsamp <- function(model, newdata) {
 
   data.names <-
     unique(c(all.vars(model$terms), all.vars(
-      attr(model$modelStruct$reStruct$patid, "formula")
+      stats::formula(model$modelStruct$reStruct)[[1]]
     ), all.vars(
       attr(model$modelStruct$varStruct, "formula")
     )))
@@ -89,7 +89,7 @@ mixoutsamp <- function(model, newdata) {
 
   #----error message
   for (v in 1:length(data.names)) {
-    if (sum(is.na(newdata[, v])) == n) {
+    if (sum(is.na(newdata[, data.names[v]])) == n) {
       stop(paste0(
         "Error: the variable ''",
         data.names[v],

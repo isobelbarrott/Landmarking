@@ -62,26 +62,30 @@ plot.landmark <- function(x, x_L, n, x_lims, y_lims, ...) {
   data_survival[["event_time"]] <- data_survival[[event_time]]
   events <- unique(x[["data"]][[event_status]])
 
+  breaks <- stats::quantile(data_survival$event_prediction, seq(0, 1, by = 1 / n))
+  if (anyDuplicated(breaks)) {
+    stop("Too many tied values of event_prediction to form ", n,
+         " groups, select lower value of n")
+  }
   data_survival$quantile <-
     .bincode(
       data_survival$event_prediction,
-      breaks = stats::quantile(data_survival$event_prediction, seq(0, 1, by =
-                                                                     1 / n)),
+      breaks = breaks,
       include.lowest = TRUE
     )
   if (length(table(data_survival$quantile)) != n) {
     stop("Not enough data for number of quantiles, select lower value of n")
   }
-  trans <- mstate::trans.comprisk(max(events), 1:max(events))
   data_survival <- do.call("rbind", lapply(1:max(events), function(i) {
     data_survival_i <-
       data.frame(data_survival, trans = i, status = as.numeric(+(data_survival[[event_status]] ==
                                                                    i)))
-    if (all(data_survival[["status"]] == i) == 0) {
+    if (!any(data_survival_i$status == 1)) {
       stop(paste0("Not enough events (for event ", i, ")"))
     }
     data_survival_i
   }))
+  trans <- mstate::trans.comprisk(max(events), 1:max(events))
   for (i in 1:n) {
     data_i <- data_survival[data_survival$quantile == i, ]
     coxph_i <-
