@@ -11,10 +11,8 @@ See NEWS.md for details.
 
 ## Test environments
 
-* local Windows 11 install (R release)
 * GitHub Actions: windows-latest (R release), macos-latest (R release), ubuntu-latest (R devel, R release and R oldrel-1)
 * win-builder (R devel)
-* mac builder (R release)
 
 ## R CMD check results
 
