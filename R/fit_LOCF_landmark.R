@@ -281,7 +281,7 @@ fit_LOCF_longitudinal <- function(data_long,
 #' element in the list corresponding to a different cross-validation fold. For more information on how the survival model is fitted
 #' please see `?fit_survival_model` which is a function used within `fit_LOCF_landmark`.
 #'
-#' `prediction_error` contains a list with the time-dependent AUC, the Brier score and their standard errors, and the index of prediction accuracy (IPA),
+#' `prediction_error` contains a list with the time-dependent AUC and the Brier score, and their standard errors,
 #' at time `x_hor`. For more information on how the prediction error is calculated
 #' please see `?get_model_assessment` which is the function used to do this within `fit_LOCF_landmark`.
 #'
@@ -307,7 +307,7 @@ fit_LOCF_longitudinal <- function(data_long,
 #' individuals at the time horizon `x_L` and fits the survival model. Using the survival data is the second stage and is performed using `fit_survival_model`. See `?fit_survival_model` more for information about this function.
 #'
 #' Fourthly, the performance of the model is then assessed on the set of predictions
-#' from the entire set of individuals in the risk set by calculating the time-dependent AUC, Brier score and index of prediction accuracy.
+#' from the entire set of individuals in the risk set by calculating the time-dependent AUC and Brier score.
 #' This is performed using `get_model_assessment`. See `?get_model_assessment` more for information about this function.
 #'
 #' @author Isobel Barrott \email{isobel.barrott@@gmail.com}

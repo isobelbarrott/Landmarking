@@ -1,8 +1,7 @@
-#' Compute the time-dependent AUC, Brier score and index of prediction accuracy
+#' Compute the time-dependent AUC and Brier score
 #'
-#' Performs model assessment by computing the time-dependent area under the ROC curve (AUC),
-#' the Brier score and the index of prediction accuracy (IPA) at time `x_hor`, with standard errors
-#' for the AUC and Brier score.
+#' Performs model assessment by computing the time-dependent area under the ROC curve (AUC)
+#' and the Brier score at time `x_hor`, with their standard errors.
 #'
 #' @param data Data frame containing survival outcomes and the event predictions from the model,
 #' there should be one row for each individual
@@ -14,7 +13,7 @@
 #' @template event_prediction
 #' @template b
 #' @return List containing the AUC (`auc`) and its standard error (`auc_standard_error`), the Brier score (`brier_score`)
-#' and its standard error (`brier_score_standard_error`), and the index of prediction accuracy (`ipa`).
+#' and its standard error (`brier_score_standard_error`).
 #' @details There are two factors in assessing the performance of a prediction model; its
 #' discrimination and its calibration. Discrimination refers to the ability of the model to separate individuals into
 #' those that will have the event of interest by time `x_hor` and those that will not. It is assessed with the
@@ -25,9 +24,7 @@
 #'
 #' The Brier score is the mean squared difference between the predicted risk and the event outcome by `x_hor` (where
 #' an event of interest is 1 and not experiencing the event, including having a competing event, is 0). It reflects both calibration and
-#' discrimination. The index of prediction accuracy (IPA) is the scaled Brier score, 1 - (Brier score of the model / Brier score
-#' of the null model), where the null model predicts the same risk (the Kaplan-Meier or Aalen-Johansen estimate) for everyone.
-#' Higher values are better; values below 0 indicate the model predicts worse than the null model.
+#' discrimination. Lower values are better.
 #'
 #' Inverse probability of censoring weighting (IPCW) is used to account for censoring, with a Kaplan-Meier model for censoring,
 #' i.e. censoring is assumed to occur independently of covariates. The standard errors are based on the influence function
@@ -46,9 +43,6 @@
 #' Blanche P, Proust-Lima C, Loubere L, Berr C, Dartigues JF, Jacqmin-Gadda H (2015). Quantifying and comparing dynamic
 #' predictive accuracy of joint models for longitudinal marker and time-to-event in presence of censoring and competing risks.
 #' Biometrics, 71(1), 102-113.
-#'
-#' Kattan MW, Gerds TA (2018). The index of prediction accuracy: an intuitive measure useful for evaluating risk prediction models.
-#' Diagnostic and Prognostic Research, 2, 7.
 #' @author Isobel Barrott \email{isobel.barrott@@gmail.com}
 #' @examples \dontrun{
 #' library(Landmarking)
@@ -143,8 +137,7 @@ get_model_assessment <-
       times = x_hor,
       cause = 1,
       metrics = c("auc", "brier"),
-      summary = "ipa",
-      null.model = TRUE,
+      null.model = FALSE,
       se.fit = TRUE,
       cens.model = "km",
       progress.bar = NULL
@@ -159,8 +152,7 @@ get_model_assessment <-
         auc = auc$AUC,
         auc_standard_error = auc$se,
         brier_score = brier$Brier,
-        brier_score_standard_error = brier$se,
-        ipa = brier$IPA
+        brier_score_standard_error = brier$se
       )
     )
   }

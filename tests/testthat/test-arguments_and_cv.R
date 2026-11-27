@@ -382,7 +382,7 @@ test_that("LME model warns about individuals without all responses by the landma
   expect_same_alone_and_with_others(m_chr)
 })
 
-test_that("prediction_error reports AUC, Brier score and IPA, and b is deprecated", {
+test_that("prediction_error reports the AUC and Brier score, and b is deprecated", {
   expect_warning(
     m <- quietly_except_b(fit_LOCF_landmark(
       data_long = data_repeat_outcomes, x_L = 60, x_hor = 65,
@@ -393,11 +393,10 @@ test_that("prediction_error reports AUC, Brier score and IPA, and b is deprecate
     "b is no longer used"
   )
   pe <- m[["60"]]$prediction_error
-  expect_named(pe, c("auc", "auc_standard_error", "brier_score", "brier_score_standard_error", "ipa"))
+  expect_named(pe, c("auc", "auc_standard_error", "brier_score", "brier_score_standard_error"))
   expect_true(pe$auc > 0.5 && pe$auc < 1)
   expect_true(pe$brier_score > 0 && pe$brier_score < 1)
   expect_true(pe$auc_standard_error > 0 && pe$brier_score_standard_error > 0)
-  expect_true(pe$ipa < 1)
 
   # The stored follow-up is censored at the horizon. The metrics must be the
   # same as with the full follow-up: individuals event-free at the horizon
@@ -432,35 +431,6 @@ test_that("predict() does not predict beyond the fitted horizon and needs cv_fol
                "cv_fold should be one of")
   p <- quietly(predict(m, x_L = 60, x_hor = 65, newdata = new_individual, cv_fold = 1))
   expect_true(p$event_prediction > 0 && p$event_prediction < 1)
-})
-
-test_that("smooth calibration: get_calibration() and plot(type = 'smooth')", {
-  m <- fit_locf(data_long = data_repeat_outcomes, x_L = 60, x_hor = 65,
-                covariates = covs, covariates_time = cov_times, k = 5,
-                survival_submodel = "cause_specific")
-  calibration <- get_calibration(m, x_L = 60)
-  expect_named(calibration, c("curve", "ICI", "E50", "E90"))
-  expect_equal(nrow(calibration$curve), 100)
-  expect_true(all(calibration$curve$observed >= 0 & calibration$curve$observed <= 1))
-  expect_true(calibration$ICI >= 0 && calibration$E50 <= calibration$E90)
-  p <- plot(m, x_L = 60, type = "smooth")
-  expect_s3_class(p, "ggplot")
-  expect_match(p$labels$subtitle, "^ICI = ")
-  expect_error(plot(m, x_L = 60), "n must have class numeric")
-
-  # With simulated outcomes, a calibrated model has a small ICI and a
-  # miscalibrated one a large ICI (no censoring before the horizon here)
-  set.seed(11)
-  n <- 4000
-  risk <- stats::runif(n, 0.02, 0.4)
-  event <- stats::runif(n) < risk
-  competing <- !event & stats::runif(n) < 0.1
-  time <- ifelse(event | competing, stats::runif(n, 0, 5), 6)
-  status <- ifelse(event, 1, ifelse(competing, 2, 0))
-  calibrated <- get_smooth_calibration(risk, time, status, x_hor = 5)
-  miscalibrated <- get_smooth_calibration(pmin(2 * risk, 1), time, status, x_hor = 5)
-  expect_lt(calibrated$ICI, 0.02)
-  expect_gt(miscalibrated$ICI, 0.1)
 })
 
 test_that("nested cross-validation: a fold's predictions do not depend on its own data after the landmark", {

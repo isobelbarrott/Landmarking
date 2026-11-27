@@ -1,8 +1,8 @@
-# Landmarking (development version)
+# Landmarking 1.1.0
 
 ## Changes that affect results
 
-* Performance is now assessed with `riskRegression::Score()`. `prediction_error` contains the time-dependent AUC, the Brier score, their standard errors (from the influence function) and the index of prediction accuracy (IPA, a scaled Brier score). The C-index has been removed, as it is not a proper measure for evaluating predicted risks at a fixed time, and package `pec` is no longer used. Code that reads `prediction_error$c_index` needs updating.
+* Performance is now assessed with `riskRegression::Score()`. `prediction_error` contains the time-dependent AUC, the Brier score and their standard errors (from the influence function). The C-index has been removed, as it is not a proper measure for evaluating predicted risks at a fixed time, and package `pec` is no longer used. Code that reads `prediction_error$c_index` needs updating.
 
 * The Brier score was too low in earlier versions. It was calculated on follow-up censored at the horizon, so individuals who were event-free at the horizon were treated as censored before it. For the example data at landmark age 60, the Brier score is now 0.138 rather than 0.111 for the LOCF model, and 0.114 rather than 0.088 for the LME model (with the same predictions). The C-index was not affected.
 
@@ -11,8 +11,6 @@
 * `b` is deprecated: standard errors no longer use the bootstrap, and supplying `b` gives a warning.
 
 ## New features
-
-* `plot()` has a new option `type = "smooth"`, which draws a smooth calibration curve estimated with pseudo-observations and gives the integrated calibration index (ICI), E50 and E90. The new function `get_calibration()` returns the curve and these metrics. The binned plot is still the default.
 
 * `responses_LME` may contain missing values, for example when each response is measured at different times.
 
